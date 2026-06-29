@@ -1,0 +1,249 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #05070f;
+  --color-brand-card: #0c0f1d;
+  --color-brand-card-hover: #151a30;
+  
+  /* Brutalist neon palette */
+  --color-brutal-green: #00ff66;
+  --color-brutal-pink: #ff007f;
+  --color-brutal-yellow: #ffee00;
+  --color-brutal-cyan: #00f2fe;
+  --color-brutal-blue: #0022ff;
+  --color-brand-border: #ffffff;
+  --color-brand-text: #c3d1f0;
+  --color-brand-text-muted: #8899b8;
+  --color-brand-heading: #ffffff;
+}
+
+/* Base resets & Custom cursors */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-text);
+  font-family: 'Courier New', Courier, monospace;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  image-rendering: pixelated;
+  /* Brutalist custom pixel cursor (Base64 SVG pointer) */
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black' stroke='white' stroke-width='2'%3E%3Cpolygon points='0,0 0,16 5,12 10,21 13,19 8,11 15,11'/%3E%3C/svg%3E"), auto;
+}
+
+/* Hover cursor - Hand pointer cursor */
+a, button, [role="button"], input[type="submit"], select, input[type="checkbox"], input[type="radio"] {
+  cursor: pointer !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: #05070f;
+  border-left: 3px solid #fff;
+}
+::-webkit-scrollbar-thumb {
+  background: #fff;
+  border: 3px solid #05070f;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brutal-cyan);
+}
+
+/* The Wireframe Brutalist Container */
+.brutal-border {
+  border: 3px solid #ffffff;
+  box-shadow: 6px 6px 0px #000000, 6px 6px 0px 3px #ffffff;
+  background-color: var(--color-brand-card);
+}
+
+.brutal-border-interactive {
+  border: 3px solid #ffffff;
+  box-shadow: 6px 6px 0px #000000, 6px 6px 0px 3px #ffffff;
+  transition: all 0.1s ease;
+}
+.brutal-border-interactive:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 9px 9px 0px #000000, 9px 9px 0px 3px var(--color-brutal-pink);
+}
+.brutal-border-interactive:active {
+  transform: translate(4px, 4px);
+  box-shadow: 2px 2px 0px #000000, 2px 2px 0px 1px var(--color-brutal-green);
+}
+
+/* Fast Marquee Pinned Taskbar */
+.marquee-container {
+  background: #ff007f;
+  border-bottom: 3px solid #ffffff;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 6px 0;
+  position: relative;
+  z-index: 100;
+}
+
+.marquee-text {
+  display: inline-block;
+  padding-left: 100%;
+  animation: marquee 28s linear infinite;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+@keyframes marquee {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
+
+/* Floating Log It Action Button */
+.brutal-log-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99;
+  background-color: var(--color-brutal-green);
+  color: var(--color-brutal-blue);
+  border: 4px solid #000000;
+  padding: 16px 28px;
+  font-family: 'MS Gothic', 'Courier New', monospace;
+  font-size: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 8px 8px 0px #000000;
+  transition: all 0.1s ease;
+}
+.brutal-log-btn:hover {
+  background-color: var(--color-brutal-blue);
+  color: var(--color-brutal-green);
+  transform: translate(2px, 2px);
+  box-shadow: 6px 6px 0px #000000;
+}
+.brutal-log-btn:active {
+  transform: translate(8px, 8px);
+  box-shadow: 0px 0px 0px #000000;
+}
+
+/* Bitmap threshold hover for posters */
+.bitmap-hover {
+  filter: grayscale(0) contrast(100%);
+  transition: filter 0.2s steps(4);
+}
+.bitmap-hover:hover {
+  filter: grayscale(1) contrast(500%) brightness(110%);
+}
+
+/* Dithered Flip Phone Simulation for Avatars */
+.dithered-avatar {
+  image-rendering: pixelated;
+  filter: grayscale(0.2) contrast(150%) brightness(95%);
+  border: 3px solid #ffffff;
+}
+
+/* Tape Overlay for Polaroids */
+.polaroid-container {
+  background: #ffffff;
+  padding: 12px 12px 24px 12px;
+  border: 3px solid #000;
+  box-shadow: 5px 5px 0px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.masking-tape {
+  position: absolute;
+  top: -15px;
+  left: 25%;
+  width: 50%;
+  height: 25px;
+  background-color: rgba(246, 240, 213, 0.7);
+  border-left: 2px dashed rgba(0,0,0,0.1);
+  border-right: 2px dashed rgba(0,0,0,0.1);
+  transform: rotate(-3deg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Windows 95 Notepad style modal */
+.win95-notepad {
+  background: #c0c0c0;
+  border-top: 2px solid #fff;
+  border-left: 2px solid #fff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  box-shadow: 2px 2px 0px #000000;
+  padding: 4px;
+}
+
+.win95-titlebar {
+  background: linear-gradient(90deg, #000080, #1084d0);
+  color: white;
+  padding: 3px 6px;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.win95-btn {
+  background: #c0c0c0;
+  border-top: 1px solid #fff;
+  border-left: 1px solid #fff;
+  border-right: 1px solid #808080;
+  border-bottom: 1px solid #808080;
+  color: black;
+  width: 16px;
+  height: 14px;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.win95-btn:active {
+  border-top: 1px solid #808080;
+  border-left: 1px solid #808080;
+  border-right: 1px solid #fff;
+  border-bottom: 1px solid #fff;
+}
+
+.win95-textarea {
+  background: #ffffff;
+  color: #000000;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  outline: none;
+}
+
+/* ASCII Rating Stars */
+.ascii-rating-btn {
+  font-size: 16px;
+  font-weight: bold;
+  padding: 6px 12px;
+  border: 2px solid #fff;
+  background: #000;
+  color: #fff;
+  transition: all 0.1s;
+}
+.ascii-rating-btn:hover {
+  background: var(--color-brutal-pink);
+  color: #000;
+}
+.ascii-rating-btn.active {
+  background: var(--color-brutal-cyan);
+  color: #000;
+  border-color: var(--color-brutal-cyan);
+}
