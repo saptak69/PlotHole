@@ -110,7 +110,7 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="win95-btn w-full py-2.5 h-auto text-sm font-black text-black active:border-t-2 active:border-l-2 active:border-r active:border-b"
+              className="w-full bg-brutal-pink text-black border-3 border-black py-2.5 font-black text-xs uppercase shadow-[4px_4px_0px_#000] hover:bg-white transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             >
               {loading ? 'Registering Access...' : 'Submit_Registration'}
             </button>

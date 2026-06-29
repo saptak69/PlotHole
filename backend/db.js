@@ -1,4 +1,3 @@
-import sqlite3 from 'sqlite3';
 import pg from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -23,6 +22,7 @@ if (process.env.DATABASE_URL) {
   isPostgres = true;
 } else {
   console.log('Using SQLite local database (Demo Mode)...');
+  const sqlite3 = (await import('sqlite3')).default;
   const dbPath = path.join(__dirname, 'local.db');
   sqliteDb = new sqlite3.Database(dbPath);
 }
