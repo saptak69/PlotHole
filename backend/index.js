@@ -45,6 +45,13 @@ function authenticateToken(req, res, next) {
   });
 }
 
+class TMDBError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
+}
+
 // TMDB Fetch Helper
 async function fetchFromTMDB(endpoint, queryParams = {}) {
   if (!TMDB_API_KEY) {
@@ -66,7 +73,7 @@ async function fetchFromTMDB(endpoint, queryParams = {}) {
   const response = await fetch(url.toString());
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`TMDB API error: ${response.status} - ${errText}`);
+    throw new TMDBError(response.status, `TMDB API error: ${response.status} - ${errText}`);
   }
   return await response.json();
 }
@@ -109,7 +116,10 @@ app.post('/api/auth/signup', async (req, res) => {
     });
   } catch (error) {
     console.error('Signup error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo')) {
+      return res.status(503).json({ error: 'Database service is offline or unreachable. Please check your internet connection or DATABASE_URL settings.' });
+    }
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });
 
@@ -149,7 +159,10 @@ app.post('/api/auth/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo')) {
+      return res.status(503).json({ error: 'Database service is offline or unreachable. Please check your internet connection or DATABASE_URL settings.' });
+    }
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });
 
@@ -236,7 +249,7 @@ app.get('/api/movies/search', async (req, res) => {
     const data = await fetchFromTMDB('/search/multi', { query: req.query.query, page: req.query.page });
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -247,7 +260,7 @@ app.get('/api/media/:mediaType/:id', async (req, res) => {
     const data = await fetchFromTMDB(`/${mediaType}/${id}`);
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -257,7 +270,7 @@ app.get('/api/media/:mediaType/:id/credits', async (req, res) => {
     const data = await fetchFromTMDB(`/${mediaType}/${id}/credits`);
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -267,7 +280,7 @@ app.get('/api/media/:mediaType/:id/recommendations', async (req, res) => {
     const data = await fetchFromTMDB(`/${mediaType}/${id}/recommendations`);
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -277,7 +290,7 @@ app.get('/api/movies/:id', async (req, res) => {
     const data = await fetchFromTMDB(`/movie/${req.params.id}`);
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -286,7 +299,7 @@ app.get('/api/movies/:id/credits', async (req, res) => {
     const data = await fetchFromTMDB(`/movie/${req.params.id}/credits`);
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -295,7 +308,7 @@ app.get('/api/movies/:id/recommendations', async (req, res) => {
     const data = await fetchFromTMDB(`/movie/${req.params.id}/recommendations`);
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ error: error.message });
   }
 });
 
@@ -714,6 +727,17 @@ app.get('/api/users/profile/:username/ratings-dist', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Global Error Handler Middleware
+app.use((err, req, res, next) => {
+  console.error('[UNHANDLED EXCEPTION]:', err);
+  if (err.code === 'ENOTFOUND' || err.message.includes('getaddrinfo')) {
+    return res.status(503).json({ error: 'Database service is offline or unreachable. Please check your internet connection or DATABASE_URL settings.' });
+  }
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error'
+  });
 });
 
 // Start Server
