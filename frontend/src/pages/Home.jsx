@@ -122,6 +122,7 @@ export default function Home() {
 
   // Hero Movie is selected from rotation index
   const heroMovie = popularMovies[currentHeroIndex];
+  const movieDate = heroMovie ? (heroMovie.release_date || heroMovie.first_air_date) : null;
 
   return (
     <div className="flex-1 pb-16 font-mono text-white select-none">
