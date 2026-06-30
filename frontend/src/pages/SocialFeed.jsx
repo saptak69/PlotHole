@@ -19,9 +19,9 @@ export default function SocialFeed() {
 
   return (
     <div className="flex-1 max-w-3xl mx-auto px-6 py-12 text-left font-mono">
-      <div className="flex items-center gap-3 mb-8 border-b-4 border-white pb-4">
-        <Users className="w-8 h-8 text-brutal-cyan animate-pulse" />
-        <h1 className="text-2xl md:text-3xl font-black text-white uppercase">
+      <div className="flex items-center gap-3 mb-8 border-b-2 border-white/20 pb-4">
+        <Users className="w-8 h-8 text-brutal-cyan" />
+        <h1 className="text-2xl md:text-[32px] font-black text-white uppercase leading-tight">
           Friend Activity Feed
         </h1>
       </div>
@@ -33,14 +33,14 @@ export default function SocialFeed() {
           ))}
         </div>
       ) : error ? (
-        <div className="p-6 border-4 border-brutal-pink bg-brutal-pink/10 text-brutal-pink text-xs uppercase font-bold">
+        <div className="p-6 border-2 border-brutal-pink bg-brutal-pink/10 text-brutal-pink text-sm uppercase font-bold">
           [SYSTEM EXCEPTION]: {error.message}
         </div>
       ) : feed.length === 0 ? (
         <div className="brutal-border p-12 text-center text-brand-text-muted space-y-4 uppercase">
           <Users className="w-12 h-12 text-brand-text-muted mx-auto" />
           <h3 className="font-black text-lg text-white">Feed is Quiet</h3>
-          <p className="text-xs max-w-md mx-auto">
+          <p className="text-sm max-w-md mx-auto font-bold">
             You don't see any activity because you aren't following anyone yet or your friends haven't logged any movies. Follow some users to see their reviews!
           </p>
         </div>
@@ -51,7 +51,7 @@ export default function SocialFeed() {
               <img
                 src={act.avatar_url}
                 alt={act.username}
-                className="w-12 h-12 rounded-none border-2 border-white dithered-avatar shrink-0"
+                className="w-12 h-12 rounded-none border-2 border-white/20 dithered-avatar shrink-0"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-3 border-b border-white/10 pb-2">
@@ -59,7 +59,7 @@ export default function SocialFeed() {
                     @{act.username}
                   </Link>
                   
-                  <span className="text-[10px] text-brand-text-muted uppercase font-bold">
+                  <span className="text-xs text-brand-text-muted uppercase font-bold">
                     {act.type === 'review' ? 'ranted about' : 'watched'}
                   </span>
                   
@@ -76,12 +76,12 @@ export default function SocialFeed() {
                 </div>
 
                 {act.review_text && (
-                  <p className="text-xs text-brand-text leading-relaxed bg-black/60 p-4 border border-white/10">
+                  <p className="text-sm md:text-base text-brand-text leading-relaxed bg-black/60 p-4 border border-white/10">
                     {act.review_text}
                   </p>
                 )}
 
-                <span className="block text-[9px] text-brand-text-muted mt-3 font-bold">
+                <span className="block text-xs text-brand-text-muted mt-3 font-bold">
                   Logged: {new Date(act.created_at).toLocaleString()}
                 </span>
               </div>

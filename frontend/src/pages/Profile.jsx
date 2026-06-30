@@ -170,13 +170,13 @@ export default function Profile() {
   // Calculate simulated "Hours Wasted" (2 hours per watch log + 0.5 hours per rant)
   const hoursWasted = Math.max(0, ((stats.diary || 0) * 2) + ((stats.reviews || 0) * 0.5));
 
-  // Determine top 4 films to showcase in polaroids (use first 4 items in watchlist/diary)
-  const top4MovieIds = watchlist.length > 0 
-    ? watchlist.slice(0, 4).map(w => w.tmdb_movie_id)
-    : diary.slice(0, 4).map(d => d.tmdb_movie_id);
+  // Determine top 6 films to showcase in polaroids (use first 6 items in watchlist/diary)
+  const topMovieIds = watchlist.length > 0 
+    ? watchlist.slice(0, 6).map(w => w.tmdb_movie_id)
+    : diary.slice(0, 6).map(d => d.tmdb_movie_id);
 
-  // Rotation angles for top polaroids (reduced for mobile safety)
-  const rotations = [-3, 2, -1, 3];
+  // Rotation angles for top polaroids
+  const rotations = [-3, 2, -1, 3, -2, 1];
  
   return (
     <div className="flex-1 max-w-7xl mx-auto px-6 md:px-12 py-12 text-left font-mono">
@@ -197,9 +197,15 @@ export default function Profile() {
         <div className="flex-1 text-center lg:text-left space-y-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight">@{profileUser.username}</h1>
-            <p className="text-[10px] text-brand-text-muted mt-1 uppercase">JOINED PLOTHOLE DATABASE: {new Date(profileUser.created_at).toLocaleDateString()}</p>
+            
+            {/* Inline Stats Line */}
+            <p className="text-sm text-brutal-cyan font-black mt-2 uppercase tracking-wide">
+              {hoursWasted.toFixed(0)}h wasted • {stats.diary} films logged • {stats.reviews} reviews • {stats.followers} followers • {stats.following} following
+            </p>
+            
+            <p className="text-xs text-brand-text-muted mt-1 uppercase">JOINED DATABASE: {new Date(profileUser.created_at).toLocaleDateString()}</p>
           </div>
-          <p className="text-xs text-brand-text max-w-xl leading-relaxed uppercase border-l-3 border-brutal-pink pl-4">
+          <p className="text-sm md:text-base text-brand-text max-w-xl leading-relaxed uppercase border-l-3 border-brutal-pink pl-4">
             {profileUser.bio}
           </p>
           
@@ -208,7 +214,7 @@ export default function Profile() {
             <button
               onClick={() => followMutation.mutate()}
               disabled={followMutation.isPending}
-              className={`px-6 py-2 border-3 font-extrabold text-xs uppercase shadow-[4px_4px_0px_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all ${
+              className={`px-6 py-2.5 border-3 font-extrabold text-xs uppercase shadow-[4px_4px_0px_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all ${
                 isFollowing
                   ? 'bg-black border-brutal-pink text-brutal-pink'
                   : 'bg-brutal-yellow border-white text-black'
@@ -219,39 +225,39 @@ export default function Profile() {
           )}
         </div>
  
-        {/* Responsive Dashboard Grid for Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 border-4 border-white w-full lg:w-auto font-mono text-center select-none shrink-0 overflow-hidden shadow-[6px_6px_0px_#000]">
-          <div className="p-3 border-r-2 border-b-2 border-white md:border-b-0 bg-black">
-            <span className="block text-brand-text-muted text-[10px] mb-1">Hours Wasted</span>
+        {/* Softer Detailed Dashboard Grid for Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 border-2 border-white/25 w-full lg:w-auto font-mono text-center select-none shrink-0 overflow-hidden shadow-[4px_4px_0px_#000]">
+          <div className="p-3 border-r border-b border-white/20 md:border-b-0 bg-brand-card">
+            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Hrs Wasted</span>
             <span className="text-base md:text-lg font-black text-brutal-cyan">{hoursWasted.toFixed(1)}</span>
           </div>
-          <div className="p-3 border-b-2 border-white md:border-r-2 md:border-b-0 bg-black">
-            <span className="block text-brand-text-muted text-[10px] mb-1">Films Slammed</span>
+          <div className="p-3 border-b border-white/20 md:border-r md:border-b-0 bg-brand-card">
+            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Logged</span>
             <span className="text-base md:text-lg font-black text-white">{stats.diary}</span>
           </div>
-          <div className="p-3 border-r-2 border-b-2 border-white md:border-b-0 bg-black">
-            <span className="block text-brand-text-muted text-[10px] mb-1">Rants</span>
+          <div className="p-3 border-r border-b border-white/20 md:border-b-0 bg-brand-card">
+            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Rants</span>
             <span className="text-base md:text-lg font-black text-brutal-pink">{stats.reviews}</span>
           </div>
-          <div className="p-3 border-b-2 md:border-b-0 border-white md:border-r-2 bg-black">
-            <span className="block text-brand-text-muted text-[10px] mb-1">Followers</span>
+          <div className="p-3 border-b border-b-white/20 md:border-b-0 md:border-r bg-brand-card">
+            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Followers</span>
             <span className="text-base md:text-lg font-black text-white">{stats.followers}</span>
           </div>
-          <div className="p-3 bg-black col-span-2 md:col-span-1">
-            <span className="block text-brand-text-muted text-[10px] mb-1">Following</span>
+          <div className="p-3 bg-brand-card col-span-2 md:col-span-1">
+            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Following</span>
             <span className="text-base md:text-lg font-black text-white">{stats.following}</span>
           </div>
         </div>
       </div>
 
-      {/* TOP 4 FAVORITES TAPED POLAROID SCRAPBOOK DISPLAY */}
-      {top4MovieIds.length > 0 && (
+      {/* TOP 6 FAVORITES TAPED POLAROID DISPLAY */}
+      {topMovieIds.length > 0 && (
         <div className="mb-16">
           <h3 className="text-sm font-black uppercase text-black bg-white px-3 py-1.5 border-2 border-black w-fit mb-8 shadow-[4px_4px_0px_rgba(255,255,255,1)]">
             Pinned Reel Discoveries
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 px-4">
-            {top4MovieIds.map((mId, idx) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 px-4">
+            {topMovieIds.map((mId, idx) => (
               <PolaroidCard 
                 key={mId} 
                 movieId={mId} 
@@ -263,23 +269,23 @@ export default function Profile() {
       )}
 
       {/* Tabs Selector */}
-      <div className="flex border-b-4 border-white mb-8 select-none">
+      <div className="flex border-b-2 border-white/20 mb-8 select-none">
         <button
           onClick={() => setActiveTab('diary')}
-          className={`px-6 py-3 font-black text-xs uppercase border-t-3 border-l-3 border-r-3 -mb-[4px] z-10 transition-all ${
+          className={`px-6 py-3 font-black text-sm uppercase border-t-2 border-l-2 border-r-2 -mb-[2px] z-10 transition-all ${
             activeTab === 'diary'
-              ? 'bg-brutal-cyan text-black border-white'
-              : 'bg-black text-brand-text-muted border-brand-border/40 hover:text-white'
+              ? 'bg-brutal-cyan text-black border-white/25'
+              : 'bg-black text-brand-text-muted border-white/10 hover:text-white'
           }`}
         >
           Diary timeline
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`px-6 py-3 font-black text-xs uppercase border-t-3 border-l-3 border-r-3 -mb-[4px] z-10 transition-all ${
+          className={`px-6 py-3 font-black text-sm uppercase border-t-2 border-l-2 border-r-2 -mb-[2px] z-10 transition-all ${
             activeTab === 'reviews'
-              ? 'bg-brutal-pink text-black border-white'
-              : 'bg-black text-brand-text-muted border-brand-border/40 hover:text-white'
+              ? 'bg-brutal-pink text-black border-white/25'
+              : 'bg-black text-brand-text-muted border-white/10 hover:text-white'
           }`}
         >
           Rants log ({reviews.length})
@@ -287,10 +293,10 @@ export default function Profile() {
         {isOwnProfile && (
           <button
             onClick={() => setActiveTab('watchlist')}
-            className={`px-6 py-3 font-black text-xs uppercase border-t-3 border-l-3 border-r-3 -mb-[4px] z-10 transition-all ${
+            className={`px-6 py-3 font-black text-sm uppercase border-t-2 border-l-2 border-r-2 -mb-[2px] z-10 transition-all ${
               activeTab === 'watchlist'
-                ? 'bg-brutal-blue text-white border-white'
-                : 'bg-black text-brand-text-muted border-brand-border/40 hover:text-white'
+                ? 'bg-brutal-blue text-white border-white/25'
+                : 'bg-black text-brand-text-muted border-white/10 hover:text-white'
             }`}
           >
             Watchlist ({watchlist.length})
@@ -303,9 +309,9 @@ export default function Profile() {
         {activeTab === 'diary' && (
           <div>
             {diaryLoading ? (
-              <div className="p-12 text-center text-xs animate-pulse">LOADING DIARY TIMELINE...</div>
+              <div className="p-12 text-center text-sm animate-pulse">LOADING DIARY TIMELINE...</div>
             ) : diary.length === 0 ? (
-              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-xs">
+              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-sm font-bold">
                 Timeline is currently empty.
               </div>
             ) : (
@@ -321,14 +327,14 @@ export default function Profile() {
                         </span>
                         <RatingBadge rating={entry.rating} />
                       </div>
-                      <div className="text-xs">
+                      <div className="text-sm">
                         <span className="text-brand-text-muted uppercase">Film Reference: </span>
                         <Link to={`/movies/${entry.tmdb_movie_id}`} className="font-black text-brutal-cyan hover:underline">
                           #{entry.tmdb_movie_id}
                         </Link>
                       </div>
                       {entry.review_text && (
-                        <p className="text-xs text-brand-text leading-relaxed bg-black/60 p-3 border border-white/10 uppercase">
+                        <p className="text-sm text-brand-text leading-relaxed bg-black/60 p-3 border border-white/10 uppercase">
                           {entry.review_text}
                         </p>
                       )}
@@ -337,17 +343,17 @@ export default function Profile() {
                 </div>
 
                 {/* Desktop View: Table */}
-                <div className="hidden md:block border-4 border-white overflow-hidden shadow-[6px_6px_0px_#000]">
-                  <table className="w-full text-xs uppercase text-left border-collapse">
+                <div className="hidden md:block border-2 border-white/25 overflow-hidden shadow-[4px_4px_0px_#000]">
+                  <table className="w-full text-sm uppercase text-left border-collapse">
                     <thead>
-                      <tr className="bg-white text-black font-black border-b-2 border-white">
+                      <tr className="bg-brand-card text-white font-black border-b border-white/20">
                         <th className="px-6 py-3">Watched Date</th>
                         <th className="px-6 py-3">Movie Reference</th>
                         <th className="px-6 py-3">Verdict</th>
                         <th className="px-6 py-3">Notes</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white bg-black">
+                    <tbody className="divide-y divide-white/10 bg-black">
                       {diary.map((entry) => (
                         <tr key={entry.id} className="hover:bg-brand-card-hover transition-colors">
                           <td className="px-6 py-4 font-bold text-white flex items-center gap-2">
@@ -378,16 +384,16 @@ export default function Profile() {
         {activeTab === 'reviews' && (
           <div>
             {reviewsLoading ? (
-              <div className="p-12 text-center text-xs animate-pulse">LOADING USER RANTS...</div>
+              <div className="p-12 text-center text-sm animate-pulse">LOADING USER RANTS...</div>
             ) : reviews.length === 0 ? (
-              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-xs">
+              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-sm font-bold">
                 No user rants written yet.
               </div>
             ) : (
               <div className="space-y-6">
                 {reviews.map((rev) => (
                   <div key={rev.id} className="brutal-border p-6 text-left relative">
-                    <div className="flex items-center gap-4 mb-4 border-b border-white/20 pb-3">
+                    <div className="flex items-center gap-4 mb-4 border-b border-white/10 pb-3">
                       <Link to={`/movies/${rev.tmdb_movie_id}`} className="font-black text-white hover:underline text-sm">
                         Film Reference: #{rev.tmdb_movie_id}
                       </Link>
@@ -395,10 +401,10 @@ export default function Profile() {
                         <RatingBadge rating={rev.rating} />
                       </div>
                     </div>
-                    <p className="text-xs text-brand-text leading-relaxed whitespace-pre-wrap font-mono uppercase bg-black border border-brand-border/20 p-4">
+                    <p className="text-sm md:text-base text-brand-text leading-relaxed whitespace-pre-wrap font-mono uppercase bg-black border border-brand-border/10 p-4">
                       {rev.review_text}
                     </p>
-                    <span className="block text-[9px] text-brand-text-muted mt-3 font-bold">
+                    <span className="block text-xs text-brand-text-muted mt-3 font-bold">
                       SLAMMING DATE: {new Date(rev.created_at).toLocaleString()}
                     </span>
                   </div>
@@ -411,13 +417,13 @@ export default function Profile() {
         {activeTab === 'watchlist' && isOwnProfile && (
           <div>
             {watchlistLoading ? (
-              <div className="p-12 text-center text-xs animate-pulse">LOADING WATCHLIST POSTERS...</div>
+              <div className="p-12 text-center text-sm animate-pulse">LOADING WATCHLIST POSTERS...</div>
             ) : watchlist.length === 0 ? (
-              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-xs">
+              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-sm font-bold">
                 Your watchlist is currently empty.
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
                 {watchlist.map((item) => (
                   <WatchlistCard key={item.tmdb_movie_id} movieId={item.tmdb_movie_id} />
                 ))}

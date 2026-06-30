@@ -6,6 +6,41 @@ import { API_URL, getBackdropUrl } from '../config';
 import MovieCard from '../components/MovieCard';
 import RatingBadge from '../components/RatingBadge';
 
+const GENRES = {
+  28: 'Action',
+  12: 'Adventure',
+  16: 'Animation',
+  35: 'Comedy',
+  80: 'Crime',
+  99: 'Documentary',
+  18: 'Drama',
+  10751: 'Family',
+  14: 'Fantasy',
+  36: 'History',
+  27: 'Horror',
+  10402: 'Music',
+  9648: 'Mystery',
+  10749: 'Romance',
+  878: 'Sci-Fi',
+  10770: 'TV Movie',
+  53: 'Thriller',
+  10752: 'War',
+  37: 'Western',
+  10759: 'Action & Adventure',
+  10762: 'Kids',
+  10763: 'News',
+  10764: 'Reality',
+  10765: 'Sci-Fi & Fantasy',
+  10766: 'Soap',
+  10767: 'Talk',
+  10768: 'War & Politics'
+};
+
+const getGenresText = (genreIds) => {
+  if (!genreIds || !Array.isArray(genreIds)) return '';
+  return genreIds.map(id => GENRES[id]).filter(Boolean).slice(0, 3).join(', ');
+};
+
 export default function Home() {
   // Fetch Popular Movies
   const { data: popularData, isLoading: popularLoading } = useQuery({
@@ -92,7 +127,7 @@ export default function Home() {
     <div className="flex-1 pb-16 font-mono text-white select-none">
       {/* Featured Hero Banner */}
       {heroMovie && (
-        <div className="relative h-[450px] md:h-[550px] w-full overflow-hidden mb-12 border-b-4 border-white">
+        <div className="relative h-[450px] md:h-[550px] w-full overflow-hidden mb-12 border-b-4 border-white/20">
           {/* Backdrop Image - Smooth GPU accelerated crossfade */}
           <div className="absolute inset-0 bg-black">
             {popularMovies.slice(0, 5).map((movie, idx) => (
@@ -106,13 +141,13 @@ export default function Home() {
               />
             ))}
             {/* Smooth bottom gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
           </div>
 
           {/* Hero Details Content - Blended directly onto bottom of poster */}
           <div className="absolute bottom-10 left-6 md:left-12 max-w-3xl text-left space-y-4 z-10">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-brutal-cyan text-black px-3.5 py-1 font-black text-[11px] uppercase tracking-wider border-2 border-black w-fit">
+              <div className="flex items-center gap-2 bg-brutal-cyan text-black px-3.5 py-1 font-black text-xs uppercase tracking-wider border-2 border-black w-fit">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Trending Film</span>
               </div>
@@ -123,7 +158,7 @@ export default function Home() {
                   <button
                     key={idx}
                     onClick={() => setCurrentHeroIndex(idx)}
-                    className={`w-5 h-5 border text-[9px] font-black flex items-center justify-center transition-all ${
+                    className={`w-5 h-5 border text-[10px] font-black flex items-center justify-center transition-all ${
                       currentHeroIndex === idx
                         ? 'bg-brutal-pink text-white border-white scale-110'
                         : 'bg-black text-white border-white hover:bg-white/20'
@@ -137,15 +172,34 @@ export default function Home() {
             
             <h1 
               key={`title-${heroMovie.id}`}
-              className="text-3xl md:text-5xl font-serif font-black text-white uppercase tracking-tighter animate-in fade-in duration-500"
+              className="text-3xl md:text-[48px] font-serif font-black text-white uppercase tracking-tighter leading-none animate-in fade-in duration-500"
               style={{ textShadow: '2px 2px 0px #ff007f' }}
             >
               {heroMovie.title}
             </h1>
+
+            {/* Year, Genres, and Rating Info */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm font-bold uppercase tracking-wider text-gray-300">
+              {movieDate && (
+                <span className="bg-black/60 px-2 py-0.5 border border-white/20">
+                  {new Date(movieDate).getFullYear()}
+                </span>
+              )}
+              {heroMovie.vote_average && (
+                <span className="text-brutal-yellow font-black">
+                  ★ {heroMovie.vote_average.toFixed(1)} Rating
+                </span>
+              )}
+              {heroMovie.genre_ids && (
+                <span className="text-brutal-cyan">
+                  {getGenresText(heroMovie.genre_ids)}
+                </span>
+              )}
+            </div>
             
             <p 
               key={`desc-${heroMovie.id}`}
-              className="text-white text-xs leading-relaxed max-w-xl font-bold uppercase line-clamp-3 animate-in fade-in duration-500 drop-shadow-md"
+              className="text-white/90 text-sm md:text-base leading-relaxed max-w-xl font-bold uppercase line-clamp-3 animate-in fade-in duration-500 drop-shadow-md"
             >
               {heroMovie.overview}
             </p>
@@ -153,10 +207,10 @@ export default function Home() {
             <div className="pt-1">
               <Link
                 to={`/movies/${heroMovie.id}`}
-                className="inline-flex bg-brutal-cyan text-black border-3 border-white px-5 py-2.5 font-black text-xs uppercase shadow-[3px_3px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
+                className="inline-flex bg-brutal-cyan text-black border-3 border-white px-6 py-3 font-black text-sm uppercase shadow-[3px_3px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none hover:bg-white hover:text-black transition-all"
               >
                 <Play className="w-4 h-4 fill-black text-black mr-2 animate-pulse" />
-                <span>Open Detail Page</span>
+                <span>View Film Details</span>
               </Link>
             </div>
           </div>
@@ -168,15 +222,15 @@ export default function Home() {
         
         {/* Popular Movies Section */}
         <section>
-          <div className="flex items-center justify-between mb-6 border-b-4 border-white pb-2">
-            <h2 className="text-lg font-black tracking-widest uppercase text-white">
+          <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-2">
+            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white leading-tight">
               Popular Films
             </h2>
           </div>
           {popularLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-brand-card border-3 border-white animate-pulse" />
+                <div key={i} className="aspect-[2/3] bg-brand-card border-2 border-white/10 animate-pulse" />
               ))}
             </div>
           ) : (
@@ -190,15 +244,15 @@ export default function Home() {
 
         {/* Top Rated Movies Section */}
         <section>
-          <div className="flex items-center justify-between mb-6 border-b-4 border-white pb-2">
-            <h2 className="text-lg font-black tracking-widest uppercase text-white">
+          <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-2">
+            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white leading-tight">
               Highest Rated
             </h2>
           </div>
           {topRatedLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-brand-card border-3 border-white animate-pulse" />
+                <div key={i} className="aspect-[2/3] bg-brand-card border-2 border-white/10 animate-pulse" />
               ))}
             </div>
           ) : (
@@ -212,15 +266,15 @@ export default function Home() {
 
         {/* Upcoming Movies Section */}
         <section>
-          <div className="flex items-center justify-between mb-6 border-b-4 border-white pb-2">
-            <h2 className="text-lg font-black tracking-widest uppercase text-white">
+          <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-2">
+            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white leading-tight">
               Upcoming Discoveries
             </h2>
           </div>
           {upcomingLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-brand-card border-3 border-white animate-pulse" />
+                <div key={i} className="aspect-[2/3] bg-brand-card border-2 border-white/10 animate-pulse" />
               ))}
             </div>
           ) : (
@@ -234,15 +288,15 @@ export default function Home() {
 
         {/* Popular TV/Web Series Section */}
         <section>
-          <div className="flex items-center justify-between mb-6 border-b-4 border-white pb-2">
-            <h2 className="text-lg font-black tracking-widest uppercase text-white">
+          <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-2">
+            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white leading-tight">
               Popular Web Series
             </h2>
           </div>
           {popularTvLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-brand-card border-3 border-white animate-pulse" />
+                <div key={i} className="aspect-[2/3] bg-brand-card border-2 border-white/10 animate-pulse" />
               ))}
             </div>
           ) : (
@@ -256,15 +310,15 @@ export default function Home() {
 
         {/* Top Rated TV/Web Series Section */}
         <section>
-          <div className="flex items-center justify-between mb-6 border-b-4 border-white pb-2">
-            <h2 className="text-lg font-black tracking-widest uppercase text-white">
+          <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-2">
+            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white leading-tight">
               Highest Rated Web Series
             </h2>
           </div>
           {topRatedTvLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-brand-card border-3 border-white animate-pulse" />
+                <div key={i} className="aspect-[2/3] bg-brand-card border-2 border-white/10 animate-pulse" />
               ))}
             </div>
           ) : (
@@ -279,7 +333,7 @@ export default function Home() {
         {/* Reviews Section */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left">
           <div className="lg:col-span-2">
-            <h2 className="text-lg font-black tracking-widest uppercase text-white border-b-4 border-white pb-2 mb-6">
+            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white border-b-2 border-white/20 pb-2 mb-6 leading-tight">
               Recent Logs from Cinephiles
             </h2>
             
@@ -290,7 +344,7 @@ export default function Home() {
                 ))}
               </div>
             ) : recentReviews.length === 0 ? (
-              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-xs">
+              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-sm font-bold">
                 No logs or ratings yet. Be the first to rate a movie!
               </div>
             ) : (
@@ -301,14 +355,14 @@ export default function Home() {
                     <img
                       src={rev.avatar_url}
                       alt={rev.username}
-                      className="w-12 h-12 rounded-none border-2 border-white dithered-avatar shrink-0"
+                      className="w-12 h-12 rounded-none border-2 border-white/20 dithered-avatar shrink-0"
                     />
                     <div className="text-left flex-1 min-w-0 font-mono">
                       <div className="flex flex-wrap items-center gap-2 mb-3 border-b border-white/10 pb-2">
-                        <Link to={`/profile/${rev.username}`} className="font-black text-white hover:text-brutal-cyan text-xs uppercase transition-colors">
+                        <Link to={`/profile/${rev.username}`} className="font-black text-white hover:text-brutal-cyan text-sm uppercase transition-colors">
                           @{rev.username}
                         </Link>
-                        <span className="text-[10px] text-brand-text-muted uppercase font-bold">logged film ID #{rev.tmdb_movie_id}</span>
+                        <span className="text-xs text-brand-text-muted uppercase font-bold">logged film ID #{rev.tmdb_movie_id}</span>
                         
                         {/* Custom Rating Badge */}
                         <div className="ml-auto">
@@ -317,12 +371,12 @@ export default function Home() {
                       </div>
                       
                       {rev.review_text && (
-                        <p className="text-xs text-brand-text leading-relaxed bg-black/60 p-4 border border-white/10 uppercase">
+                        <p className="text-sm md:text-base text-brand-text leading-relaxed bg-black/60 p-4 border border-white/10 uppercase">
                           {rev.review_text}
                         </p>
                       )}
                       
-                      <div className="flex items-center gap-1.5 mt-3 text-[9px] font-bold text-brand-text-muted uppercase">
+                      <div className="flex items-center gap-1.5 mt-3 text-xs font-bold text-brand-text-muted uppercase">
                         <MessageSquare className="w-3.5 h-3.5" />
                         <span>Logged on {new Date(rev.created_at).toLocaleDateString()}</span>
                       </div>
@@ -335,23 +389,23 @@ export default function Home() {
 
           {/* Social Stats Sidebar Card */}
           <div className="brutal-border p-6 h-fit text-left font-mono space-y-4">
-            <h3 className="text-lg font-black text-white uppercase border-b-2 border-white pb-2 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-brutal-cyan animate-pulse" />
+            <h3 className="text-xl font-black text-white uppercase border-b-2 border-white/20 pb-2 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-brutal-cyan" />
               <span>PlotHole Index</span>
             </h3>
-            <p className="text-xs text-brand-text leading-relaxed uppercase">
+            <p className="text-sm text-brand-text leading-relaxed uppercase font-bold">
               Stop tracking films with standard boring star ratings. PlotHole introduces a raw, honest rating system (Bullshit, Meh, One-Time Watch, Good, or Pure Cinema) for a new generation of film critics.
             </p>
             <div className="border-t border-white/20 pt-4 space-y-3">
-              <div className="flex justify-between items-center text-[10px] uppercase font-bold">
+              <div className="flex justify-between items-center text-xs uppercase font-bold">
                 <span className="text-brand-text-muted">Movie Database</span>
                 <span className="text-brutal-cyan">TMDB Connection</span>
               </div>
-              <div className="flex justify-between items-center text-[10px] uppercase font-bold">
+              <div className="flex justify-between items-center text-xs uppercase font-bold">
                 <span className="text-brand-text-muted">Database Engine</span>
                 <span className="text-brutal-pink">Supabase (Postgres)</span>
               </div>
-              <div className="flex justify-between items-center text-[10px] uppercase font-bold">
+              <div className="flex justify-between items-center text-xs uppercase font-bold">
                 <span className="text-brand-text-muted">Hosting Service</span>
                 <span className="text-brutal-yellow">Vercel & Render</span>
               </div>

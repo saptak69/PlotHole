@@ -22,6 +22,11 @@
   box-sizing: border-box;
 }
 
+*:focus-visible {
+  outline: 3px solid var(--color-brutal-cyan) !important;
+  outline-offset: 3px !important;
+}
+
 body {
   background-color: var(--color-brand-bg);
   color: var(--color-brand-text);
@@ -41,16 +46,16 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
   background: #05070f;
-  border-left: 3px solid #fff;
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
 }
 ::-webkit-scrollbar-thumb {
-  background: #fff;
-  border: 3px solid #05070f;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid #05070f;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-brutal-cyan);
@@ -58,22 +63,29 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
 
 /* The Wireframe Brutalist Container */
 .brutal-border {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 4px 4px 0px #000000;
+  background-color: var(--color-brand-card);
+}
+
+.brutal-border-highlight {
   border: 3px solid #ffffff;
   box-shadow: 6px 6px 0px #000000, 6px 6px 0px 3px #ffffff;
   background-color: var(--color-brand-card);
 }
 
 .brutal-border-interactive {
-  border: 3px solid #ffffff;
-  box-shadow: 6px 6px 0px #000000, 6px 6px 0px 3px #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 4px 4px 0px #000000;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .brutal-border-interactive:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 9px 9px 0px #000000, 9px 9px 0px 3px var(--color-brutal-pink);
+  border-color: #ffffff;
+  box-shadow: 6px 6px 0px #000000, 6px 6px 0px 1px var(--color-brutal-pink);
 }
 .brutal-border-interactive:active {
-  transform: translate(4px, 4px);
+  transform: translate(2px, 2px);
   box-shadow: 2px 2px 0px #000000, 2px 2px 0px 1px var(--color-brutal-green);
 }
 

@@ -9,7 +9,7 @@ export default function MovieCard({ movie }) {
   return (
     <Link 
       to={`/media/${mediaType}/${movie.id}`} 
-      className="group relative block rounded-none border-3 border-white bg-black shadow-[4px_4px_0px_#000] hover:border-brutal-pink hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+      className="group relative block rounded-none border-2 border-white/20 bg-black shadow-[4px_4px_0px_#000] hover:border-brutal-pink hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all focus-visible:outline-none"
     >
       {/* Poster Image Container */}
       <div className="aspect-[2/3] w-full overflow-hidden relative rounded-none pb-9 bg-black">
@@ -21,8 +21,8 @@ export default function MovieCard({ movie }) {
         />
         
         {/* Brutalist Title Bar Pinned to bottom of Card */}
-        <div className="absolute bottom-0 inset-x-0 bg-black border-t-3 border-white py-2 px-2.5 text-left font-mono group-hover:bg-brutal-cyan transition-colors">
-          <h3 className="font-black text-[9px] text-white group-hover:text-black uppercase truncate tracking-tight">
+        <div className="absolute bottom-0 inset-x-0 bg-black border-t-2 border-white/20 py-2 px-2.5 text-left font-mono group-hover:bg-brutal-cyan transition-colors">
+          <h3 className="font-black text-xs md:text-sm text-white group-hover:text-black uppercase truncate tracking-tight">
             {title}
           </h3>
         </div>
