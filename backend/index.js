@@ -817,8 +817,8 @@ if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(__dirname, '../frontend/dist');
   app.use(express.static(distPath));
   
-  // Wildcard client side router fallback
-  app.get('*', (req, res, next) => {
+  // Wildcard client side router fallback (Express 5 syntax)
+  app.get('(.*)', (req, res, next) => {
     // If request is for api, skip to error handler or 404
     if (req.path.startsWith('/api')) {
       return next();
