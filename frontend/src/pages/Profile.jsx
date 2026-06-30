@@ -175,9 +175,9 @@ export default function Profile() {
     ? watchlist.slice(0, 4).map(w => w.tmdb_movie_id)
     : diary.slice(0, 4).map(d => d.tmdb_movie_id);
 
-  // Rotation angles for top polaroids
-  const rotations = [-6, 3, -2, 5];
-
+  // Rotation angles for top polaroids (reduced for mobile safety)
+  const rotations = [-3, 2, -1, 3];
+ 
   return (
     <div className="flex-1 max-w-7xl mx-auto px-6 md:px-12 py-12 text-left font-mono">
       
@@ -218,29 +218,29 @@ export default function Profile() {
             </button>
           )}
         </div>
-
-        {/* THICK BLACK BORDERED UNSTYLED HTML TABLE FOR STATS */}
-        <div className="w-full lg:w-auto shrink-0 select-none overflow-x-auto">
-          <table className="border-4 border-white text-xs uppercase w-full lg:w-auto">
-            <thead>
-              <tr className="bg-white text-black font-black border-b-4 border-white">
-                <th className="px-4 py-2 text-center border-r-2 border-white">Hours Wasted</th>
-                <th className="px-4 py-2 text-center border-r-2 border-white">Films Slammed</th>
-                <th className="px-4 py-2 text-center border-r-2 border-white">Rants</th>
-                <th className="px-4 py-2 text-center border-r-2 border-white">Followers</th>
-                <th className="px-4 py-2 text-center">Following</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="font-extrabold text-center bg-black text-white">
-                <td className="px-4 py-3 border-r-2 border-brand-border text-lg text-brutal-cyan">{hoursWasted.toFixed(1)}</td>
-                <td className="px-4 py-3 border-r-2 border-brand-border text-lg">{stats.diary}</td>
-                <td className="px-4 py-3 border-r-2 border-brand-border text-lg text-brutal-pink">{stats.reviews}</td>
-                <td className="px-4 py-3 border-r-2 border-brand-border text-lg">{stats.followers}</td>
-                <td className="px-4 py-3 text-lg">{stats.following}</td>
-              </tr>
-            </tbody>
-          </table>
+ 
+        {/* Responsive Dashboard Grid for Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 border-4 border-white w-full lg:w-auto font-mono text-center select-none shrink-0 overflow-hidden shadow-[6px_6px_0px_#000]">
+          <div className="p-3 border-r-2 border-b-2 border-white md:border-b-0 bg-black">
+            <span className="block text-brand-text-muted text-[10px] mb-1">Hours Wasted</span>
+            <span className="text-base md:text-lg font-black text-brutal-cyan">{hoursWasted.toFixed(1)}</span>
+          </div>
+          <div className="p-3 border-b-2 border-white md:border-r-2 md:border-b-0 bg-black">
+            <span className="block text-brand-text-muted text-[10px] mb-1">Films Slammed</span>
+            <span className="text-base md:text-lg font-black text-white">{stats.diary}</span>
+          </div>
+          <div className="p-3 border-r-2 border-b-2 border-white md:border-b-0 bg-black">
+            <span className="block text-brand-text-muted text-[10px] mb-1">Rants</span>
+            <span className="text-base md:text-lg font-black text-brutal-pink">{stats.reviews}</span>
+          </div>
+          <div className="p-3 border-b-2 md:border-b-0 border-white md:border-r-2 bg-black">
+            <span className="block text-brand-text-muted text-[10px] mb-1">Followers</span>
+            <span className="text-base md:text-lg font-black text-white">{stats.followers}</span>
+          </div>
+          <div className="p-3 bg-black col-span-2 md:col-span-1">
+            <span className="block text-brand-text-muted text-[10px] mb-1">Following</span>
+            <span className="text-base md:text-lg font-black text-white">{stats.following}</span>
+          </div>
         </div>
       </div>
 
@@ -309,39 +309,68 @@ export default function Profile() {
                 Timeline is currently empty.
               </div>
             ) : (
-              <div className="border-4 border-white overflow-hidden shadow-[6px_6px_0px_#000]">
-                <table className="w-full text-xs uppercase text-left border-collapse">
-                  <thead>
-                    <tr className="bg-white text-black font-black border-b-2 border-white">
-                      <th className="px-6 py-3">Watched Date</th>
-                      <th className="px-6 py-3">Movie Reference</th>
-                      <th className="px-6 py-3">Verdict</th>
-                      <th className="px-6 py-3">Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white bg-black">
-                    {diary.map((entry) => (
-                      <tr key={entry.id} className="hover:bg-brand-card-hover transition-colors">
-                        <td className="px-6 py-4 font-bold text-white flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-brand-cyan" />
-                          <span>{entry.watched_date}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Link to={`/movies/${entry.tmdb_movie_id}`} className="hover:underline font-black text-brand-cyan">
-                            Film #{entry.tmdb_movie_id}
-                          </Link>
-                        </td>
-                        <td className="px-6 py-4">
-                          <RatingBadge rating={entry.rating} />
-                        </td>
-                        <td className="px-6 py-4 text-brand-text max-w-xs truncate" title={entry.review_text}>
-                          {entry.review_text || '—'}
-                        </td>
+              <>
+                {/* Mobile View: List of Log Cards */}
+                <div className="block md:hidden space-y-4">
+                  {diary.map((entry) => (
+                    <div key={entry.id} className="brutal-border p-4 bg-brand-card space-y-3">
+                      <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                        <span className="font-bold text-white flex items-center gap-1.5 text-xs">
+                          <Calendar className="w-4 h-4 text-brutal-cyan" />
+                          {entry.watched_date}
+                        </span>
+                        <RatingBadge rating={entry.rating} />
+                      </div>
+                      <div className="text-xs">
+                        <span className="text-brand-text-muted uppercase">Film Reference: </span>
+                        <Link to={`/movies/${entry.tmdb_movie_id}`} className="font-black text-brutal-cyan hover:underline">
+                          #{entry.tmdb_movie_id}
+                        </Link>
+                      </div>
+                      {entry.review_text && (
+                        <p className="text-xs text-brand-text leading-relaxed bg-black/60 p-3 border border-white/10 uppercase">
+                          {entry.review_text}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop View: Table */}
+                <div className="hidden md:block border-4 border-white overflow-hidden shadow-[6px_6px_0px_#000]">
+                  <table className="w-full text-xs uppercase text-left border-collapse">
+                    <thead>
+                      <tr className="bg-white text-black font-black border-b-2 border-white">
+                        <th className="px-6 py-3">Watched Date</th>
+                        <th className="px-6 py-3">Movie Reference</th>
+                        <th className="px-6 py-3">Verdict</th>
+                        <th className="px-6 py-3">Notes</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-white bg-black">
+                      {diary.map((entry) => (
+                        <tr key={entry.id} className="hover:bg-brand-card-hover transition-colors">
+                          <td className="px-6 py-4 font-bold text-white flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-brutal-cyan" />
+                            <span>{entry.watched_date}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Link to={`/movies/${entry.tmdb_movie_id}`} className="hover:underline font-black text-brutal-cyan">
+                              Film #{entry.tmdb_movie_id}
+                            </Link>
+                          </td>
+                          <td className="px-6 py-4">
+                            <RatingBadge rating={entry.rating} />
+                          </td>
+                          <td className="px-6 py-4 text-brand-text max-w-xs truncate" title={entry.review_text}>
+                            {entry.review_text || '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         )}

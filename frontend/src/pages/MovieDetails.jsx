@@ -27,7 +27,6 @@ const STICKER_ICONS = {
 
 export default function MovieDetails() {
   const { id, mediaType } = useParams();
-  const finalMediaType = mediaType || 'movie';
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
@@ -46,13 +45,17 @@ export default function MovieDetails() {
 
   // Fetch Movie Details
   const { data: movie, isLoading: detailsLoading, error: detailsError } = useQuery({
-    queryKey: ['movieDetails', id, finalMediaType],
+    queryKey: ['movieDetails', id, mediaType || 'auto'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/media/${finalMediaType}/${id}`);
-      if (!res.ok) throw new Error('Movie not found');
+      const url = mediaType ? `${API_URL}/media/${mediaType}/${id}` : `${API_URL}/movies/${id}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Film or show not found');
       return res.json();
     }
   });
+
+  // Detect actual media type from backend response
+  const detectedMediaType = movie?.media_type || mediaType || 'movie';
 
   // Determine if film is upcoming (released in the future)
   const movieDate = movie?.release_date || movie?.first_air_date;
@@ -101,22 +104,24 @@ export default function MovieDetails() {
 
   // Fetch Movie Credits
   const { data: credits } = useQuery({
-    queryKey: ['movieCredits', id, finalMediaType],
+    queryKey: ['movieCredits', id, detectedMediaType],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/media/${finalMediaType}/${id}/credits`);
+      const res = await fetch(`${API_URL}/media/${detectedMediaType}/${id}/credits`);
       if (res.ok) return res.json();
       return { cast: [], crew: [] };
-    }
+    },
+    enabled: !!movie
   });
 
   // Fetch Movie Recommendations
   const { data: recommendations } = useQuery({
-    queryKey: ['movieRecommendations', id, finalMediaType],
+    queryKey: ['movieRecommendations', id, detectedMediaType],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/media/${finalMediaType}/${id}/recommendations`);
+      const res = await fetch(`${API_URL}/media/${detectedMediaType}/${id}/recommendations`);
       if (res.ok) return res.json();
       return { results: [] };
-    }
+    },
+    enabled: !!movie
   });
 
   // Fetch Reviews
@@ -304,10 +309,22 @@ export default function MovieDetails() {
     setStickyNotes(prevNotes =>
       prevNotes.map(n => {
         if (n.id === draggingId) {
+          let newX = e.clientX - dragOffsetRef.current.x;
+          let newY = e.clientY - dragOffsetRef.current.y;
+
+          if (corkboardRef.current) {
+            const rect = corkboardRef.current.getBoundingClientRect();
+            const maxX = rect.width - 245;
+            newX = Math.max(10, Math.min(newX, maxX));
+
+            const maxY = corkboardRef.current.clientHeight - 200;
+            newY = Math.max(10, Math.min(newY, maxY));
+          }
+
           return {
             ...n,
-            x: e.clientX - dragOffsetRef.current.x,
-            y: e.clientY - dragOffsetRef.current.y
+            x: newX,
+            y: newY
           };
         }
         return n;
@@ -317,6 +334,130 @@ export default function MovieDetails() {
 
   const handleMouseUp = () => {
     setDraggingId(null);
+  };
+
+  // Touch Handlers for Mobile Drag & Drop
+  const handleTouchStart = (noteId, e) => {
+    if (e.touches.length !== 1) return;
+    if (e.target.closest('button') || e.target.closest('a')) return;
+
+    const touch = e.touches[0];
+    setDraggingId(noteId);
+    const note = stickyNotes.find(n => n.id === noteId);
+    if (note) {
+      dragOffsetRef.current = {
+        x: touch.clientX - note.x,
+        y: touch.clientY - note.y
+      };
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!draggingId) return;
+    if (e.touches.length !== 1) return;
+
+    // Prevent default scroll behavior while dragging sticky note
+    if (e.cancelable) {
+      e.preventDefault();
+    }
+
+    const touch = e.touches[0];
+    setStickyNotes(prevNotes =>
+      prevNotes.map(n => {
+        if (n.id === draggingId) {
+          let newX = touch.clientX - dragOffsetRef.current.x;
+          let newY = touch.clientY - dragOffsetRef.current.y;
+
+          if (corkboardRef.current) {
+            const rect = corkboardRef.current.getBoundingClientRect();
+            const maxX = rect.width - 245;
+            newX = Math.max(10, Math.min(newX, maxX));
+
+            const maxY = corkboardRef.current.clientHeight - 200;
+            newY = Math.max(10, Math.min(newY, maxY));
+          }
+
+          return {
+            ...n,
+            x: newX,
+            y: newY
+          };
+        }
+        return n;
+      })
+    );
+  };
+
+  const handleTouchEnd = () => {
+    setDraggingId(null);
+  };
+
+  const renderActionButtons = () => {
+    if (!user) {
+      return (
+        <div className="text-center bg-black border-2 border-white p-4 font-mono">
+          <p className="text-[10px] text-brand-text mb-3 uppercase">Sign in to rate films, bookmark watchlists, and log reviews.</p>
+          <Link
+            to="/login"
+            className="block bg-white text-black font-black text-xs py-2 border-2 border-white hover:bg-brutal-cyan hover:text-black transition-colors uppercase"
+          >
+            Sign In to PlotHole
+          </Link>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3 font-mono">
+        {/* Watched Button OR Excited Button */}
+        {isUpcoming ? (
+          <button
+            onClick={() => excitedMutation.mutate()}
+            className={`w-full py-2.5 border-3 flex items-center justify-center gap-2 font-black text-xs uppercase transition-all duration-150 shadow-[4px_4px_0px_#000] ${
+              excitedData?.excited
+                ? 'bg-brutal-pink border-white text-black translate-x-1 translate-y-1 shadow-none'
+                : 'bg-black border-white text-white hover:bg-brutal-pink hover:text-black'
+            }`}
+          >
+            <Flame className={`w-4 h-4 ${excitedData?.excited ? 'fill-black' : ''}`} />
+            <span>{excitedData?.excited ? 'Excited!' : 'Get Excited'}</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => watchedMutation.mutate()}
+            className={`w-full py-2.5 border-3 flex items-center justify-center gap-2 font-black text-xs uppercase transition-all duration-150 shadow-[4px_4px_0px_#000] ${
+              watchedState?.watched
+                ? 'bg-brutal-cyan border-white text-black translate-x-1 translate-y-1 shadow-none'
+                : 'bg-black border-white text-white hover:bg-brutal-cyan hover:text-black'
+            }`}
+          >
+            <Eye className="w-4 h-4" />
+            <span>{watchedState?.watched ? 'Watched' : 'Mark as Watched'}</span>
+          </button>
+        )}
+
+        {/* Watchlist Button */}
+        <button
+          onClick={() => watchlistMutation.mutate()}
+          className={`w-full py-2.5 border-3 flex items-center justify-center gap-2 font-black text-xs uppercase transition-all duration-150 shadow-[4px_4px_0px_#000] ${
+            watchlistState?.onWatchlist
+              ? 'bg-brutal-pink border-white text-black translate-x-1 translate-y-1 shadow-none'
+              : 'bg-black border-white text-white hover:bg-brutal-pink hover:text-black'
+          }`}
+        >
+          <Check className="w-4 h-4" />
+          <span>{watchlistState?.onWatchlist ? 'In Watchlist' : 'Add to Watchlist'}</span>
+        </button>
+
+        {/* Log Movie Button */}
+        <button
+          onClick={() => setIsLogModalOpen(true)}
+          className="w-full bg-brutal-yellow hover:bg-white text-black border-3 border-white py-2.5 flex items-center justify-center gap-2 font-black text-xs uppercase transition-all duration-150 shadow-[4px_4px_0px_#000]"
+        >
+          <span>{isUpcoming ? 'Hype Comment' : 'Yell About This'}</span>
+        </button>
+      </div>
+    );
   };
 
   // Add Sticker to a note
@@ -384,6 +525,8 @@ export default function MovieDetails() {
       className="flex-1 relative pb-32 text-left"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Blurry Backdrop Header */}
       <div className="relative h-[250px] w-full overflow-hidden border-b-4 border-white">
@@ -409,14 +552,18 @@ export default function MovieDetails() {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 items-start">
           
-          {/* Left Column: Poster */}
-          <div className="md:col-span-1 max-w-sm mx-auto md:max-w-none w-full">
+          {/* Left Column: Poster & Mobile Quick Actions */}
+          <div className="md:col-span-1 max-w-sm mx-auto md:max-w-none w-full space-y-6">
             <div className="border-4 border-white bg-black aspect-[2/3] overflow-hidden rounded-none shadow-[8px_8px_0px_#000]">
               <img
                 src={getPosterUrl(movie.poster_path)}
                 alt={displayTitle}
                 className="w-full h-full object-cover bitmap-hover"
               />
+            </div>
+            {/* Quick action buttons for mobile only */}
+            <div className="block md:hidden bg-brand-card brutal-border p-4">
+              {renderActionButtons()}
             </div>
           </div>
 
@@ -563,68 +710,10 @@ export default function MovieDetails() {
                 </div>
               )}
 
-              {/* Action Buttons */}
-              {user ? (
-                <div className="space-y-3 font-mono">
-                  {/* Watched Button OR Excited Button */}
-                  {isUpcoming ? (
-                    <button
-                      onClick={() => excitedMutation.mutate()}
-                      className={`w-full py-2.5 border-3 flex items-center justify-center gap-2 font-black text-xs uppercase transition-all duration-100 shadow-[4px_4px_0px_#000] ${
-                        excitedData?.excited
-                          ? 'bg-brutal-pink border-white text-black translate-x-1 translate-y-1 shadow-none'
-                          : 'bg-black border-white text-white hover:bg-brutal-pink hover:text-black'
-                      }`}
-                    >
-                      <Flame className={`w-4 h-4 ${excitedData?.excited ? 'fill-black' : ''}`} />
-                      <span>{excitedData?.excited ? 'Excited!' : 'Get Excited'}</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => watchedMutation.mutate()}
-                      className={`w-full py-2.5 border-3 flex items-center justify-center gap-2 font-black text-xs uppercase transition-all duration-100 shadow-[4px_4px_0px_#000] ${
-                        watchedState?.watched
-                          ? 'bg-brutal-cyan border-white text-black translate-x-1 translate-y-1 shadow-none'
-                          : 'bg-black border-white text-white hover:bg-brutal-blue hover:text-black'
-                      }`}
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span>{watchedState?.watched ? 'Watched' : 'Mark as Watched'}</span>
-                    </button>
-                  )}
-
-                  {/* Watchlist Button */}
-                  <button
-                    onClick={() => watchlistMutation.mutate()}
-                    className={`w-full py-2.5 border-3 flex items-center justify-center gap-2 font-black text-xs uppercase transition-all duration-100 shadow-[4px_4px_0px_#000] ${
-                      watchlistState?.onWatchlist
-                        ? 'bg-brutal-pink border-white text-black translate-x-1 translate-y-1 shadow-none'
-                        : 'bg-black border-white text-white hover:bg-brutal-blue hover:text-black'
-                    }`}
-                  >
-                    <Check className="w-4 h-4" />
-                    <span>{watchlistState?.onWatchlist ? 'In Watchlist' : 'Add to Watchlist'}</span>
-                  </button>
-
-                  {/* Log Movie Button */}
-                  <button
-                    onClick={() => setIsLogModalOpen(true)}
-                    className="w-full bg-brutal-yellow hover:bg-white text-black border-3 border-white py-2.5 flex items-center justify-center gap-2 font-black text-xs uppercase transition-all shadow-[4px_4px_0px_#000]"
-                  >
-                    <span>{isUpcoming ? 'Hype Comment' : 'Yell About This'}</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center bg-black border-2 border-white p-4 font-mono">
-                  <p className="text-[10px] text-brand-text mb-3 uppercase">Sign in to rate films, bookmark watchlists, and log reviews.</p>
-                  <Link
-                    to="/login"
-                    className="block bg-white text-black font-black text-xs py-2 border-2 border-white hover:bg-brutal-cyan hover:text-black transition-colors uppercase"
-                  >
-                    Sign In to PlotHole
-                  </Link>
-                </div>
-              )}
+              {/* Action Buttons (visible on desktop, hidden on mobile since they are moved to under the poster) */}
+              <div className="hidden md:block">
+                {renderActionButtons()}
+              </div>
             </div>
           </div>
         </div>
@@ -658,6 +747,7 @@ export default function MovieDetails() {
                   <div
                     key={note.id}
                     onMouseDown={(e) => handleMouseDown(note.id, e)}
+                    onTouchStart={(e) => handleTouchStart(note.id, e)}
                     className="absolute w-[240px] border-3 border-black p-4 select-none flex flex-col font-sans transition-shadow"
                     style={{
                       left: `${note.x}px`,

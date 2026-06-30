@@ -10,6 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let isPostgres = false;
 let pgPool = null;
 let sqliteDb = null;
+let usingFallback = false;
 
 if (process.env.DATABASE_URL) {
   console.log('Connecting to PostgreSQL/Supabase...');
@@ -27,6 +28,15 @@ if (process.env.DATABASE_URL) {
   sqliteDb = new sqlite3.Database(dbPath);
 }
 
+// Status check helper
+export function getDbStatus() {
+  return {
+    isPostgres,
+    usingFallback,
+    connected: isPostgres ? !!pgPool : !!sqliteDb
+  };
+}
+
 // Helper to run query (returns array of rows)
 export async function query(sql, params = []) {
   if (isPostgres) {
@@ -34,8 +44,8 @@ export async function query(sql, params = []) {
     return result.rows;
   } else {
     return new Promise((resolve, reject) => {
-      // Translate Postgres $1, $2 params to SQLite ? params
-      const sqliteSql = sql.replace(/\$\d+/g, '?');
+      // Translate Postgres $1, $2 params to SQLite ?1, ?2 params
+      const sqliteSql = sql.replace(/\$(\d+)/g, '?$1');
       sqliteDb.all(sqliteSql, params, (err, rows) => {
         if (err) reject(err);
         else resolve(rows || []);
@@ -51,7 +61,7 @@ export async function execute(sql, params = []) {
     return { rowCount: result.rowCount, rows: result.rows };
   } else {
     return new Promise((resolve, reject) => {
-      const sqliteSql = sql.replace(/\$\d+/g, '?');
+      const sqliteSql = sql.replace(/\$(\d+)/g, '?$1');
       sqliteDb.run(sqliteSql, params, function (err) {
         if (err) reject(err);
         else resolve({ rowCount: this.changes, lastID: this.lastID });
@@ -127,11 +137,33 @@ export async function initDb() {
   `;
 
   if (isPostgres) {
-    await pgPool.query(usersTable);
-    await pgPool.query(reviewsTable);
-    await pgPool.query(watchlistTable);
-    await pgPool.query(diaryTable);
-    await pgPool.query(followsTable);
+    try {
+      // Test PostgreSQL connection
+      await pgPool.query('SELECT 1');
+      
+      await pgPool.query(usersTable);
+      await pgPool.query(reviewsTable);
+      await pgPool.query(watchlistTable);
+      await pgPool.query(diaryTable);
+      await pgPool.query(followsTable);
+      console.log('Database tables initialized successfully on PostgreSQL!');
+    } catch (err) {
+      console.error('PostgreSQL connection/initialization failed. Falling back to local SQLite database...', err);
+      isPostgres = false;
+      usingFallback = true;
+      
+      // Initialize SQLite fallback database
+      const sqlite3 = (await import('sqlite3')).default;
+      const dbPath = path.join(__dirname, 'local.db');
+      sqliteDb = new sqlite3.Database(dbPath);
+      
+      await execute(usersTable);
+      await execute(reviewsTable);
+      await execute(watchlistTable);
+      await execute(diaryTable);
+      await execute(followsTable);
+      console.log('Database tables initialized successfully on SQLite fallback database!');
+    }
   } else {
     // SQLite requires running statements sequentially
     await execute(usersTable);
@@ -139,6 +171,6 @@ export async function initDb() {
     await execute(watchlistTable);
     await execute(diaryTable);
     await execute(followsTable);
+    console.log('Database tables initialized successfully on SQLite database!');
   }
-  console.log('Database tables initialized successfully!');
 }

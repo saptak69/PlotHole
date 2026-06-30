@@ -66,7 +66,7 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
 .brutal-border-interactive {
   border: 3px solid #ffffff;
   box-shadow: 6px 6px 0px #000000, 6px 6px 0px 3px #ffffff;
-  transition: all 0.1s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .brutal-border-interactive:hover {
   transform: translate(-2px, -2px);
@@ -97,6 +97,7 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
   animation: marquee 28s linear infinite;
   text-transform: uppercase;
   letter-spacing: 2px;
+  will-change: transform;
 }
 
 @keyframes marquee {
@@ -120,7 +121,7 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
   text-transform: uppercase;
   letter-spacing: 1px;
   box-shadow: 8px 8px 0px #000000;
-  transition: all 0.1s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .brutal-log-btn:hover {
   background-color: var(--color-brutal-blue);

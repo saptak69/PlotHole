@@ -3,8 +3,14 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { query, queryOne, execute, initDb } from './db.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { query, queryOne, execute, initDb, getDbStatus } from './db.js';
+
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,6 +51,39 @@ function authenticateToken(req, res, next) {
   });
 }
 
+// Simple in-memory cache for TMDB API calls to speed up responses and prevent rate-limiting
+const tmdbCache = new Map();
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes for listings/search
+const DETAIL_CACHE_TTL = 60 * 60 * 1000; // 1 hour for details, credits, recommendations
+
+function getCachedData(key) {
+  const cached = tmdbCache.get(key);
+  if (!cached) return null;
+  if (Date.now() - cached.timestamp > cached.ttl) {
+    tmdbCache.delete(key);
+    return null;
+  }
+  return cached.data;
+}
+
+function setCachedData(key, data, ttl) {
+  tmdbCache.set(key, {
+    data,
+    timestamp: Date.now(),
+    ttl
+  });
+}
+
+// Periodic garbage collection for expired cache entries
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of tmdbCache.entries()) {
+    if (now - value.timestamp > value.ttl) {
+      tmdbCache.delete(key);
+    }
+  }
+}, 15 * 60 * 1000);
+
 class TMDBError extends Error {
   constructor(status, message) {
     super(message);
@@ -52,7 +91,7 @@ class TMDBError extends Error {
   }
 }
 
-// TMDB Fetch Helper
+// TMDB Fetch Helper with Caching
 async function fetchFromTMDB(endpoint, queryParams = {}) {
   if (!TMDB_API_KEY) {
     throw new Error('TMDB API Key is missing. Live movie data cannot be retrieved.');
@@ -70,12 +109,27 @@ async function fetchFromTMDB(endpoint, queryParams = {}) {
     }
   });
 
+  const cacheKey = url.toString();
+  const cachedData = getCachedData(cacheKey);
+  if (cachedData) {
+    console.log(`[CACHE HIT] ${endpoint}`);
+    return cachedData;
+  }
+
   const response = await fetch(url.toString());
   if (!response.ok) {
     const errText = await response.text();
     throw new TMDBError(response.status, `TMDB API error: ${response.status} - ${errText}`);
   }
-  return await response.json();
+  
+  const data = await response.json();
+  
+  // Choose TTL based on API path
+  const isDetail = endpoint.includes('/movie/') || endpoint.includes('/tv/') || endpoint.includes('/media/');
+  const ttl = isDetail ? DETAIL_CACHE_TTL : CACHE_TTL;
+  setCachedData(cacheKey, data, ttl);
+
+  return data;
 }
 
 // --- AUTH ROUTES ---
@@ -258,7 +312,7 @@ app.get('/api/media/:mediaType/:id', async (req, res) => {
   const { mediaType, id } = req.params;
   try {
     const data = await fetchFromTMDB(`/${mediaType}/${id}`);
-    res.json(data);
+    res.json({ ...data, media_type: mediaType });
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });
   }
@@ -284,12 +338,20 @@ app.get('/api/media/:mediaType/:id/recommendations', async (req, res) => {
   }
 });
 
-// Fallback movie details (compatibility)
+// Fallback movie details (compatibility and auto-detection fallback)
 app.get('/api/movies/:id', async (req, res) => {
   try {
     const data = await fetchFromTMDB(`/movie/${req.params.id}`);
-    res.json(data);
+    res.json({ ...data, media_type: 'movie' });
   } catch (error) {
+    if (error.status === 404) {
+      try {
+        const tvData = await fetchFromTMDB(`/tv/${req.params.id}`);
+        return res.json({ ...tvData, media_type: 'tv' });
+      } catch (tvErr) {
+        // Ignore tv error and throw original movie error
+      }
+    }
     res.status(error.status || 500).json({ error: error.message });
   }
 });
@@ -728,6 +790,42 @@ app.get('/api/users/profile/:username/ratings-dist', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Health check endpoint to verify Supabase connection status
+app.get('/api/health', async (req, res) => {
+  try {
+    await query('SELECT 1');
+    const status = getDbStatus();
+    res.json({
+      status: 'OK',
+      database: status.usingFallback ? 'FALLBACK' : 'CONNECTED',
+      type: status.isPostgres ? 'postgresql' : 'sqlite',
+      usingFallback: status.usingFallback
+    });
+  } catch (err) {
+    res.status(503).json({
+      status: 'ERROR',
+      database: 'DISCONNECTED',
+      error: err.message,
+      code: err.code
+    });
+  }
+});
+
+// Serve frontend built static assets in production
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '../frontend/dist');
+  app.use(express.static(distPath));
+  
+  // Wildcard client side router fallback
+  app.get('*', (req, res, next) => {
+    // If request is for api, skip to error handler or 404
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // Global Error Handler Middleware
 app.use((err, req, res, next) => {

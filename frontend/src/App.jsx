@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Search, X } from 'lucide-react';
 import { API_URL } from './config';
@@ -34,6 +34,26 @@ function GlobalLogWrapper() {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const navigate = useNavigate();
+
+  // Query Supabase database connection health status
+  const { data: healthData } = useQuery({
+    queryKey: ['dbHealth'],
+    queryFn: async () => {
+      try {
+        const res = await fetch(`${API_URL}/health`);
+        if (!res.ok) {
+          return { status: 'ERROR', database: 'DISCONNECTED' };
+        }
+        return await res.json();
+      } catch (err) {
+        return { status: 'ERROR', database: 'DISCONNECTED' };
+      }
+    },
+    refetchInterval: 30000 // poll database status every 30 seconds
+  });
+
+  const dbOffline = healthData?.database === 'DISCONNECTED';
+  const dbFallback = healthData?.database === 'FALLBACK';
 
   const handleSearch = async (val) => {
     setQuery(val);
@@ -71,6 +91,19 @@ function GlobalLogWrapper() {
           WELCOME TO SAPTAK'S PLOTHOLE // LATEST LOGS // TROLLS WILL BE BANNED IMMEDIATELY // PLOTHOLE IS PURE CINEMA // WATCH MORE MOVIES OR LEAVE // WELCOME TO SAPTAK'S PLOTHOLE // LATEST LOGS // TROLLS WILL BE BANNED IMMEDIATELY // PLOTHOLE IS PURE CINEMA // WATCH MORE MOVIES OR LEAVE
         </div>
       </div>
+
+      {/* Flashing Database Connection Warning Banner */}
+      {dbOffline && (
+        <div className="bg-brutal-pink text-black border-b-4 border-white py-3 px-4 text-center font-mono font-black text-[10px] md:text-xs uppercase tracking-wider select-none z-[101] animate-pulse">
+          🚨 DATABASE OFFLINE WARNING: The Supabase host is currently offline or unreachable. Please log in to your Supabase dashboard and resume your project (PlotHole ID: txldrkjjikgdntpowrpy) to enable database operations!
+        </div>
+      )}
+
+      {dbFallback && (
+        <div className="bg-brutal-yellow text-black border-b-4 border-white py-3 px-4 text-center font-mono font-black text-[10px] md:text-xs uppercase tracking-wider select-none z-[101] animate-[pulse_2s_infinite]">
+          ⚠️ DATABASE CONFIGURATION WARNING: PostgreSQL connection failed. PlotHole is running on the local SQLite fallback database. Any reviews, watchlist, or diary changes will not persist across server restarts!
+        </div>
+      )}
 
       {/* Standard Brutalist Container */}
       <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col select-none">
@@ -146,7 +179,7 @@ function GlobalLogWrapper() {
                     <button
                       key={`${m.media_type || 'movie'}-${m.id}`}
                       onClick={() => handleSelectMovie(m.id, m.media_type)}
-                      className="w-full text-left p-3 hover:bg-brand-purple hover:text-white flex justify-between items-center transition-colors"
+                      className="w-full text-left p-3 hover:bg-brutal-pink hover:text-black flex justify-between items-center transition-colors"
                     >
                       <span className="font-extrabold text-sm uppercase">{title}</span>
                       <span className="text-xs opacity-75 font-semibold">({date ? date.split('-')[0] : 'N/A'})</span>
