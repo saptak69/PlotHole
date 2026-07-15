@@ -18,6 +18,15 @@ const RATING_ICONS = {
   HelpCircle
 };
 
+const hexToRgba = (hex, opacity = 1) => {
+  let c = hex.substring(1);
+  if (c.length === 3) {
+    c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+  }
+  const num = parseInt(c, 16);
+  return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${opacity})`;
+};
+
 const STICKER_ICONS = {
   Skull,
   Frown,
@@ -395,11 +404,11 @@ export default function MovieDetails() {
   const renderActionButtons = () => {
     if (!user) {
       return (
-        <div className="text-center bg-black border-2 border-white/20 p-4 font-mono">
-          <p className="text-xs text-brand-text mb-3 uppercase">Sign in to rate films, bookmark watchlists, and log reviews.</p>
+        <div className="text-center bg-white/5 border border-white/10 p-4 rounded-xl backdrop-blur-md">
+          <p className="text-xs text-brand-text mb-3 uppercase font-medium">Sign in to rate films, bookmark watchlists, and log reviews.</p>
           <Link
             to="/login"
-            className="block bg-white text-black font-black text-xs py-2 border-2 border-white hover:bg-brutal-cyan hover:text-black transition-colors uppercase"
+            className="block bg-brutal-cyan text-black font-bold text-xs py-2 px-4 rounded-lg hover:bg-white transition-all uppercase text-center"
           >
             Sign In to PlotHole
           </Link>
@@ -413,22 +422,22 @@ export default function MovieDetails() {
         {isUpcoming ? (
           <button
             onClick={() => excitedMutation.mutate()}
-            className={`w-full py-2.5 border-2 flex items-center justify-center gap-2 font-black text-sm uppercase transition-all duration-150 ${
+            className={`w-full py-2.5 rounded-xl border flex items-center justify-center gap-2 font-bold text-sm uppercase transition-all duration-200 ${
               excitedData?.excited
-                ? 'bg-black border-white/20 text-white/55 shadow-none translate-x-0.5 translate-y-0.5'
-                : 'bg-brutal-pink border-brutal-pink text-black shadow-[4px_4px_0px_#000] hover:bg-white hover:border-white'
+                ? 'bg-white/5 border-white/10 text-white/40 shadow-none'
+                : 'bg-gradient-to-r from-brutal-pink to-purple-600 border-none text-white shadow-lg hover:shadow-brutal-pink/20 hover:scale-[1.02]'
             }`}
           >
-            <Flame className={`w-4 h-4 ${excitedData?.excited ? 'fill-black' : ''}`} />
+            <Flame className={`w-4 h-4 ${excitedData?.excited ? 'fill-white/40' : ''}`} />
             <span>{excitedData?.excited ? 'Excited!' : 'Get Excited'}</span>
           </button>
         ) : (
           <button
             onClick={() => watchedMutation.mutate()}
-            className={`w-full py-2.5 border-2 flex items-center justify-center gap-2 font-black text-sm uppercase transition-all duration-150 ${
+            className={`w-full py-2.5 rounded-xl border flex items-center justify-center gap-2 font-bold text-sm uppercase transition-all duration-200 ${
               watchedState?.watched
-                ? 'bg-black border-white/20 text-white/55 shadow-none translate-x-0.5 translate-y-0.5'
-                : 'bg-brutal-cyan border-brutal-cyan text-black shadow-[4px_4px_0px_#000] hover:bg-white hover:border-white'
+                ? 'bg-white/5 border-white/10 text-white/40 shadow-none'
+                : 'bg-gradient-to-r from-brutal-cyan to-blue-600 border-none text-black shadow-lg hover:shadow-brutal-cyan/20 hover:scale-[1.02]'
             }`}
           >
             <Eye className="w-4 h-4" />
@@ -439,10 +448,10 @@ export default function MovieDetails() {
         {/* Watchlist Button (Secondary CTA) */}
         <button
           onClick={() => watchlistMutation.mutate()}
-          className={`w-full py-2.5 border-2 flex items-center justify-center gap-2 font-black text-sm uppercase transition-all duration-150 ${
+          className={`w-full py-2.5 rounded-xl border flex items-center justify-center gap-2 font-bold text-sm uppercase transition-all duration-200 ${
             watchlistState?.onWatchlist
-              ? 'bg-brutal-pink border-brutal-pink text-black shadow-none translate-x-0.5 translate-y-0.5'
-              : 'bg-black border-white/20 text-white hover:border-white shadow-[4px_4px_0px_#000] hover:bg-white/10'
+              ? 'bg-gradient-to-r from-brutal-pink to-purple-600 border-none text-white shadow-lg hover:scale-[1.02]'
+              : 'bg-white/5 border-white/10 text-white hover:border-white/30 hover:bg-white/10'
           }`}
         >
           <Check className="w-4 h-4" />
@@ -452,9 +461,9 @@ export default function MovieDetails() {
         {/* Log Movie Button */}
         <button
           onClick={() => setIsLogModalOpen(true)}
-          className="w-full bg-brutal-yellow hover:bg-white text-black border-2 border-brutal-yellow py-2.5 flex items-center justify-center gap-2 font-black text-sm uppercase transition-all duration-150 shadow-[4px_4px_0px_#000]"
+          className="w-full bg-gradient-to-r from-brutal-yellow to-amber-500 text-black border-none py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold text-sm uppercase transition-all duration-200 shadow-lg hover:scale-[1.02]"
         >
-          <span>{isUpcoming ? 'Hype Comment' : 'Yell About This'}</span>
+          <span>{isUpcoming ? 'Hype Comment' : 'Comment About This'}</span>
         </button>
       </div>
     );
@@ -529,7 +538,7 @@ export default function MovieDetails() {
       onTouchEnd={handleTouchEnd}
     >
       {/* Blurry Backdrop Header */}
-      <div className="relative h-[200px] w-full overflow-hidden border-b-2 border-white/20">
+      <div className="relative h-[200px] w-full overflow-hidden border-b border-white/10">
         <img
           src={getBackdropUrl(movie.backdrop_path)}
           alt={displayTitle}
@@ -540,11 +549,9 @@ export default function MovieDetails() {
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 -mt-20 relative z-10">
         
-        {/* EXAGGERATED WARPED SERIF TITLE */}
         <div className="relative mb-8">
           <h1 
-            className="font-serif text-2xl md:text-[44px] font-black text-white uppercase tracking-tight leading-tight block break-words border-b-2 border-white/20 pb-4 z-20 relative bg-black/50 p-4 shadow-[4px_4px_0px_#000]"
-            style={{ textShadow: '2px 2px 0px #ff007f' }}
+            className="font-sans text-2xl md:text-[40px] font-extrabold text-white uppercase tracking-tight leading-tight block break-words border border-white/10 p-6 rounded-2xl shadow-2xl backdrop-blur-md bg-brand-card/45"
           >
             {displayTitle}
           </h1>
@@ -554,7 +561,7 @@ export default function MovieDetails() {
           
           {/* Left Column: Poster & Mobile Quick Actions */}
           <div className="md:col-span-1 max-w-sm mx-auto md:max-w-none w-full space-y-6">
-            <div className="border-4 border-white bg-black aspect-[2/3] overflow-hidden rounded-none shadow-[8px_8px_0px_#000]">
+            <div className="border border-white/10 bg-black aspect-[2/3] overflow-hidden rounded-2xl shadow-2xl">
               <img
                 src={getPosterUrl(movie.poster_path)}
                 alt={displayTitle}
@@ -562,16 +569,16 @@ export default function MovieDetails() {
               />
             </div>
             {/* Quick action buttons for mobile only */}
-            <div className="block md:hidden bg-brand-card brutal-border p-4">
+            <div className="block md:hidden bg-brand-card brutal-border p-4 rounded-2xl">
               {renderActionButtons()}
             </div>
           </div>
 
           {/* Center Column: Movie Details */}
-          <div className="md:col-span-2 space-y-8 brutal-border p-6 rounded-none font-mono">
-            <div className="space-y-2 border-b-2 border-white pb-4">
+          <div className="md:col-span-2 space-y-8 brutal-border p-6 rounded-2xl font-mono">
+            <div className="space-y-2 border-b border-white/10 pb-4">
               <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-white uppercase">
-                <span className="bg-white text-black px-2 py-0.5 font-black">
+                <span className="bg-white/10 text-white px-2.5 py-0.5 rounded font-bold border border-white/15">
                   RELEASE: {displayReleaseDate ? displayReleaseDate.split('-')[0] : 'N/A'}
                 </span>
                 <span>•</span>
@@ -584,7 +591,7 @@ export default function MovieDetails() {
 
             {/* Synopsis */}
             <div className="space-y-2">
-              <h3 className="text-xs font-black tracking-widest uppercase bg-white text-black px-2 py-1 w-fit border border-black">
+              <h3 className="text-xs font-black tracking-widest uppercase bg-white/10 text-white px-2.5 py-1.5 w-fit rounded-lg border border-white/15">
                 FILM DOSSIER
               </h3>
               <p className="text-brand-text leading-relaxed text-sm">
@@ -595,14 +602,14 @@ export default function MovieDetails() {
             {/* Cast List */}
             {displayCast.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-xs font-black tracking-widest uppercase bg-white text-black px-2 py-1 w-fit border border-black">
+                <h3 className="text-xs font-black tracking-widest uppercase bg-white/10 text-white px-2.5 py-1.5 w-fit rounded-lg border border-white/15">
                   OPERATING CAST
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {displayCast.map((actor, idx) => (
                     <span
                       key={idx}
-                      className="border-2 border-white bg-black text-white px-3 py-1 text-xs font-bold uppercase"
+                      className="border border-white/10 bg-white/5 text-white/95 px-3 py-1 text-xs rounded-full uppercase"
                     >
                       {actor.name}
                     </span>
@@ -613,8 +620,8 @@ export default function MovieDetails() {
 
             {/* Recommendations */}
             {recMovies.length > 0 && (
-              <div className="space-y-3 pt-4 border-t-2 border-white">
-                <h3 className="text-xs font-black tracking-widest uppercase bg-white text-black px-2 py-1 w-fit border border-black">
+              <div className="space-y-3 pt-4 border-t border-white/10">
+                <h3 className="text-xs font-black tracking-widest uppercase bg-white/10 text-white px-2.5 py-1.5 w-fit rounded-lg border border-white/15">
                   RE-ROUTE SYSTEM (SIMILAR)
                 </h3>
                 <div className="grid grid-cols-4 gap-4">
@@ -622,7 +629,7 @@ export default function MovieDetails() {
                     <Link
                       key={rec.id}
                       to={`/media/${rec.media_type || 'movie'}/${rec.id}`}
-                      className="border-2 border-white hover:border-brutal-pink transition-colors aspect-[2/3]"
+                      className="border border-white/10 hover:border-brutal-pink transition-all aspect-[2/3] rounded-lg overflow-hidden"
                       title={rec.title || rec.name}
                     >
                       <img
@@ -639,24 +646,24 @@ export default function MovieDetails() {
 
           {/* Right Column: User Interactions */}
           <div className="md:col-span-1 space-y-6">
-            <div className="brutal-border p-6 space-y-6 rounded-none">
+            <div className="brutal-border p-6 space-y-6 rounded-2xl">
                            {/* Verdict Section: Rating Distribution OR Upcoming Excited Counter */}
               {isUpcoming ? (
                 <div className="pb-5 border-b border-white/10 text-left font-mono">
-                  <span className="text-white text-xs font-black tracking-wider uppercase mb-3 block bg-white text-black px-2 py-0.5 w-fit">
+                  <span className="text-xs font-black tracking-wider uppercase mb-3 block bg-white/10 text-brutal-pink px-2.5 py-1 rounded w-fit border border-brutal-pink/20 font-mono">
                     Hype Index
                   </span>
-                  <div className="border-2 border-white/20 p-4 bg-brutal-pink text-black text-center font-black uppercase text-xs shadow-[3px_3px_0px_#000]">
-                    <span className="block text-[10px] tracking-wider mb-1 text-black/70">RELEASE PENDING</span>
-                    <div className="text-lg flex items-center justify-center gap-1.5 mt-1">
-                      <Flame className="w-5 h-5 text-black animate-bounce fill-black" />
+                  <div className="p-4 bg-brutal-pink/15 border border-brutal-pink/25 text-brutal-pink text-center font-bold uppercase text-xs rounded-xl shadow-lg">
+                    <span className="block text-[10px] tracking-wider mb-1 text-brutal-pink/80">RELEASE PENDING</span>
+                    <div className="text-base flex items-center justify-center gap-1.5 mt-1 text-white">
+                      <Flame className="w-5 h-5 text-brutal-pink animate-pulse fill-brutal-pink" />
                       <span>{excitedData?.count || 0} Excited</span>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="pb-5 border-b border-white/10 text-left font-mono">
-                  <span className="text-white text-xs font-black tracking-wider uppercase mb-3 block bg-white text-black px-2 py-0.5 w-fit">
+                  <span className="text-xs font-black tracking-wider uppercase mb-3 block bg-white/10 text-brutal-cyan px-2.5 py-1 rounded w-fit border border-brutal-cyan/20 font-mono">
                     Community Verdict
                   </span>
                   
@@ -721,7 +728,7 @@ export default function MovieDetails() {
         <div className="mt-20 border-t-4 border-white pt-12">
           <div className="mb-8 font-mono">
             <h2 className="text-3xl font-black uppercase tracking-wider text-white inline-block bg-brutal-pink text-black px-4 py-2 border-3 border-white shadow-[6px_6px_0px_#000]">
-              The Yelling Corkboard
+              The Comment Corkboard
             </h2>
             <p className="text-xs text-brand-text-muted mt-3 uppercase tracking-wider">
               📌 SLAP STICKERS AND DRAG POST-IT NOTES AROUND TO RE-ARRANGE INDEPENDENT REVIEWS.
@@ -730,7 +737,7 @@ export default function MovieDetails() {
 
           {stickyNotes.length === 0 ? (
             <div className="bg-brand-card border-3 border-white p-12 text-center text-brand-text-muted font-mono uppercase">
-              No sticky notes on the wall yet. Be the first to yell!
+              No sticky notes on the wall yet. Be the first to comment!
             </div>
           ) : (
             <div 
@@ -747,31 +754,33 @@ export default function MovieDetails() {
                     key={note.id}
                     onMouseDown={(e) => handleMouseDown(note.id, e)}
                     onTouchStart={(e) => handleTouchStart(note.id, e)}
-                    className="absolute w-[240px] border-3 border-black p-4 select-none flex flex-col font-sans transition-shadow"
+                    className="absolute w-[240px] border p-4 select-none flex flex-col font-sans transition-all duration-200 rounded-2xl"
                     style={{
                       left: `${note.x}px`,
                       top: `${note.y}px`,
-                      backgroundColor: note.color,
+                      backgroundColor: hexToRgba(note.color, 0.12),
+                      borderColor: hexToRgba(note.color, 0.4),
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
                       transform: `rotate(${note.rotation}deg)`,
-                      boxShadow: draggingId === note.id ? '12px 12px 0px rgba(0,0,0,0.8)' : '6px 6px 0px rgba(0,0,0,0.9)',
+                      boxShadow: draggingId === note.id 
+                        ? `0 16px 36px ${hexToRgba(note.color, 0.3)}` 
+                        : `0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px ${hexToRgba(note.color, 0.1)}`,
                       zIndex: draggingId === note.id ? 999 : 10,
                       cursor: draggingId === note.id ? 'grabbing' : 'grab'
                     }}
                   >
-                    {/* Texture overlay */}
-                    <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(45deg,rgba(0,0,0,0.15)_25%,transparent_25%),linear-gradient(-45deg,rgba(0,0,0,0.15)_25%,transparent_25%)]" />
-
                     {/* Draggable Header */}
-                    <div className="flex items-center gap-2 border-b border-black/20 pb-2 mb-2">
+                    <div className="flex items-center gap-2 border-b border-white/10 pb-2 mb-2">
                       <img
                         src={note.avatar_url}
                         alt={note.username}
-                        className="w-6 h-6 rounded-none border border-black"
+                        className="w-6 h-6 rounded-full border border-white/20"
                       />
                       <div className="min-w-0 text-left">
                         <Link 
                           to={`/profile/${note.username}`}
-                          className="font-black text-xs text-black hover:underline truncate block"
+                          className="font-bold text-xs text-white hover:underline truncate block"
                         >
                           @{note.username}
                         </Link>
@@ -779,27 +788,27 @@ export default function MovieDetails() {
                       
                       {/* Only display rating icon if it is not a pre-release rating (rating > 0) */}
                       {note.rating > 0 && (
-                        <span className="ml-auto text-black" title={opt.label}>
-                          <RatingIcon className="w-4 h-4 text-black" />
+                        <span className="ml-auto" style={{ color: note.color }} title={opt.label}>
+                          <RatingIcon className="w-4 h-4" />
                         </span>
                       )}
                     </div>
 
                     {/* Review Body */}
                     <div className="text-left flex-1 min-h-[90px] max-h-[140px] overflow-y-auto pr-1">
-                      <p className="text-xs text-black font-semibold leading-relaxed font-mono">
+                      <p className="text-xs text-white/90 font-medium leading-relaxed font-mono">
                         {note.review_text || 'Just logged this movie.'}
                       </p>
                     </div>
 
                     {/* Log Date */}
-                    <div className="text-[9px] font-bold text-black/50 text-left mt-2 uppercase">
+                    <div className="text-[9px] font-bold text-white/40 text-left mt-2 uppercase font-mono">
                       Logged: {new Date(note.created_at).toLocaleDateString()}
                     </div>
 
                     {/* Sticker Slaps */}
-                    <div className="flex justify-between items-center mt-3 pt-2 border-t border-black/10">
-                      <span className="text-[8px] font-black text-black uppercase">Slap:</span>
+                    <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/10">
+                      <span className="text-[8px] font-bold text-white/50 uppercase">Slap:</span>
                       <div className="flex gap-1.5">
                         {Object.keys(STICKER_ICONS).map((iconKey) => {
                           const StickerButtonIcon = STICKER_ICONS[iconKey];
@@ -807,10 +816,10 @@ export default function MovieDetails() {
                             <button
                               key={iconKey}
                               onClick={() => slapSticker(note.id, iconKey)}
-                              className="hover:scale-125 transition-transform p-0.5 bg-white/70 hover:bg-white border border-black text-black"
+                              className="hover:scale-125 transition-transform p-0.5 bg-white/5 hover:bg-white/20 border border-white/10 rounded text-white animate-fade-in"
                               title={`Slap ${iconKey} icon`}
                             >
-                              <StickerButtonIcon className="w-3.5 h-3.5 text-black" />
+                              <StickerButtonIcon className="w-3 h-3 text-white" />
                             </button>
                           );
                         })}
@@ -830,8 +839,8 @@ export default function MovieDetails() {
                             transform: `rotate(${stk.rotation}deg)`
                           }}
                         >
-                          <div className="p-1 bg-white border-2 border-black rounded-lg shadow-md">
-                            <StickerIconComponent className="w-5 h-5 text-black fill-black" />
+                          <div className="p-1 bg-black/80 border border-white/25 rounded-lg shadow-md">
+                            <StickerIconComponent className="w-4 h-4 text-white fill-white" />
                           </div>
                         </div>
                       );
@@ -930,7 +939,7 @@ export default function MovieDetails() {
                 {/* Notepad Text Editor Area */}
                 <div>
                   <label className="block text-xs font-black uppercase text-gray-700 mb-2">
-                    YELL NOTES (TEXT AREA)
+                    COMMENT NOTES (TEXT AREA)
                   </label>
                   <textarea
                     rows={4}

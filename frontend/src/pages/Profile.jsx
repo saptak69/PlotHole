@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, AlertCircle } from 'lucide-react';
+import { Calendar, AlertCircle, Camera, Edit3, X } from 'lucide-react';
 import { API_URL, getAuthHeaders, getPosterUrl } from '../config';
 import { useAuth } from '../context/AuthContext';
 import RatingBadge from '../components/RatingBadge';
@@ -69,9 +69,16 @@ function WatchlistCard({ movieId }) {
 
 export default function Profile() {
   const { username } = useParams();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, updateProfile } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('diary');
+
+  // Edit profile states
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editBio, setEditBio] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
+  const [editError, setEditError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Fetch profile details
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery({
@@ -87,6 +94,45 @@ export default function Profile() {
   const profileUser = profile?.user;
   const stats = profile?.stats;
   const isFollowing = profile?.isFollowing;
+
+  const openEditModal = () => {
+    setEditBio(profileUser?.bio || '');
+    setEditAvatar(profileUser?.avatar_url || '');
+    setEditError('');
+    setIsEditModalOpen(true);
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setEditError('Image size should be less than 2MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditAvatar(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setEditError('');
+    try {
+      await updateProfile(editBio, editAvatar);
+      queryClient.invalidateQueries({ queryKey: ['userProfile', username] });
+      setIsEditModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      setEditError(err.message || 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Fetch user reviews
   const { data: reviews = [], isLoading: reviewsLoading } = useQuery({
@@ -223,6 +269,16 @@ export default function Profile() {
               {isFollowing ? 'Unfollow Target' : 'Follow Target'}
             </button>
           )}
+
+          {isOwnProfile && (
+            <button
+              onClick={openEditModal}
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-brutal-cyan to-blue-600 border-none text-black font-extrabold text-xs uppercase rounded-xl shadow-lg hover:shadow-brutal-cyan/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Edit Profile</span>
+            </button>
+          )}
         </div>
  
         {/* Softer Detailed Dashboard Grid for Stats */}
@@ -236,7 +292,7 @@ export default function Profile() {
             <span className="text-base md:text-lg font-black text-white">{stats.diary}</span>
           </div>
           <div className="p-3 border-r border-b border-white/20 md:border-b-0 bg-brand-card">
-            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Rants</span>
+            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Reviews</span>
             <span className="text-base md:text-lg font-black text-brutal-pink">{stats.reviews}</span>
           </div>
           <div className="p-3 border-b border-b-white/20 md:border-b-0 md:border-r bg-brand-card">
@@ -288,7 +344,7 @@ export default function Profile() {
               : 'bg-black text-brand-text-muted border-white/10 hover:text-white'
           }`}
         >
-          Rants log ({reviews.length})
+          Reviews log ({reviews.length})
         </button>
         {isOwnProfile && (
           <button
@@ -334,7 +390,7 @@ export default function Profile() {
                         </Link>
                       </div>
                       {entry.review_text && (
-                        <p className="text-sm text-brand-text leading-relaxed bg-black/60 p-3 border border-white/10 uppercase">
+                        <p className="text-sm text-brand-text leading-relaxed bg-black/40 p-3 rounded-lg border border-white/5 uppercase">
                           {entry.review_text}
                         </p>
                       )}
@@ -343,17 +399,17 @@ export default function Profile() {
                 </div>
 
                 {/* Desktop View: Table */}
-                <div className="hidden md:block border-2 border-white/25 overflow-hidden shadow-[4px_4px_0px_#000]">
+                <div className="hidden md:block border border-white/10 rounded-2xl overflow-hidden shadow-2xl bg-black/25">
                   <table className="w-full text-sm uppercase text-left border-collapse">
                     <thead>
-                      <tr className="bg-brand-card text-white font-black border-b border-white/20">
+                      <tr className="bg-brand-card text-white font-black border-b border-white/10">
                         <th className="px-6 py-3">Watched Date</th>
                         <th className="px-6 py-3">Movie Reference</th>
                         <th className="px-6 py-3">Verdict</th>
                         <th className="px-6 py-3">Notes</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10 bg-black">
+                    <tbody className="divide-y divide-white/10 bg-[#07090e]/40">
                       {diary.map((entry) => (
                         <tr key={entry.id} className="hover:bg-brand-card-hover transition-colors">
                           <td className="px-6 py-4 font-bold text-white flex items-center gap-2">
@@ -384,10 +440,10 @@ export default function Profile() {
         {activeTab === 'reviews' && (
           <div>
             {reviewsLoading ? (
-              <div className="p-12 text-center text-sm animate-pulse">LOADING USER RANTS...</div>
+              <div className="p-12 text-center text-sm animate-pulse">LOADING USER REVIEWS...</div>
             ) : reviews.length === 0 ? (
               <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-sm font-bold">
-                No user rants written yet.
+                No user reviews written yet.
               </div>
             ) : (
               <div className="space-y-6">
@@ -432,6 +488,96 @@ export default function Profile() {
           </div>
         )}
       </div>
+
+      {/* Edit Profile Glassmorphic Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+          <div className="win95-notepad w-full max-w-md animate-in zoom-in-95 duration-150">
+            <div className="win95-titlebar font-sans">
+              <span>Edit_Profile.docket - Config</span>
+              <button onClick={() => setIsEditModalOpen(false)} className="win95-btn">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-6 font-mono">
+              {editError && (
+                <div className="p-3 border border-red-600 bg-red-600/10 text-red-500 rounded-lg text-xs uppercase">
+                  [SYSTEM ERROR]: {editError}
+                </div>
+              )}
+
+              {/* Avatar Upload Container */}
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white/20 bg-black group/avatar shadow-lg">
+                  <img
+                    src={editAvatar || 'https://api.dicebear.com/7.x/adventurer/svg?seed=placeholder'}
+                    alt="Preview avatar"
+                    className="w-full h-full object-cover"
+                  />
+                  <label 
+                    htmlFor="avatar-file-input"
+                    className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <Camera className="w-6 h-6 text-white" />
+                  </label>
+                </div>
+                <input
+                  id="avatar-file-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('avatar-file-input').click()}
+                  className="text-xs font-bold bg-white/5 border border-white/10 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  Change Photo
+                </button>
+              </div>
+
+              {/* Bio Text Area */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase text-brand-text-muted">
+                  Personal Biography
+                </label>
+                <textarea
+                  rows={4}
+                  maxLength={250}
+                  required
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  className="win95-textarea w-full text-white text-sm"
+                  placeholder="Enter bio details..."
+                />
+                <div className="text-right text-[10px] text-brand-text-muted">
+                  {editBio.length}/250 chars
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 border border-white/10 hover:bg-white/5 text-white text-xs font-bold rounded-lg transition-colors uppercase"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-5 py-2 bg-gradient-to-r from-brutal-cyan to-blue-600 border-none text-black text-xs font-black rounded-lg transition-all hover:shadow-lg uppercase"
+                >
+                  {isSaving ? 'Saving...' : 'Save Config'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

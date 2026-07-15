@@ -1,20 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
 @import "tailwindcss";
 
 @theme {
-  --color-brand-bg: #05070f;
-  --color-brand-card: #0c0f1d;
-  --color-brand-card-hover: #151a30;
+  --color-brand-bg: #08080c;
+  --color-brand-card: rgba(22, 22, 30, 0.7);
+  --color-brand-card-hover: rgba(30, 30, 42, 0.8);
   
-  /* Brutalist neon palette */
-  --color-brutal-green: #00ff66;
-  --color-brutal-pink: #ff007f;
-  --color-brutal-yellow: #ffee00;
-  --color-brutal-cyan: #00f2fe;
-  --color-brutal-blue: #0022ff;
-  --color-brand-border: #ffffff;
-  --color-brand-text: #c3d1f0;
-  --color-brand-text-muted: #8899b8;
+  /* Apple Cupertino premium Dark Mode color guidelines */
+  --color-brutal-green: #30d158;
+  --color-brutal-pink: #ff2d55;
+  --color-brutal-yellow: #ff9f0a;
+  --color-brutal-cyan: #0a84ff;
+  --color-brutal-blue: #5e5ce6;
+  --color-brand-border: rgba(255, 255, 255, 0.08);
+  --color-brand-text: #e2e2e7;
+  --color-brand-text-muted: #86868b;
   --color-brand-heading: #ffffff;
+  
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 /* Base resets & Custom cursors */
@@ -23,92 +28,98 @@
 }
 
 *:focus-visible {
-  outline: 3px solid var(--color-brutal-cyan) !important;
+  outline: 2px solid var(--color-brutal-cyan) !important;
   outline-offset: 3px !important;
 }
 
 body {
   background-color: var(--color-brand-bg);
   color: var(--color-brand-text);
-  font-family: 'Courier New', Courier, monospace;
+  font-family: var(--font-sans);
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  image-rendering: pixelated;
-  /* Brutalist custom pixel cursor (Base64 SVG pointer) */
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black' stroke='white' stroke-width='2'%3E%3Cpolygon points='0,0 0,16 5,12 10,21 13,19 8,11 15,11'/%3E%3C/svg%3E"), auto;
+  cursor: default;
 }
 
-/* Hover cursor - Hand pointer cursor */
+/* Hover cursor */
 a, button, [role="button"], input[type="submit"], select, input[type="checkbox"], input[type="radio"] {
-  cursor: pointer !important;
+  cursor: pointer;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #05070f;
-  border-left: 2px solid rgba(255, 255, 255, 0.1);
+  background: #090a10;
+  border-left: 1px solid rgba(255, 255, 255, 0.03);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid #05070f;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-brutal-cyan);
 }
 
-/* The Wireframe Brutalist Container */
+/* Cyber Glassmorphism Containers */
 .brutal-border {
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 4px 4px 0px #000000;
-  background-color: var(--color-brand-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: rgba(18, 20, 34, 0.75);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
 }
 
 .brutal-border-highlight {
-  border: 3px solid #ffffff;
-  box-shadow: 6px 6px 0px #000000, 6px 6px 0px 3px #ffffff;
-  background-color: var(--color-brand-card);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(255, 0, 127, 0.08), 0 0 0 1px rgba(255, 0, 127, 0.12);
+  background-color: rgba(18, 20, 34, 0.8);
+  border-radius: 16px;
+  backdrop-filter: blur(16px);
 }
 
 .brutal-border-interactive {
-  border: 2px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 4px 4px 0px #000000;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background-color: rgba(18, 20, 34, 0.7);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .brutal-border-interactive:hover {
-  transform: translate(-2px, -2px);
-  border-color: #ffffff;
-  box-shadow: 6px 6px 0px #000000, 6px 6px 0px 1px var(--color-brutal-pink);
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 30px rgba(0, 242, 254, 0.15), 0 0 0 1px rgba(0, 242, 254, 0.15);
 }
 .brutal-border-interactive:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px #000000, 2px 2px 0px 1px var(--color-brutal-green);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(0, 255, 102, 0.1);
 }
 
 /* Fast Marquee Pinned Taskbar */
 .marquee-container {
-  background: #ff007f;
-  border-bottom: 3px solid #ffffff;
-  color: #ffffff;
-  font-weight: 900;
-  font-size: 14px;
+  background: rgba(255, 0, 127, 0.06);
+  border-bottom: 1px solid rgba(255, 0, 127, 0.2);
+  color: var(--color-brutal-pink);
+  font-weight: 800;
+  font-size: 11px;
   overflow: hidden;
   white-space: nowrap;
-  padding: 6px 0;
+  padding: 8px 0;
   position: relative;
   z-index: 100;
+  letter-spacing: 0.15em;
+  backdrop-filter: blur(4px);
 }
 
 .marquee-text {
   display: inline-block;
   padding-left: 100%;
-  animation: marquee 28s linear infinite;
+  animation: marquee 30s linear infinite;
   text-transform: uppercase;
-  letter-spacing: 2px;
   will-change: transform;
 }
 
@@ -123,140 +134,158 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
   bottom: 24px;
   right: 24px;
   z-index: 99;
-  background-color: var(--color-brutal-green);
-  color: var(--color-brutal-blue);
-  border: 4px solid #000000;
-  padding: 16px 28px;
-  font-family: 'MS Gothic', 'Courier New', monospace;
-  font-size: 20px;
-  font-weight: 900;
+  background: linear-gradient(135deg, var(--color-brutal-green), var(--color-brutal-cyan));
+  color: #020308;
+  border: none;
+  padding: 14px 26px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 8px 8px 0px #000000;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 9999px;
+  box-shadow: 0 8px 30px rgba(0, 242, 254, 0.35);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .brutal-log-btn:hover {
-  background-color: var(--color-brutal-blue);
-  color: var(--color-brutal-green);
-  transform: translate(2px, 2px);
-  box-shadow: 6px 6px 0px #000000;
+  transform: scale(1.05) translateY(-3px);
+  box-shadow: 0 15px 35px rgba(0, 242, 254, 0.5);
 }
 .brutal-log-btn:active {
-  transform: translate(8px, 8px);
-  box-shadow: 0px 0px 0px #000000;
+  transform: scale(0.97) translateY(-1px);
 }
 
-/* Bitmap threshold hover for posters */
+/* Poster hover */
 .bitmap-hover {
-  filter: grayscale(0) contrast(100%);
-  transition: filter 0.2s steps(4);
+  filter: brightness(0.95);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .bitmap-hover:hover {
-  filter: grayscale(1) contrast(500%) brightness(110%);
+  filter: brightness(1.08) contrast(1.02);
+  transform: scale(1.04);
 }
 
-/* Dithered Flip Phone Simulation for Avatars */
+/* Avatars */
 .dithered-avatar {
-  image-rendering: pixelated;
-  filter: grayscale(0.2) contrast(150%) brightness(95%);
-  border: 3px solid #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+.dithered-avatar:hover {
+  border-color: var(--color-brutal-cyan);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
 }
 
-/* Tape Overlay for Polaroids */
+/* Polaroid Display */
 .polaroid-container {
-  background: #ffffff;
-  padding: 12px 12px 24px 12px;
-  border: 3px solid #000;
-  box-shadow: 5px 5px 0px rgba(0,0,0,0.5);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 10px 22px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
   position: relative;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .masking-tape {
   position: absolute;
-  top: -15px;
-  left: 25%;
-  width: 50%;
-  height: 25px;
-  background-color: rgba(246, 240, 213, 0.7);
-  border-left: 2px dashed rgba(0,0,0,0.1);
-  border-right: 2px dashed rgba(0,0,0,0.1);
-  transform: rotate(-3deg);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  top: -10px;
+  left: 30%;
+  width: 40%;
+  height: 16px;
+  background-color: rgba(0, 242, 254, 0.15);
+  border-radius: 4px;
+  transform: rotate(-2deg);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
 }
 
-/* Windows 95 Notepad style modal */
+/* Cyber Modals */
 .win95-notepad {
-  background: #c0c0c0;
-  border-top: 2px solid #fff;
-  border-left: 2px solid #fff;
-  border-right: 2px solid #808080;
-  border-bottom: 2px solid #808080;
-  box-shadow: 2px 2px 0px #000000;
-  padding: 4px;
+  background: rgba(11, 13, 23, 0.85);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  padding: 0;
+  overflow: hidden;
 }
 
 .win95-titlebar {
-  background: linear-gradient(90deg, #000080, #1084d0);
+  background: linear-gradient(90deg, #12102e, #1e1b4b);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   color: white;
-  padding: 3px 6px;
-  font-family: Arial, sans-serif;
-  font-size: 13px;
-  font-weight: bold;
+  padding: 14px 20px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .win95-btn {
-  background: #c0c0c0;
-  border-top: 1px solid #fff;
-  border-left: 1px solid #fff;
-  border-right: 1px solid #808080;
-  border-bottom: 1px solid #808080;
-  color: black;
-  width: 16px;
-  height: 14px;
-  font-size: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.win95-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .win95-btn:active {
-  border-top: 1px solid #808080;
-  border-left: 1px solid #808080;
-  border-right: 1px solid #fff;
-  border-bottom: 1px solid #fff;
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .win95-textarea {
-  background: #ffffff;
-  color: #000000;
-  font-family: 'Courier New', Courier, monospace;
+  background: rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+  font-family: var(--font-sans);
   font-size: 14px;
-  border-top: 2px solid #808080;
-  border-left: 2px solid #808080;
-  border-right: 2px solid #fff;
-  border-bottom: 2px solid #fff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px 16px;
   outline: none;
+  transition: all 0.3s ease;
 }
 
-/* ASCII Rating Stars */
+.win95-textarea:focus {
+  border-color: var(--color-brutal-cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Rating Star Elements */
 .ascii-rating-btn {
-  font-size: 16px;
-  font-weight: bold;
-  padding: 6px 12px;
-  border: 2px solid #fff;
-  background: #000;
-  color: #fff;
-  transition: all 0.1s;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #ffffff;
+  transition: all 0.2s ease;
 }
 .ascii-rating-btn:hover {
   background: var(--color-brutal-pink);
-  color: #000;
+  color: #000000;
+  border-color: var(--color-brutal-pink);
 }
 .ascii-rating-btn.active {
   background: var(--color-brutal-cyan);
-  color: #000;
+  color: #000000;
   border-color: var(--color-brutal-cyan);
 }

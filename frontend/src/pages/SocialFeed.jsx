@@ -47,23 +47,23 @@ export default function SocialFeed() {
       ) : (
         <div className="space-y-8">
           {feed.map((act, idx) => (
-            <div key={idx} className="brutal-border p-6 flex gap-4 hover:border-brutal-pink transition-colors">
+            <div key={idx} className="brutal-border p-6 flex gap-4 hover:border-brutal-pink/35 hover:shadow-[0_8px_25px_rgba(255,0,127,0.1)] hover:scale-[1.01] transition-all duration-300">
               <img
                 src={act.avatar_url}
                 alt={act.username}
-                className="w-12 h-12 rounded-none border-2 border-white/20 dithered-avatar shrink-0"
+                className="w-12 h-12 dithered-avatar shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-3 border-b border-white/10 pb-2">
-                  <Link to={`/profile/${act.username}`} className="font-black text-white hover:text-brutal-cyan transition-colors text-sm">
+                <div className="flex flex-wrap items-center gap-2 mb-3 border-b border-white/5 pb-2">
+                  <Link to={`/profile/${act.username}`} className="font-extrabold text-white hover:text-brutal-cyan transition-colors text-sm uppercase">
                     @{act.username}
                   </Link>
                   
-                  <span className="text-xs text-brand-text-muted uppercase font-bold">
-                    {act.type === 'review' ? 'ranted about' : 'watched'}
+                  <span className="text-[10px] text-brand-text-muted uppercase font-bold">
+                    {act.type === 'review' ? 'reviewed' : 'watched'}
                   </span>
                   
-                  <Link to={`/media/movie/${act.tmdb_movie_id}`} className="font-black text-brutal-cyan hover:underline text-sm">
+                  <Link to={`/media/movie/${act.tmdb_movie_id}`} className="font-bold text-brutal-cyan hover:underline text-sm uppercase">
                     Film #{act.tmdb_movie_id}
                   </Link>
 
@@ -76,12 +76,12 @@ export default function SocialFeed() {
                 </div>
 
                 {act.review_text && (
-                  <p className="text-sm md:text-base text-brand-text leading-relaxed bg-black/60 p-4 border border-white/10">
+                  <p className="text-sm md:text-base text-brand-text leading-relaxed bg-black/40 p-4 rounded-xl border border-white/5 uppercase">
                     {act.review_text}
                   </p>
                 )}
 
-                <span className="block text-xs text-brand-text-muted mt-3 font-bold">
+                <span className="block text-[10px] text-brand-text-muted mt-3 font-bold uppercase">
                   Logged: {new Date(act.created_at).toLocaleString()}
                 </span>
               </div>

@@ -9,10 +9,10 @@ export default function MovieCard({ movie }) {
   return (
     <Link 
       to={`/media/${mediaType}/${movie.id}`} 
-      className="group relative block rounded-none border-2 border-white/20 bg-black shadow-[4px_4px_0px_#000] hover:border-brutal-pink hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all focus-visible:outline-none"
+      className="group relative block rounded-2xl border border-white/10 bg-brand-card overflow-hidden shadow-lg hover:shadow-[0_8px_30px_rgba(0,242,254,0.15)] hover:border-brutal-cyan/30 hover:scale-[1.04] transition-all duration-300 focus-visible:outline-none"
     >
       {/* Poster Image Container */}
-      <div className="aspect-[2/3] w-full overflow-hidden relative rounded-none pb-9 bg-black">
+      <div className="aspect-[2/3] w-full overflow-hidden relative bg-black">
         <img
           src={getPosterUrl(movie.poster_path)}
           alt={title}
@@ -21,8 +21,8 @@ export default function MovieCard({ movie }) {
         />
         
         {/* Brutalist Title Bar Pinned to bottom of Card */}
-        <div className="absolute bottom-0 inset-x-0 bg-black border-t-2 border-white/20 py-2 px-2.5 text-left font-mono group-hover:bg-brutal-cyan transition-colors">
-          <h3 className="font-black text-xs md:text-sm text-white group-hover:text-black uppercase truncate tracking-tight">
+        <div className="absolute bottom-0 inset-x-0 bg-black/80 backdrop-blur-md border-t border-white/10 py-3 px-3.5 text-left font-sans group-hover:bg-gradient-to-r group-hover:from-brutal-cyan/20 group-hover:to-blue-600/20 transition-all duration-300">
+          <h3 className="font-bold text-xs md:text-sm text-white group-hover:text-brutal-cyan uppercase truncate tracking-tight">
             {title}
           </h3>
         </div>

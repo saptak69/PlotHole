@@ -125,10 +125,10 @@ export default function Home() {
   const movieDate = heroMovie ? (heroMovie.release_date || heroMovie.first_air_date) : null;
 
   return (
-    <div className="flex-1 pb-16 font-mono text-white select-none">
+    <div className="flex-1 pb-16 font-sans text-white select-none">
       {/* Featured Hero Banner */}
       {heroMovie && (
-        <div className="relative h-[450px] md:h-[550px] w-full overflow-hidden mb-12 border-b-4 border-white/20">
+        <div className="relative h-[450px] md:h-[550px] w-full overflow-hidden mb-12 border-b border-white/10">
           {/* Backdrop Image - Smooth GPU accelerated crossfade */}
           <div className="absolute inset-0 bg-black">
             {popularMovies.slice(0, 5).map((movie, idx) => (
@@ -148,46 +148,45 @@ export default function Home() {
           {/* Hero Details Content - Blended directly onto bottom of poster */}
           <div className="absolute bottom-10 left-6 md:left-12 max-w-3xl text-left space-y-4 z-10">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-brutal-cyan text-black px-3.5 py-1 font-black text-xs uppercase tracking-wider border-2 border-black w-fit">
+              <div className="flex items-center gap-1.5 bg-brutal-cyan/20 border border-brutal-cyan/30 text-brutal-cyan px-3 py-1 font-extrabold text-[10px] uppercase tracking-widest rounded-full w-fit">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Trending Film</span>
               </div>
               
               {/* Slideshow Selector Buttons */}
-              <div className="flex gap-1.5 bg-black/60 p-1 border border-white/20 backdrop-blur-sm">
+              <div className="flex gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-md">
                 {popularMovies.slice(0, 5).map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setCurrentHeroIndex(idx)}
-                    className={`w-5 h-5 border text-[10px] font-black flex items-center justify-center transition-all ${
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
                       currentHeroIndex === idx
-                        ? 'bg-brutal-pink text-white border-white scale-110'
-                        : 'bg-black text-white border-white hover:bg-white/20'
+                        ? 'bg-brutal-cyan w-6 shadow-[0_0_8px_var(--color-brutal-cyan)]'
+                        : 'bg-white/30 hover:bg-white/60'
                     }`}
-                  >
-                    {idx + 1}
-                  </button>
+                    aria-label={`Slide ${idx + 1}`}
+                  />
                 ))}
               </div>
             </div>
             
             <h1 
               key={`title-${heroMovie.id}`}
-              className="text-3xl md:text-[48px] font-serif font-black text-white uppercase tracking-tighter leading-none animate-in fade-in duration-500"
-              style={{ textShadow: '2px 2px 0px #ff007f' }}
+              className="text-3xl md:text-[52px] font-black text-white uppercase tracking-tight leading-none animate-in slide-in-from-bottom-4 duration-500 font-sans"
+              style={{ textShadow: '0 4px 15px rgba(0, 0, 0, 0.6)' }}
             >
               {heroMovie.title}
             </h1>
 
             {/* Year, Genres, and Rating Info */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm font-bold uppercase tracking-wider text-gray-300">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs font-bold uppercase tracking-wider text-gray-300 font-mono">
               {movieDate && (
-                <span className="bg-black/60 px-2 py-0.5 border border-white/20">
+                <span className="bg-white/10 px-2 py-0.5 rounded border border-white/15">
                   {new Date(movieDate).getFullYear()}
                 </span>
               )}
               {heroMovie.vote_average && (
-                <span className="text-brutal-yellow font-black">
+                <span className="text-brutal-yellow font-bold">
                   ★ {heroMovie.vote_average.toFixed(1)} Rating
                 </span>
               )}
@@ -200,7 +199,7 @@ export default function Home() {
             
             <p 
               key={`desc-${heroMovie.id}`}
-              className="text-white/90 text-sm md:text-base leading-relaxed max-w-xl font-bold uppercase line-clamp-3 animate-in fade-in duration-500 drop-shadow-md"
+              className="text-white/80 text-sm md:text-base leading-relaxed max-w-xl font-medium line-clamp-3 animate-in fade-in duration-500 drop-shadow-md"
             >
               {heroMovie.overview}
             </p>
@@ -208,7 +207,7 @@ export default function Home() {
             <div className="pt-1">
               <Link
                 to={`/movies/${heroMovie.id}`}
-                className="inline-flex bg-brutal-cyan text-black border-3 border-white px-6 py-3 font-black text-sm uppercase shadow-[3px_3px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none hover:bg-white hover:text-black transition-all"
+                className="inline-flex bg-gradient-to-r from-brutal-cyan to-blue-600 border-none text-black px-6 py-3 font-bold text-sm uppercase rounded-xl shadow-lg hover:shadow-brutal-cyan/20 hover:scale-[1.03] transition-all"
               >
                 <Play className="w-4 h-4 fill-black text-black mr-2 animate-pulse" />
                 <span>View Film Details</span>
@@ -223,10 +222,11 @@ export default function Home() {
         
         {/* Popular Movies Section */}
         <section>
-          <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-2">
-            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white leading-tight">
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
               Popular Films
             </h2>
+            <div className="h-[1px] bg-white/10 flex-1" />
           </div>
           {popularLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
@@ -245,10 +245,11 @@ export default function Home() {
 
         {/* Top Rated Movies Section */}
         <section>
-          <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-2">
-            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white leading-tight">
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
               Highest Rated
             </h2>
+            <div className="h-[1px] bg-white/10 flex-1" />
           </div>
           {topRatedLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
@@ -267,10 +268,11 @@ export default function Home() {
 
         {/* Upcoming Movies Section */}
         <section>
-          <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-2">
-            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white leading-tight">
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
               Upcoming Discoveries
             </h2>
+            <div className="h-[1px] bg-white/10 flex-1" />
           </div>
           {upcomingLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
@@ -289,10 +291,11 @@ export default function Home() {
 
         {/* Popular TV/Web Series Section */}
         <section>
-          <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-2">
-            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white leading-tight">
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
               Popular Web Series
             </h2>
+            <div className="h-[1px] bg-white/10 flex-1" />
           </div>
           {popularTvLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
@@ -311,10 +314,11 @@ export default function Home() {
 
         {/* Top Rated TV/Web Series Section */}
         <section>
-          <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-2">
-            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white leading-tight">
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
               Highest Rated Web Series
             </h2>
+            <div className="h-[1px] bg-white/10 flex-1" />
           </div>
           {topRatedTvLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
@@ -334,9 +338,12 @@ export default function Home() {
         {/* Reviews Section */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left">
           <div className="lg:col-span-2">
-            <h2 className="text-2xl md:text-[32px] font-black tracking-widest uppercase text-white border-b-2 border-white/20 pb-2 mb-6 leading-tight">
-              Recent Logs from Cinephiles
-            </h2>
+            <div className="flex items-center gap-4 mb-8">
+              <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
+                Recent Logs from Cinephiles
+              </h2>
+              <div className="h-[1px] bg-white/10 flex-1" />
+            </div>
             
             {reviewsLoading ? (
               <div className="space-y-4 animate-pulse">
@@ -351,19 +358,19 @@ export default function Home() {
             ) : (
               <div className="space-y-6">
                 {recentReviews.map((rev) => (
-                  <div key={rev.id} className="brutal-border p-5 flex gap-4 hover:border-brutal-cyan transition-colors">
+                  <div key={rev.id} className="brutal-border p-5 flex gap-4 hover:border-brutal-cyan/35 hover:shadow-[0_8px_25px_rgba(0,242,254,0.1)] hover:scale-[1.01] transition-all duration-300">
                     {/* User Avatar */}
                     <img
                       src={rev.avatar_url}
                       alt={rev.username}
-                      className="w-12 h-12 rounded-none border-2 border-white/20 dithered-avatar shrink-0"
+                      className="w-12 h-12 dithered-avatar shrink-0"
                     />
                     <div className="text-left flex-1 min-w-0 font-mono">
-                      <div className="flex flex-wrap items-center gap-2 mb-3 border-b border-white/10 pb-2">
-                        <Link to={`/profile/${rev.username}`} className="font-black text-white hover:text-brutal-cyan text-sm uppercase transition-colors">
+                      <div className="flex flex-wrap items-center gap-2 mb-3 border-b border-white/5 pb-2">
+                        <Link to={`/profile/${rev.username}`} className="font-extrabold text-white hover:text-brutal-cyan text-sm uppercase transition-colors">
                           @{rev.username}
                         </Link>
-                        <span className="text-xs text-brand-text-muted uppercase font-bold">logged film ID #{rev.tmdb_movie_id}</span>
+                        <span className="text-[10px] text-brand-text-muted uppercase font-bold">logged film ID #{rev.tmdb_movie_id}</span>
                         
                         {/* Custom Rating Badge */}
                         <div className="ml-auto">
@@ -372,13 +379,13 @@ export default function Home() {
                       </div>
                       
                       {rev.review_text && (
-                        <p className="text-sm md:text-base text-brand-text leading-relaxed bg-black/60 p-4 border border-white/10 uppercase">
+                        <p className="text-sm md:text-base text-brand-text leading-relaxed bg-black/40 p-4 rounded-xl border border-white/5 uppercase">
                           {rev.review_text}
                         </p>
                       )}
                       
-                      <div className="flex items-center gap-1.5 mt-3 text-xs font-bold text-brand-text-muted uppercase">
-                        <MessageSquare className="w-3.5 h-3.5" />
+                      <div className="flex items-center gap-1.5 mt-3 text-[10px] font-bold text-brand-text-muted uppercase">
+                        <MessageSquare className="w-3.5 h-3.5 text-brutal-cyan" />
                         <span>Logged on {new Date(rev.created_at).toLocaleDateString()}</span>
                       </div>
                     </div>

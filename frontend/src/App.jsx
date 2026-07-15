@@ -114,7 +114,7 @@ function GlobalLogWrapper() {
         <div className="fixed inset-0 z-[1000] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md">
           <div className="win95-notepad w-full max-w-xl animate-in zoom-in-95 duration-100">
             <div className="win95-titlebar">
-              <span>PLOTHOLE - SELECT FILM TO YELL ABOUT</span>
+              <span>PLOTHOLE - SELECT FILM TO COMMENT ON</span>
               <button onClick={() => setIsOpen(false)} className="win95-btn">X</button>
             </div>
             

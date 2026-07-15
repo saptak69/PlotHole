@@ -25,26 +25,65 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-black border-b-4 border-white py-3 px-4 md:py-4 md:px-12 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 font-mono select-none">
+    <nav className="sticky top-0 z-50 bg-[#090a10]/80 backdrop-blur-md border-b border-white/[0.08] py-3 px-4 md:py-4 md:px-12 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 font-mono select-none">
       
       {/* Top Header Row: Logo & Hamburger button */}
       <div className="flex items-center justify-between w-full md:w-auto">
-        <Link to="/" className="flex items-center gap-2 group" onClick={handleLinkClick}>
-          <div className="w-8 h-8 md:w-10 md:h-10 border-2 border-white bg-black flex items-center justify-center shadow-[2px_2px_0px_#fff]">
-            <Orbit className="w-5 h-5 md:w-6 md:h-6 text-brutal-cyan" />
+        <Link to="/" className="flex items-center gap-3.5 group" onClick={handleLinkClick}>
+          <div className="w-11 h-11 border border-white/10 bg-[#161821] flex items-center justify-center rounded-xl shadow-md group-hover:bg-[#1c1e29] transition-all duration-300 relative shrink-0">
+            <svg 
+              className="w-8 h-8 text-[#86868b] group-hover:text-[#f5f5f7] transition-colors duration-300" 
+              viewBox="0 0 100 100" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Double Film Magazines (IMAX twin lobes) at top */}
+              <circle cx="37" cy="30" r="14" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.04" />
+              <circle cx="37" cy="30" r="4.5" stroke="currentColor" strokeWidth="2" />
+              
+              <circle cx="63" cy="30" r="14" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.04" />
+              <circle cx="63" cy="30" r="4.5" stroke="currentColor" strokeWidth="2" />
+
+              {/* Connecting bridge */}
+              <path d="M37 30 H63" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
+
+              {/* Camera Body */}
+              <rect x="26" y="41" width="48" height="32" rx="3" stroke="currentColor" strokeWidth="3" fill="#0d0e12" />
+
+              {/* Front Matte Box */}
+              <path d="M26 48 L13 41 V69 L26 62 Z" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.1" strokeLinejoin="round" />
+              {/* Subtle metallic lens reflection flare */}
+              <line x1="15" y1="45" x2="15" y2="65" stroke="currentColor" strokeWidth="1.5" opacity="0.6" strokeLinecap="round" />
+
+              {/* Technical dial details */}
+              <line x1="66" y1="46" x2="69" y2="46" stroke="currentColor" strokeWidth="1.5" />
+              <line x1="66" y1="50" x2="69" y2="50" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="67.5" cy="58" r="2" fill="currentColor" />
+
+              {/* Minimal Clean Engraved 'P' (Cupertino-style branding) */}
+              <path 
+                d="M45 49 V65 M45 49 H51 C53.5 49 55 50.5 55 53 C55 55.5 53.5 57 H45" 
+                stroke="currentColor" 
+                strokeWidth="3" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
-          <span 
-            className="font-black text-xl md:text-2xl tracking-tighter text-white uppercase"
-            style={{ textShadow: '2px 2px 0px #ff007f' }}
-          >
-            Plot<span className="text-brutal-cyan">Hole</span>
-          </span>
+          <div className="flex flex-col text-left">
+            <span 
+              className="font-bold text-lg md:text-xl tracking-tight text-[#f5f5f7] uppercase font-sans transition-all duration-300 leading-none"
+            >
+              Plot<span className="text-[#86868b] font-light">Hole</span>
+            </span>
+            <span className="text-[9px] font-bold text-[#86868b] uppercase tracking-widest mt-0.5 font-mono hidden sm:inline-block">Cinema Registry</span>
+          </div>
         </Link>
 
         {/* Mobile Toggle Trigger */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden p-1.5 border-2 border-white text-white hover:bg-brutal-pink hover:text-black transition-colors"
+          className="md:hidden p-1.5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors"
           aria-label="Toggle navigation menu"
         >
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -54,7 +93,7 @@ export default function Navbar() {
       {/* Collapsible Menu: Search bar and Links */}
       <div className={`${
         isOpen ? 'flex' : 'hidden'
-      } md:flex flex-col md:flex-row items-center gap-4 w-full md:w-auto pb-2 md:pb-0 border-t border-white/20 pt-3 md:border-t-0 md:pt-0`}>
+      } md:flex flex-col md:flex-row items-center gap-4 w-full md:w-auto pb-4 md:pb-0 pt-3 md:pt-0 md:border-t-0 bg-[#0e111e]/95 md:bg-transparent backdrop-blur-md md:backdrop-blur-none p-4 md:p-0 rounded-2xl border border-white/[0.05] md:border-none mt-2 md:mt-0`}>
         
         {/* Brutalist Search Bar */}
         <form onSubmit={handleSearchSubmit} className="relative w-full md:w-96 lg:w-[480px]">
@@ -63,9 +102,9 @@ export default function Navbar() {
             placeholder="Search movies, web series..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border-3 border-black text-black px-4 py-2.5 pl-10 font-bold placeholder-gray-500 text-sm focus:outline-none uppercase"
+            className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 hover:border-white/25 focus:border-brutal-cyan text-white px-4 py-2.5 pl-10 font-bold placeholder-gray-400 text-sm focus:outline-none uppercase rounded-xl transition-all"
           />
-          <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-black" />
+          <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-white/50" />
           <button type="submit" className="hidden">Search</button>
         </form>
 
