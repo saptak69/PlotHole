@@ -62,7 +62,7 @@ export default function Navbar() {
 
               {/* Minimal Clean Engraved 'P' (Cupertino-style branding) */}
               <path 
-                d="M45 49 V65 M45 49 H51 C53.5 49 55 50.5 55 53 C55 55.5 53.5 57 H45" 
+                d="M45 49 V65 M45 49 H51 C53.5 49 55 50.5 55 53 C55 55.5 53 57 51 57 H45" 
                 stroke="currentColor" 
                 strokeWidth="3" 
                 strokeLinecap="round" 
