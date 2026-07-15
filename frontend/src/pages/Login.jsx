@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Film } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -27,33 +27,37 @@ export default function Login() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center py-12 px-6 font-mono text-black">
-      <div className="w-full max-w-md win95-notepad p-1 shadow-2xl">
-        {/* Title bar */}
-        <div className="win95-titlebar mb-4">
-          <span>Login.exe</span>
-          <div className="flex gap-1">
-            <button className="win95-btn">?</button>
-            <button className="win95-btn">X</button>
+    <div className="flex-1 flex items-center justify-center py-16 px-6 font-sans text-[#e2e2e7] select-none bg-[#08080c]">
+      <div className="relative w-full max-w-md bg-[#121420]/80 backdrop-blur-xl border border-white/[0.08] p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+        {/* Retro Ticket Cutouts */}
+        <div className="absolute -left-3 top-24 w-6 h-6 rounded-full bg-[#08080c] border border-white/[0.08] z-20" />
+        <div className="absolute -right-3 top-24 w-6 h-6 rounded-full bg-[#08080c] border border-white/[0.08] z-20" />
+        
+        {/* Ticket Header */}
+        <div className="text-center pb-6 space-y-2 relative">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <Film className="w-4 h-4 text-[#86868b]" />
+            <span className="font-extrabold text-[10px] tracking-widest text-[#86868b] uppercase font-mono">CINEMA ACCESS // ADMIT ONE</span>
           </div>
+          <h2 className="text-2xl font-black uppercase text-[#f5f5f7] tracking-tight">Login to PlotHole</h2>
+          <p className="text-[10px] text-brutal-cyan font-bold tracking-widest font-mono uppercase">SECURE PORTAL ADMIT CODE // #1920-PH</p>
         </div>
 
-        <div className="p-4 space-y-6">
-          <div className="text-center md:text-left border-b-2 border-dashed border-gray-400 pb-4">
-            <h2 className="text-xl font-black uppercase text-black">Login to PlotHole</h2>
-            <p className="text-xs text-gray-700 mt-1">RESTRICTED TERMINAL INTERFACE</p>
-          </div>
+        {/* Dashed line separating ticket stub */}
+        <div className="border-t border-dashed border-white/10 my-1 mx-[-32px] relative z-10" />
 
+        {/* Form Content */}
+        <div className="pt-6 space-y-6">
           {error && (
-            <div className="p-3 border-2 border-red-600 bg-red-600/10 text-red-600 rounded-none flex items-start gap-2.5 text-xs">
-              <AlertCircle className="w-4.5 h-4.5 shrink-0 mt-0.5" />
-              <span className="font-bold">{error}</span>
+            <div className="p-3 border border-red-500/20 bg-red-500/10 text-red-400 rounded-xl flex items-start gap-2.5 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span className="font-semibold text-left">{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-black uppercase text-gray-700 mb-2">
+          <form onSubmit={handleSubmit} className="space-y-4 text-left">
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold uppercase text-[#86868b] tracking-wider font-mono">
                 User Identifier (Email or Username)
               </label>
               <input
@@ -61,13 +65,13 @@ export default function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="win95-textarea w-full px-3 py-2 text-black text-sm"
-                placeholder="INPUT ID..."
+                className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 hover:border-white/20 focus:border-brutal-cyan text-[#f5f5f7] px-4 py-3 text-sm rounded-xl focus:outline-none transition-all uppercase placeholder-white/20"
+                placeholder="ENTER EMAIL OR ALIAS..."
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-black uppercase text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold uppercase text-[#86868b] tracking-wider font-mono">
                 Secret Passcode (Password)
               </label>
               <input
@@ -75,23 +79,25 @@ export default function Login() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="win95-textarea w-full px-3 py-2 text-black text-sm"
+                className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 hover:border-white/20 focus:border-brutal-cyan text-[#f5f5f7] px-4 py-3 text-sm rounded-xl focus:outline-none transition-all placeholder-white/20"
                 placeholder="••••••••"
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-brutal-cyan text-black border-3 border-black py-2.5 font-black text-xs uppercase shadow-[4px_4px_0px_#000] hover:bg-white transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-            >
-              {loading ? 'Authenticating...' : 'Submit_Auth'}
-            </button>
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-600 to-[#0a84ff] hover:from-blue-500 hover:to-[#3399ff] text-white py-3 font-bold text-xs uppercase rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99] border-none shadow-lg shadow-blue-600/15"
+              >
+                {loading ? 'Authenticating...' : 'Validate Access Code'}
+              </button>
+            </div>
           </form>
 
-          <p className="text-center text-xs text-gray-700 pt-2 border-t border-gray-400">
+          <p className="text-center text-xs text-[#86868b] pt-4 border-t border-white/5 font-mono uppercase">
             No terminal access key?{' '}
-            <Link to="/signup" className="text-blue-800 hover:underline font-black">
+            <Link to="/signup" className="text-[#0a84ff] hover:underline font-bold transition-colors">
               Register here
             </Link>
           </p>
