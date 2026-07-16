@@ -8,6 +8,7 @@ import {
 import { API_URL, getPosterUrl, getBackdropUrl, getAuthHeaders, RATINGS } from '../config';
 import { useAuth } from '../context/AuthContext';
 import RatingBadge from '../components/RatingBadge';
+import Avatar from '../components/Avatar';
 
 const RATING_ICONS = {
   Trash2,
@@ -677,11 +678,11 @@ export default function MovieDetails() {
                         const pct = distributionData.percentages[ratingVal] || 0;
                         
                         const barColors = {
-                          1: 'bg-red-500',
-                          2: 'bg-slate-500',
-                          3: 'bg-amber-500',
-                          4: 'bg-emerald-500',
-                          5: 'bg-pink-500'
+                          1: 'bg-brutal-pink',
+                          2: 'bg-brand-text-muted',
+                          3: 'bg-brutal-yellow',
+                          4: 'bg-brutal-green',
+                          5: 'bg-brutal-cyan'
                         };
  
                         const RatingIcon = RATING_ICONS[opt.icon] || HelpCircle;
@@ -772,10 +773,10 @@ export default function MovieDetails() {
                   >
                     {/* Draggable Header */}
                     <div className="flex items-center gap-2 border-b border-white/10 pb-2 mb-2">
-                      <img
-                        src={note.avatar_url}
-                        alt={note.username}
-                        className="w-6 h-6 rounded-full border border-white/20"
+                      <Avatar
+                        username={note.username}
+                        url={note.avatar_url}
+                        className="w-6 h-6 border border-white/20"
                       />
                       <div className="min-w-0 text-left">
                         <Link 

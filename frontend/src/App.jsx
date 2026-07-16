@@ -75,7 +75,7 @@ function GlobalLogWrapper() {
       {/* Standard Brutalist Container */}
       <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col select-none">
         <Navbar />
-        <main className="flex-1 flex flex-col border-t-4 border-white">
+        <main className="flex-1 flex flex-col border-t border-white/10">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/movies/:id" element={<MovieDetails />} />
@@ -88,8 +88,8 @@ function GlobalLogWrapper() {
           </Routes>
         </main>
         
-        {/* Brutalist Thick Bordered Footer */}
-        <footer className="py-12 bg-black border-t-4 border-white text-center text-xs text-brand-text-muted font-mono">
+        {/* Sleek Translucent Footer */}
+        <footer className="py-12 bg-black/60 border-t border-white/10 text-center text-xs text-brand-text-muted font-mono">
           <div className="max-w-7xl mx-auto px-6 space-y-2">
             <p className="text-white font-extrabold tracking-widest text-sm uppercase">PLOTHOLE © {new Date().getFullYear()}</p>
             <p className="mt-1">MIND THE GAP IN FILM CRITICISM. POWERED BY TMDB API + SUPABASE.</p>

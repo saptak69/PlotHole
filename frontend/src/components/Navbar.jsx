@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Orbit, Search, LogOut, Bookmark, Users, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import Avatar from './Avatar';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -145,10 +146,10 @@ export default function Navbar() {
                   onClick={handleLinkClick}
                   className="flex items-center gap-2 group py-1"
                 >
-                  <img
-                    src={user.avatar_url}
-                    alt={user.username}
-                    className="w-7 h-7 rounded-none border-2 border-white group-hover:border-brutal-cyan transition-colors dithered-avatar"
+                  <Avatar
+                    username={user.username}
+                    url={user.avatar_url}
+                    className="w-7 h-7 border-2 border-white group-hover:border-brutal-cyan transition-colors"
                   />
                   <span className="text-sm font-black text-white group-hover:text-brutal-cyan transition-colors">
                     @{user.username}

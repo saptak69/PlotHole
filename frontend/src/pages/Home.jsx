@@ -5,6 +5,7 @@ import { MessageSquare, Play, Sparkles } from 'lucide-react';
 import { API_URL, getBackdropUrl } from '../config';
 import MovieCard from '../components/MovieCard';
 import RatingBadge from '../components/RatingBadge';
+import Avatar from '../components/Avatar';
 
 const GENRES = {
   28: 'Action',
@@ -358,38 +359,7 @@ export default function Home() {
             ) : (
               <div className="space-y-6">
                 {recentReviews.map((rev) => (
-                  <div key={rev.id} className="brutal-border p-5 flex gap-4 hover:border-brutal-cyan/35 hover:shadow-[0_8px_25px_rgba(0,242,254,0.1)] hover:scale-[1.01] transition-all duration-300">
-                    {/* User Avatar */}
-                    <img
-                      src={rev.avatar_url}
-                      alt={rev.username}
-                      className="w-12 h-12 dithered-avatar shrink-0"
-                    />
-                    <div className="text-left flex-1 min-w-0 font-mono">
-                      <div className="flex flex-wrap items-center gap-2 mb-3 border-b border-white/5 pb-2">
-                        <Link to={`/profile/${rev.username}`} className="font-extrabold text-white hover:text-brutal-cyan text-sm uppercase transition-colors">
-                          @{rev.username}
-                        </Link>
-                        <span className="text-[10px] text-brand-text-muted uppercase font-bold">logged film ID #{rev.tmdb_movie_id}</span>
-                        
-                        {/* Custom Rating Badge */}
-                        <div className="ml-auto">
-                          <RatingBadge rating={rev.rating} />
-                        </div>
-                      </div>
-                      
-                      {rev.review_text && (
-                        <p className="text-sm md:text-base text-brand-text leading-relaxed bg-black/40 p-4 rounded-xl border border-white/5 uppercase">
-                          {rev.review_text}
-                        </p>
-                      )}
-                      
-                      <div className="flex items-center gap-1.5 mt-3 text-[10px] font-bold text-brand-text-muted uppercase">
-                        <MessageSquare className="w-3.5 h-3.5 text-brutal-cyan" />
-                        <span>Logged on {new Date(rev.created_at).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
+                  <HomeReviewItem key={rev.id} rev={rev} />
                 ))}
               </div>
             )}
@@ -421,6 +391,60 @@ export default function Home() {
           </div>
         </section>
 
+      </div>
+    </div>
+  );
+}
+
+function HomeReviewItem({ rev }) {
+  const { data: movie } = useQuery({
+    queryKey: ['movieDetailsSimple', rev.tmdb_movie_id],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/movies/${rev.tmdb_movie_id}`);
+      if (!res.ok) throw new Error('Not found');
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 10
+  });
+
+  const movieName = movie?.title || movie?.name || `Film #${rev.tmdb_movie_id}`;
+  const mediaType = movie?.media_type || 'movie';
+
+  return (
+    <div className="brutal-border p-5 flex gap-4 hover:border-brutal-cyan/35 hover:shadow-[0_8px_25px_rgba(0,242,254,0.1)] hover:scale-[1.01] transition-all duration-300">
+      {/* User Avatar */}
+      <Avatar
+        username={rev.username}
+        url={rev.avatar_url}
+        className="w-12 h-12"
+      />
+      <div className="text-left flex-1 min-w-0 font-mono">
+        <div className="flex flex-wrap items-center gap-2 mb-3 border-b border-white/5 pb-2">
+          <Link to={`/profile/${rev.username}`} className="font-extrabold text-white hover:text-brutal-cyan text-sm uppercase transition-colors">
+            @{rev.username}
+          </Link>
+          <span className="text-[10px] text-brand-text-muted uppercase font-bold">
+            logged <Link to={`/media/${mediaType}/${rev.tmdb_movie_id}`} className="text-brutal-cyan hover:underline">{movieName}</Link>
+          </span>
+          
+          {/* Custom Rating Badge */}
+          <div className="ml-auto">
+            <RatingBadge rating={rev.rating} />
+          </div>
+        </div>
+        
+        {rev.review_text && (
+          <Link to={`/media/${mediaType}/${rev.tmdb_movie_id}`} className="block group/comment">
+            <p className="text-sm md:text-base text-brand-text leading-relaxed bg-black/40 p-4 rounded-xl border border-white/5 uppercase hover:border-brutal-cyan/30 hover:bg-black/60 transition-all">
+              {rev.review_text}
+            </p>
+          </Link>
+        )}
+        
+        <div className="flex items-center gap-1.5 mt-3 text-[10px] font-bold text-brand-text-muted uppercase">
+          <MessageSquare className="w-3.5 h-3.5 text-brutal-cyan" />
+          <span>Logged on {new Date(rev.created_at).toLocaleDateString()}</span>
+        </div>
       </div>
     </div>
   );

@@ -669,6 +669,23 @@ app.get('/api/movies/:id/excited', async (req, res) => {
 
 // --- SOCIAL / PROFILE ROUTES ---
 
+// Suggested users to follow
+app.get('/api/users/suggestions', authenticateToken, async (req, res) => {
+  try {
+    const suggestions = await query(
+      `SELECT id, username, avatar_url, bio 
+       FROM users 
+       WHERE id != $1 
+         AND id NOT IN (SELECT following_id FROM follows WHERE follower_id = $1)
+       LIMIT 10`,
+      [req.user.id]
+    );
+    res.json(suggestions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get user profile details
 app.get('/api/users/profile/:username', async (req, res) => {
   const { username } = req.params;

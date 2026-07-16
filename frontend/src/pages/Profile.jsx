@@ -5,6 +5,7 @@ import { Calendar, AlertCircle, Camera, Edit3, X } from 'lucide-react';
 import { API_URL, getAuthHeaders, getPosterUrl } from '../config';
 import { useAuth } from '../context/AuthContext';
 import RatingBadge from '../components/RatingBadge';
+import Avatar from '../components/Avatar';
 
 // Polaroid Card component with masking tape effect
 function PolaroidCard({ movieId, angle }) {
@@ -232,10 +233,10 @@ export default function Profile() {
         
         {/* Oversized square flip phone avatar */}
         <div className="shrink-0 w-32 h-32 brutal-border rounded-none overflow-hidden bg-black">
-          <img
-            src={profileUser.avatar_url}
-            alt={profileUser.username}
-            className="w-full h-full object-cover dithered-avatar"
+          <Avatar
+            username={profileUser.username}
+            url={profileUser.avatar_url}
+            className="w-full h-full"
           />
         </div>
         
@@ -510,10 +511,10 @@ export default function Profile() {
               {/* Avatar Upload Container */}
               <div className="flex flex-col items-center gap-4">
                 <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white/20 bg-black group/avatar shadow-lg">
-                  <img
-                    src={editAvatar || 'https://api.dicebear.com/7.x/adventurer/svg?seed=placeholder'}
-                    alt="Preview avatar"
-                    className="w-full h-full object-cover"
+                  <Avatar
+                    username={profileUser.username}
+                    url={editAvatar}
+                    className="w-full h-full"
                   />
                   <label 
                     htmlFor="avatar-file-input"
