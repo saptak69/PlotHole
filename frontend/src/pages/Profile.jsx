@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar, AlertCircle, Camera, Edit3, X } from 'lucide-react';
@@ -175,6 +175,16 @@ export default function Profile() {
     enabled: !!profileUser?.id && !!currentUser
   });
 
+  // Deduplicate diary entries by movie ID to show unique watched movies
+  const uniqueDiary = useMemo(() => {
+    const seen = new Set();
+    return diary.filter(entry => {
+      if (seen.has(entry.tmdb_movie_id)) return false;
+      seen.add(entry.tmdb_movie_id);
+      return true;
+    });
+  }, [diary]);
+
   // Follow/Unfollow Mutation
   const followMutation = useMutation({
     mutationFn: async () => {
@@ -215,12 +225,12 @@ export default function Profile() {
   const isOwnProfile = currentUser && currentUser.id === profileUser.id;
   
   // Calculate simulated "Hours Wasted" (2 hours per watch log + 0.5 hours per rant)
-  const hoursWasted = Math.max(0, ((stats.diary || 0) * 2) + ((stats.reviews || 0) * 0.5));
+  const hoursWasted = Math.max(0, ((uniqueDiary.length || 0) * 2) + ((stats.reviews || 0) * 0.5));
 
   // Determine top 6 films to showcase in polaroids (use first 6 items in watchlist/diary)
   const topMovieIds = watchlist.length > 0 
     ? watchlist.slice(0, 6).map(w => w.tmdb_movie_id)
-    : diary.slice(0, 6).map(d => d.tmdb_movie_id);
+    : uniqueDiary.slice(0, 6).map(d => d.tmdb_movie_id);
 
   // Rotation angles for top polaroids
   const rotations = [-3, 2, -1, 3, -2, 1];
@@ -247,7 +257,7 @@ export default function Profile() {
             
             {/* Inline Stats Line */}
             <p className="text-sm text-brutal-cyan font-black mt-2 uppercase tracking-wide">
-              {hoursWasted.toFixed(0)}h wasted • {stats.diary} films logged • {stats.reviews} reviews • {stats.followers} followers • {stats.following} following
+              {hoursWasted.toFixed(0)}h wasted • {uniqueDiary.length} films logged • {stats.reviews} reviews • {stats.followers} followers • {stats.following} following
             </p>
             
             <p className="text-xs text-brand-text-muted mt-1 uppercase">JOINED DATABASE: {new Date(profileUser.created_at).toLocaleDateString()}</p>
@@ -261,20 +271,16 @@ export default function Profile() {
             <button
               onClick={() => followMutation.mutate()}
               disabled={followMutation.isPending}
-              className={`px-6 py-2.5 border-3 font-extrabold text-xs uppercase shadow-[4px_4px_0px_#000] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all ${
-                isFollowing
-                  ? 'bg-black border-brutal-pink text-brutal-pink'
-                  : 'bg-brutal-yellow border-white text-black'
-              }`}
+              className={isFollowing ? 'btn-secondary' : 'btn-primary'}
             >
-              {isFollowing ? 'Unfollow Target' : 'Follow Target'}
+              {isFollowing ? 'Unfollow' : 'Follow'}
             </button>
           )}
 
           {isOwnProfile && (
             <button
               onClick={openEditModal}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-brutal-cyan to-blue-600 border-none text-black font-extrabold text-xs uppercase rounded-xl shadow-lg hover:shadow-brutal-cyan/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="btn-primary"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Edit Profile</span>
@@ -283,26 +289,27 @@ export default function Profile() {
         </div>
  
         {/* Softer Detailed Dashboard Grid for Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 border-2 border-white/25 w-full lg:w-auto font-mono text-center select-none shrink-0 overflow-hidden shadow-[4px_4px_0px_#000]">
-          <div className="p-3 border-r border-b border-white/20 md:border-b-0 bg-brand-card">
-            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Hrs Wasted</span>
-            <span className="text-base md:text-lg font-black text-brutal-cyan">{hoursWasted.toFixed(1)}</span>
+        {/* Detailed Dashboard Grid for Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 border border-zinc-800 w-full lg:w-auto font-mono text-center select-none shrink-0 overflow-hidden rounded-2xl shadow-xl bg-zinc-900/40 backdrop-blur-md">
+          <div className="p-3 border-r border-b border-zinc-800 md:border-b-0">
+            <span className="block text-zinc-500 text-[10px] mb-1 uppercase font-bold">Hrs Wasted</span>
+            <span className="text-sm md:text-base font-black text-amber-500">{hoursWasted.toFixed(1)}</span>
           </div>
-          <div className="p-3 border-b border-white/20 md:border-r md:border-b-0 bg-brand-card">
-            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Logged</span>
-            <span className="text-base md:text-lg font-black text-white">{stats.diary}</span>
+          <div className="p-3 border-b border-zinc-800 md:border-r md:border-b-0">
+            <span className="block text-zinc-500 text-[10px] mb-1 uppercase font-bold">Logged</span>
+            <span className="text-sm md:text-base font-black text-white">{uniqueDiary.length}</span>
           </div>
-          <div className="p-3 border-r border-b border-white/20 md:border-b-0 bg-brand-card">
-            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Reviews</span>
-            <span className="text-base md:text-lg font-black text-brutal-pink">{stats.reviews}</span>
+          <div className="p-3 border-r border-b border-zinc-800 md:border-b-0">
+            <span className="block text-zinc-500 text-[10px] mb-1 uppercase font-bold">Reviews</span>
+            <span className="text-sm md:text-base font-black text-rose-400">{stats.reviews}</span>
           </div>
-          <div className="p-3 border-b border-b-white/20 md:border-b-0 md:border-r bg-brand-card">
-            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Followers</span>
-            <span className="text-base md:text-lg font-black text-white">{stats.followers}</span>
+          <div className="p-3 border-b border-zinc-800 md:border-b-0 md:border-r">
+            <span className="block text-zinc-500 text-[10px] mb-1 uppercase font-bold">Followers</span>
+            <span className="text-sm md:text-base font-black text-white">{stats.followers}</span>
           </div>
-          <div className="p-3 bg-brand-card col-span-2 md:col-span-1">
-            <span className="block text-brand-text-muted text-xs mb-1 uppercase font-bold">Following</span>
-            <span className="text-base md:text-lg font-black text-white">{stats.following}</span>
+          <div className="p-3 col-span-2 md:col-span-1">
+            <span className="block text-zinc-500 text-[10px] mb-1 uppercase font-bold">Following</span>
+            <span className="text-sm md:text-base font-black text-white">{stats.following}</span>
           </div>
         </div>
       </div>
@@ -310,7 +317,7 @@ export default function Profile() {
       {/* TOP 6 FAVORITES TAPED POLAROID DISPLAY */}
       {topMovieIds.length > 0 && (
         <div className="mb-16">
-          <h3 className="text-sm font-black uppercase text-black bg-white px-3 py-1.5 border-2 border-black w-fit mb-8 shadow-[4px_4px_0px_rgba(255,255,255,1)]">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg w-fit mb-8 shadow-md">
             Pinned Reel Discoveries
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 px-4">
@@ -326,23 +333,23 @@ export default function Profile() {
       )}
 
       {/* Tabs Selector */}
-      <div className="flex border-b-2 border-white/20 mb-8 select-none">
+      <div className="flex border-b border-zinc-800 mb-8 select-none">
         <button
           onClick={() => setActiveTab('diary')}
-          className={`px-6 py-3 font-black text-sm uppercase border-t-2 border-l-2 border-r-2 -mb-[2px] z-10 transition-all ${
+          className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-2 ${
             activeTab === 'diary'
-              ? 'bg-brutal-cyan text-black border-white/25'
-              : 'bg-black text-brand-text-muted border-white/10 hover:text-white'
+              ? 'border-amber-500 text-amber-500'
+              : 'border-transparent text-zinc-500 hover:text-zinc-200'
           }`}
         >
           Diary timeline
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`px-6 py-3 font-black text-sm uppercase border-t-2 border-l-2 border-r-2 -mb-[2px] z-10 transition-all ${
+          className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-2 ${
             activeTab === 'reviews'
-              ? 'bg-brutal-pink text-black border-white/25'
-              : 'bg-black text-brand-text-muted border-white/10 hover:text-white'
+              ? 'border-rose-400 text-rose-400'
+              : 'border-transparent text-zinc-500 hover:text-zinc-200'
           }`}
         >
           Reviews log ({reviews.length})
@@ -350,10 +357,10 @@ export default function Profile() {
         {isOwnProfile && (
           <button
             onClick={() => setActiveTab('watchlist')}
-            className={`px-6 py-3 font-black text-sm uppercase border-t-2 border-l-2 border-r-2 -mb-[2px] z-10 transition-all ${
+            className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-2 ${
               activeTab === 'watchlist'
-                ? 'bg-brutal-blue text-white border-white/25'
-                : 'bg-black text-brand-text-muted border-white/10 hover:text-white'
+                ? 'border-cyan-400 text-cyan-400'
+                : 'border-transparent text-zinc-500 hover:text-zinc-200'
             }`}
           >
             Watchlist ({watchlist.length})
@@ -367,7 +374,7 @@ export default function Profile() {
           <div>
             {diaryLoading ? (
               <div className="p-12 text-center text-sm animate-pulse">LOADING DIARY TIMELINE...</div>
-            ) : diary.length === 0 ? (
+            ) : uniqueDiary.length === 0 ? (
               <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-sm font-bold">
                 Timeline is currently empty.
               </div>
@@ -375,7 +382,7 @@ export default function Profile() {
               <>
                 {/* Mobile View: List of Log Cards */}
                 <div className="block md:hidden space-y-4">
-                  {diary.map((entry) => (
+                  {uniqueDiary.map((entry) => (
                     <div key={entry.id} className="brutal-border p-4 bg-brand-card space-y-3">
                       <div className="flex justify-between items-center border-b border-white/10 pb-2">
                         <span className="font-bold text-white flex items-center gap-1.5 text-xs">
@@ -385,10 +392,11 @@ export default function Profile() {
                         <RatingBadge rating={entry.rating} />
                       </div>
                       <div className="text-sm">
-                        <span className="text-brand-text-muted uppercase">Film Reference: </span>
-                        <Link to={`/movies/${entry.tmdb_movie_id}`} className="font-black text-brutal-cyan hover:underline">
-                          #{entry.tmdb_movie_id}
-                        </Link>
+                        <span className="text-brand-text-muted uppercase">Film: </span>
+                        <MovieNameLink 
+                          movieId={entry.tmdb_movie_id} 
+                          className="font-black text-brutal-cyan hover:underline" 
+                        />
                       </div>
                       {entry.review_text && (
                         <p className="text-sm text-brand-text leading-relaxed bg-black/40 p-3 rounded-lg border border-white/5 uppercase">
@@ -405,22 +413,23 @@ export default function Profile() {
                     <thead>
                       <tr className="bg-brand-card text-white font-black border-b border-white/10">
                         <th className="px-6 py-3">Watched Date</th>
-                        <th className="px-6 py-3">Movie Reference</th>
+                        <th className="px-6 py-3">Movie</th>
                         <th className="px-6 py-3">Verdict</th>
                         <th className="px-6 py-3">Notes</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/10 bg-[#07090e]/40">
-                      {diary.map((entry) => (
+                      {uniqueDiary.map((entry) => (
                         <tr key={entry.id} className="hover:bg-brand-card-hover transition-colors">
                           <td className="px-6 py-4 font-bold text-white flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-brutal-cyan" />
                             <span>{entry.watched_date}</span>
                           </td>
                           <td className="px-6 py-4">
-                            <Link to={`/movies/${entry.tmdb_movie_id}`} className="hover:underline font-black text-brutal-cyan">
-                              Film #{entry.tmdb_movie_id}
-                            </Link>
+                            <MovieNameLink 
+                              movieId={entry.tmdb_movie_id} 
+                              className="hover:underline font-black text-brutal-cyan" 
+                            />
                           </td>
                           <td className="px-6 py-4">
                             <RatingBadge rating={entry.rating} />
@@ -451,9 +460,11 @@ export default function Profile() {
                 {reviews.map((rev) => (
                   <div key={rev.id} className="brutal-border p-6 text-left relative">
                     <div className="flex items-center gap-4 mb-4 border-b border-white/10 pb-3">
-                      <Link to={`/movies/${rev.tmdb_movie_id}`} className="font-black text-white hover:underline text-sm">
-                        Film Reference: #{rev.tmdb_movie_id}
-                      </Link>
+                      <span className="text-brand-text-muted text-xs uppercase font-bold">Reviewed Film: </span>
+                      <MovieNameLink 
+                        movieId={rev.tmdb_movie_id} 
+                        className="font-black text-white hover:underline text-sm uppercase" 
+                      />
                       <div className="ml-auto">
                         <RatingBadge rating={rev.rating} />
                       </div>
@@ -533,7 +544,7 @@ export default function Profile() {
                 <button
                   type="button"
                   onClick={() => document.getElementById('avatar-file-input').click()}
-                  className="text-xs font-bold bg-white/5 border border-white/10 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg transition-colors"
+                  className="btn-secondary px-3 py-1.5"
                 >
                   Change Photo
                 </button>
@@ -563,14 +574,14 @@ export default function Profile() {
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 border border-white/10 hover:bg-white/5 text-white text-xs font-bold rounded-lg transition-colors uppercase"
+                  className="btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 bg-gradient-to-r from-brutal-cyan to-blue-600 border-none text-black text-xs font-black rounded-lg transition-all hover:shadow-lg uppercase"
+                  className="btn-primary"
                 >
                   {isSaving ? 'Saving...' : 'Save Config'}
                 </button>
@@ -581,5 +592,26 @@ export default function Profile() {
       )}
 
     </div>
+  );
+}
+
+function MovieNameLink({ movieId, className = "" }) {
+  const { data: movie } = useQuery({
+    queryKey: ['movieDetailsSimple', movieId],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/movies/${movieId}`);
+      if (!res.ok) throw new Error('Not found');
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 10
+  });
+
+  const title = movie?.title || movie?.name || `Film #${movieId}`;
+  const mediaType = movie?.media_type || 'movie';
+
+  return (
+    <Link to={`/media/${mediaType}/${movieId}`} className={className}>
+      {title}
+    </Link>
   );
 }

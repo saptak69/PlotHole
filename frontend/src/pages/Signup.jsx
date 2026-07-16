@@ -115,7 +115,7 @@ export default function Signup() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#ff2d55] to-[#ff3b30] hover:from-[#ff453a] hover:to-[#ff5e7d] text-white py-3 font-bold text-xs uppercase rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99] border-none shadow-lg shadow-red-600/15"
+                className="w-full btn-primary py-3"
               >
                 {loading ? 'Registering Access...' : 'Create Access Node'}
               </button>
@@ -124,7 +124,7 @@ export default function Signup() {
 
           <p className="text-center text-xs text-[#86868b] pt-4 border-t border-white/5 font-mono uppercase">
             Already have an access node?{' '}
-            <Link to="/login" className="text-[#0a84ff] hover:underline font-bold transition-colors">
+            <Link to="/login" className="text-brutal-cyan hover:underline font-bold transition-colors">
               Sign In here
             </Link>
           </p>

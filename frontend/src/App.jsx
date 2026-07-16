@@ -65,13 +65,6 @@ function GlobalLogWrapper() {
 
   return (
     <>
-      {/* Blinding Pinned Marquee Taskbar */}
-      <div className="marquee-container">
-        <div className="marquee-text">
-          WELCOME TO SAPTAK'S PLOTHOLE // LATEST LOGS // TROLLS WILL BE BANNED IMMEDIATELY // PLOTHOLE IS PURE CINEMA // WATCH MORE MOVIES OR LEAVE // WELCOME TO SAPTAK'S PLOTHOLE // LATEST LOGS // TROLLS WILL BE BANNED IMMEDIATELY // PLOTHOLE IS PURE CINEMA // WATCH MORE MOVIES OR LEAVE
-        </div>
-      </div>
-
       {/* Standard Brutalist Container */}
       <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col select-none">
         <Navbar />
@@ -88,12 +81,12 @@ function GlobalLogWrapper() {
           </Routes>
         </main>
         
-        {/* Sleek Translucent Footer */}
-        <footer className="py-12 bg-black/60 border-t border-white/10 text-center text-xs text-brand-text-muted font-mono">
+        {/* Retro Zine Global Footer */}
+        <footer className="py-8 border-t-3 border-brand-border text-center text-xs text-brand-text-muted font-mono select-none">
           <div className="max-w-7xl mx-auto px-6 space-y-2">
-            <p className="text-white font-extrabold tracking-widest text-sm uppercase">PLOTHOLE © {new Date().getFullYear()}</p>
-            <p className="mt-1">MIND THE GAP IN FILM CRITICISM. POWERED BY TMDB API + SUPABASE.</p>
-            <p className="text-[10px] text-red-500 font-bold uppercase">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+            <p className="font-extrabold tracking-widest text-sm text-brand-text uppercase font-bangers">PLOTHOLE — THE CINEMA CHRONICLES</p>
+            <p className="font-bold text-[10px] text-brand-text-muted">© {new Date().getFullYear()} SAPTAK MONDAL. ALL RIGHTS RESERVED.</p>
+            <p className="text-[9px] opacity-60">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
           </div>
         </footer>
       </div>
@@ -139,7 +132,7 @@ function GlobalLogWrapper() {
                   <div className="p-3 text-xs text-red-500">NO FILM FOUND.</div>
                 )}
                 
-                {results.slice(0, 5).map((m) => {
+                {results.filter(m => m.media_type !== 'user').slice(0, 5).map((m) => {
                   const title = m.title || m.name;
                   const date = m.release_date || m.first_air_date;
                   return (

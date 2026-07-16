@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Play, Sparkles } from 'lucide-react';
-import { API_URL, getBackdropUrl } from '../config';
+import { API_URL, getBackdropUrl, getPosterUrl } from '../config';
 import MovieCard from '../components/MovieCard';
 import RatingBadge from '../components/RatingBadge';
 import Avatar from '../components/Avatar';
@@ -207,10 +207,10 @@ export default function Home() {
             
             <div className="pt-1">
               <Link
-                to={`/movies/${heroMovie.id}`}
-                className="inline-flex bg-gradient-to-r from-brutal-cyan to-blue-600 border-none text-black px-6 py-3 font-bold text-sm uppercase rounded-xl shadow-lg hover:shadow-brutal-cyan/20 hover:scale-[1.03] transition-all"
+                to={`/media/${heroMovie.name ? 'tv' : 'movie'}/${heroMovie.id}`}
+                className="btn btn-primary"
               >
-                <Play className="w-4 h-4 fill-black text-black mr-2 animate-pulse" />
+                <Play className="w-4 h-4 fill-[#121008] text-[#121008] mr-2" />
                 <span>View Film Details</span>
               </Link>
             </div>
@@ -219,25 +219,28 @@ export default function Home() {
       )}
 
       {/* Main Page Layout Grid */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-16">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-16 mt-8">
         
         {/* Popular Movies Section */}
         <section>
-          <div className="flex items-center gap-4 mb-8">
-            <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
-              Popular Films
+          <div className="flex items-baseline justify-between mb-8 pb-2.5 border-b-3 border-brand-border">
+            <h2 className="section-title font-bangers text-[28px] tracking-wide text-brand-text flex items-baseline gap-2">
+              <span className="font-mono text-[11px] font-bold text-[#ff4757] tracking-wider uppercase">CH. 01</span>
+              New on the stands
             </h2>
-            <div className="h-[1px] bg-white/10 flex-1" />
+            <div className="font-mono text-[11px] font-bold text-brand-text-muted uppercase">
+              Full chapter →
+            </div>
           </div>
           {popularLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-brand-card border-2 border-white/10 animate-pulse" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="aspect-[2/3] bg-[#1b1810] border-3 border-brand-border animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
-              {popularMovies.slice(0, 6).map((movie) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+              {popularMovies.slice(0, 5).map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
             </div>
@@ -246,21 +249,24 @@ export default function Home() {
 
         {/* Top Rated Movies Section */}
         <section>
-          <div className="flex items-center gap-4 mb-8">
-            <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
-              Highest Rated
+          <div className="flex items-baseline justify-between mb-8 pb-2.5 border-b-3 border-brand-border">
+            <h2 className="section-title font-bangers text-[28px] tracking-wide text-brand-text flex items-baseline gap-2">
+              <span className="font-mono text-[11px] font-bold text-[#ff4757] tracking-wider uppercase">CH. 02</span>
+              Hall of fame — top rated
             </h2>
-            <div className="h-[1px] bg-white/10 flex-1" />
+            <div className="font-mono text-[11px] font-bold text-brand-text-muted uppercase">
+              Full chapter →
+            </div>
           </div>
           {topRatedLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-brand-card border-2 border-white/10 animate-pulse" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="aspect-[2/3] bg-[#1b1810] border-3 border-brand-border animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
-              {topRatedMovies.slice(0, 6).map((movie) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+              {topRatedMovies.slice(0, 5).map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
             </div>
@@ -269,21 +275,24 @@ export default function Home() {
 
         {/* Upcoming Movies Section */}
         <section>
-          <div className="flex items-center gap-4 mb-8">
-            <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
+          <div className="flex items-baseline justify-between mb-8 pb-2.5 border-b-3 border-brand-border">
+            <h2 className="section-title font-bangers text-[28px] tracking-wide text-brand-text flex items-baseline gap-2">
+              <span className="font-mono text-[11px] font-bold text-[#ff4757] tracking-wider uppercase">CH. 03</span>
               Upcoming Discoveries
             </h2>
-            <div className="h-[1px] bg-white/10 flex-1" />
+            <div className="font-mono text-[11px] font-bold text-brand-text-muted uppercase">
+              Full chapter →
+            </div>
           </div>
           {upcomingLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-brand-card border-2 border-white/10 animate-pulse" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="aspect-[2/3] bg-[#1b1810] border-3 border-brand-border animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
-              {upcomingMovies.slice(0, 6).map((movie) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+              {upcomingMovies.slice(0, 5).map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />
               ))}
             </div>
@@ -292,21 +301,24 @@ export default function Home() {
 
         {/* Popular TV/Web Series Section */}
         <section>
-          <div className="flex items-center gap-4 mb-8">
-            <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
-              Popular Web Series
+          <div className="flex items-baseline justify-between mb-8 pb-2.5 border-b-3 border-brand-border">
+            <h2 className="section-title font-bangers text-[28px] tracking-wide text-brand-text flex items-baseline gap-2">
+              <span className="font-mono text-[11px] font-bold text-[#ff4757] tracking-wider uppercase">CH. 04</span>
+              Popular Series
             </h2>
-            <div className="h-[1px] bg-white/10 flex-1" />
+            <div className="font-mono text-[11px] font-bold text-brand-text-muted uppercase">
+              Full chapter →
+            </div>
           </div>
           {popularTvLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-brand-card border-2 border-white/10 animate-pulse" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="aspect-[2/3] bg-[#1b1810] border-3 border-brand-border animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
-              {popularTv.slice(0, 6).map((show) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+              {popularTv.slice(0, 5).map((show) => (
                 <MovieCard key={show.id} movie={{ ...show, media_type: 'tv' }} />
               ))}
             </div>
@@ -315,21 +327,24 @@ export default function Home() {
 
         {/* Top Rated TV/Web Series Section */}
         <section>
-          <div className="flex items-center gap-4 mb-8">
-            <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
-              Highest Rated Web Series
+          <div className="flex items-baseline justify-between mb-8 pb-2.5 border-b-3 border-brand-border">
+            <h2 className="section-title font-bangers text-[28px] tracking-wide text-brand-text flex items-baseline gap-2">
+              <span className="font-mono text-[11px] font-bold text-[#ff4757] tracking-wider uppercase">CH. 05</span>
+              Highest Rated Series
             </h2>
-            <div className="h-[1px] bg-white/10 flex-1" />
+            <div className="font-mono text-[11px] font-bold text-brand-text-muted uppercase">
+              Full chapter →
+            </div>
           </div>
           {topRatedTvLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[2/3] bg-brand-card border-2 border-white/10 animate-pulse" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="aspect-[2/3] bg-[#1b1810] border-3 border-brand-border animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
-              {topRatedTv.slice(0, 6).map((show) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+              {topRatedTv.slice(0, 5).map((show) => (
                 <MovieCard key={show.id} movie={{ ...show, media_type: 'tv' }} />
               ))}
             </div>
@@ -337,23 +352,23 @@ export default function Home() {
         </section>
 
         {/* Reviews Section */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left pb-12">
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-4 mb-8">
-              <h2 className="text-xl md:text-2xl font-extrabold uppercase tracking-wider text-white shrink-0">
+            <div className="flex items-baseline justify-between mb-8 pb-2.5 border-b-3 border-brand-border">
+              <h2 className="section-title font-bangers text-[28px] tracking-wide text-brand-text flex items-baseline gap-2">
+                <span className="font-mono text-[11px] font-bold text-[#ff4757] tracking-wider uppercase">CH. 06</span>
                 Recent Logs from Cinephiles
               </h2>
-              <div className="h-[1px] bg-white/10 flex-1" />
             </div>
             
             {reviewsLoading ? (
               <div className="space-y-4 animate-pulse">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-32 bg-brand-card brutal-border" />
+                  <div key={i} className="h-32 bg-[#1b1810] border-3 border-brand-border" />
                 ))}
               </div>
             ) : recentReviews.length === 0 ? (
-              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-sm font-bold">
+              <div className="border-3 border-brand-border bg-[#1b1810] p-8 text-center text-brand-text-muted uppercase text-xs font-bold font-mono">
                 No logs or ratings yet. Be the first to rate a movie!
               </div>
             ) : (
@@ -366,30 +381,17 @@ export default function Home() {
           </div>
 
           {/* Social Stats Sidebar Card */}
-          <div className="brutal-border p-6 h-fit text-left font-mono space-y-4">
-            <h3 className="text-xl font-black text-white uppercase border-b-2 border-white/20 pb-2 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-brutal-cyan" />
+          <div className="border-3 border-brand-border bg-[#1b1810] p-6 h-fit text-left space-y-4 shadow-[4px_4px_0_#f2e9d8]">
+            <h3 className="font-bangers text-2xl text-brand-text border-b-3 border-brand-border pb-2 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#f4c430]" />
               <span>PlotHole Index</span>
             </h3>
-            <p className="text-sm text-brand-text leading-relaxed uppercase font-bold">
+            <p className="text-xs text-brand-text-muted leading-relaxed font-bold font-mono uppercase">
               Stop tracking films with standard boring star ratings. PlotHole introduces a raw, honest rating system (Bullshit, Meh, One-Time Watch, Good, or Pure Cinema) for a new generation of film critics.
             </p>
-            <div className="border-t border-white/20 pt-4 space-y-3">
-              <div className="flex justify-between items-center text-xs uppercase font-bold">
-                <span className="text-brand-text-muted">Movie Database</span>
-                <span className="text-brutal-cyan">TMDB Connection</span>
-              </div>
-              <div className="flex justify-between items-center text-xs uppercase font-bold">
-                <span className="text-brand-text-muted">Database Engine</span>
-                <span className="text-brutal-pink">Supabase (Postgres)</span>
-              </div>
-              <div className="flex justify-between items-center text-xs uppercase font-bold">
-                <span className="text-brand-text-muted">Hosting Service</span>
-                <span className="text-brutal-yellow">Vercel & Render</span>
-              </div>
-            </div>
           </div>
         </section>
+
 
       </div>
     </div>
@@ -411,20 +413,28 @@ function HomeReviewItem({ rev }) {
   const mediaType = movie?.media_type || 'movie';
 
   return (
-    <div className="brutal-border p-5 flex gap-4 hover:border-brutal-cyan/35 hover:shadow-[0_8px_25px_rgba(0,242,254,0.1)] hover:scale-[1.01] transition-all duration-300">
-      {/* User Avatar */}
-      <Avatar
-        username={rev.username}
-        url={rev.avatar_url}
-        className="w-12 h-12"
-      />
-      <div className="text-left flex-1 min-w-0 font-mono">
-        <div className="flex flex-wrap items-center gap-2 mb-3 border-b border-white/5 pb-2">
-          <Link to={`/profile/${rev.username}`} className="font-extrabold text-white hover:text-brutal-cyan text-sm uppercase transition-colors">
+    <div className="border-3 border-brand-border bg-[#1b1810] p-5 flex gap-5 shadow-[4px_4px_0_#f2e9d8] hover:translate-y-[-2px] hover:shadow-[5px_6px_0_#f4c430] transition-all duration-150 rounded-sm">
+      {/* Movie Poster Thumbnail on the left */}
+      <Link to={`/media/${mediaType}/${rev.tmdb_movie_id}`} className="w-14 h-20 shrink-0 overflow-hidden border-2 border-brand-border shadow-md block bg-zinc-950">
+        <img
+          src={getPosterUrl(movie?.poster_path)}
+          alt={movieName}
+          className="w-full h-full object-cover"
+        />
+      </Link>
+      
+      <div className="text-left flex-1 min-w-0 font-sans">
+        <div className="flex flex-wrap items-center gap-2.5 mb-2.5 border-b-2 border-brand-border pb-2.5">
+          <Avatar
+            username={rev.username}
+            url={rev.avatar_url}
+            className="w-6 h-6 border border-brand-border rounded-none"
+          />
+          <Link to={`/profile/${rev.username}`} className="font-bold text-brand-text hover:text-[#f4c430] text-xs transition-colors font-mono">
             @{rev.username}
           </Link>
-          <span className="text-[10px] text-brand-text-muted uppercase font-bold">
-            logged <Link to={`/media/${mediaType}/${rev.tmdb_movie_id}`} className="text-brutal-cyan hover:underline">{movieName}</Link>
+          <span className="text-[10px] text-brand-text-muted font-bold font-mono uppercase">
+            logged <Link to={`/media/${mediaType}/${rev.tmdb_movie_id}`} className="text-brand-text hover:text-[#f4c430] transition-colors">{movieName}</Link>
           </span>
           
           {/* Custom Rating Badge */}
@@ -434,15 +444,15 @@ function HomeReviewItem({ rev }) {
         </div>
         
         {rev.review_text && (
-          <Link to={`/media/${mediaType}/${rev.tmdb_movie_id}`} className="block group/comment">
-            <p className="text-sm md:text-base text-brand-text leading-relaxed bg-black/40 p-4 rounded-xl border border-white/5 uppercase hover:border-brutal-cyan/30 hover:bg-black/60 transition-all">
-              {rev.review_text}
+          <Link to={`/media/${mediaType}/${rev.tmdb_movie_id}`} className="block">
+            <p className="text-xs md:text-sm text-brand-text leading-relaxed bg-[#121008] p-4 border border-brand-border font-medium italic">
+              "{rev.review_text}"
             </p>
           </Link>
         )}
         
-        <div className="flex items-center gap-1.5 mt-3 text-[10px] font-bold text-brand-text-muted uppercase">
-          <MessageSquare className="w-3.5 h-3.5 text-brutal-cyan" />
+        <div className="flex items-center gap-1.5 mt-3 text-[10px] font-bold text-brand-text-muted uppercase tracking-wider font-mono">
+          <MessageSquare className="w-3.5 h-3.5 text-[#ff4757]" />
           <span>Logged on {new Date(rev.created_at).toLocaleDateString()}</span>
         </div>
       </div>

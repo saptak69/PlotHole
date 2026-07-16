@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Orbit, Search, LogOut, Bookmark, Users, Menu, X } from 'lucide-react';
+import { Search, LogOut, Bookmark, Users, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
 
@@ -10,6 +10,35 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [visible, setVisible] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // 1. Add/remove tint based on whether we are at the very top (y = 0)
+      if (currentScrollY > 10) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+
+      // 2. Hide when scrolling down, show when scrolling up
+      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+        setVisible(false);
+      } else {
+        setVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const isActive = (path) => location.pathname === path;
 
@@ -26,65 +55,30 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#090a10]/80 backdrop-blur-md border-b border-white/[0.08] py-3 px-4 md:py-4 md:px-12 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 font-mono select-none">
+    <nav className={`sticky z-50 transition-all duration-300 select-none py-4 px-6 md:px-12 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 border-b-3 border-brand-border bg-[#121008] ${
+      visible ? 'top-0' : '-top-32 md:-top-28'
+    }`}>
       
       {/* Top Header Row: Logo & Hamburger button */}
       <div className="flex items-center justify-between w-full md:w-auto">
-        <Link to="/" className="flex items-center gap-3.5 group" onClick={handleLinkClick}>
-          <div className="w-11 h-11 border border-white/10 bg-[#161821] flex items-center justify-center rounded-xl shadow-md group-hover:bg-[#1c1e29] transition-all duration-300 relative shrink-0">
-            <svg 
-              className="w-8 h-8 text-[#86868b] group-hover:text-[#f5f5f7] transition-colors duration-300" 
-              viewBox="0 0 100 100" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {/* Double Film Magazines (IMAX twin lobes) at top */}
-              <circle cx="37" cy="30" r="14" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.04" />
-              <circle cx="37" cy="30" r="4.5" stroke="currentColor" strokeWidth="2" />
-              
-              <circle cx="63" cy="30" r="14" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.04" />
-              <circle cx="63" cy="30" r="4.5" stroke="currentColor" strokeWidth="2" />
-
-              {/* Connecting bridge */}
-              <path d="M37 30 H63" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
-
-              {/* Camera Body */}
-              <rect x="26" y="41" width="48" height="32" rx="3" stroke="currentColor" strokeWidth="3" fill="#0d0e12" />
-
-              {/* Front Matte Box */}
-              <path d="M26 48 L13 41 V69 L26 62 Z" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.1" strokeLinejoin="round" />
-              {/* Subtle metallic lens reflection flare */}
-              <line x1="15" y1="45" x2="15" y2="65" stroke="currentColor" strokeWidth="1.5" opacity="0.6" strokeLinecap="round" />
-
-              {/* Technical dial details */}
-              <line x1="66" y1="46" x2="69" y2="46" stroke="currentColor" strokeWidth="1.5" />
-              <line x1="66" y1="50" x2="69" y2="50" stroke="currentColor" strokeWidth="1.5" />
-              <circle cx="67.5" cy="58" r="2" fill="currentColor" />
-
-              {/* Minimal Clean Engraved 'P' (Cupertino-style branding) */}
-              <path 
-                d="M45 49 V65 M45 49 H51 C53.5 49 55 50.5 55 53 C55 55.5 53 57 51 57 H45" 
-                stroke="currentColor" 
-                strokeWidth="3" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              />
-            </svg>
+        <Link to="/" className="flex items-center gap-3 transition-transform hover:opacity-95" onClick={handleLinkClick}>
+          <div className="w-[42px] h-[42px] border-3 border-brand-border rounded-full flex items-center justify-center bg-[#f4c430] text-[#121008] font-bangers text-[22px] transform rotate-[-6deg] shadow-md">
+            P!
           </div>
           <div className="flex flex-col text-left">
-            <span 
-              className="font-bold text-lg md:text-xl tracking-tight text-[#f5f5f7] uppercase font-sans transition-all duration-300 leading-none"
-            >
-              Plot<span className="text-[#86868b] font-light">Hole</span>
+            <span className="font-bangers text-[30px] tracking-wide leading-none text-brand-text">
+              Plot<span className="text-[#ff4757]">Hole</span>
             </span>
-            <span className="text-[9px] font-bold text-[#86868b] uppercase tracking-widest mt-0.5 font-mono hidden sm:inline-block">Cinema Registry</span>
+            <span className="font-mono text-[9px] tracking-widest text-brand-text-muted uppercase font-bold mt-1">
+              The Cinema Chronicles
+            </span>
           </div>
         </Link>
 
         {/* Mobile Toggle Trigger */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden p-1.5 border border-white/10 rounded-lg text-white hover:bg-white/10 transition-colors"
+          className="md:hidden w-10 h-10 bg-[#1b1810] border-3 border-brand-border flex items-center justify-center hover:bg-[#2b2820] text-brand-text transition-colors"
           aria-label="Toggle navigation menu"
         >
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -94,23 +88,23 @@ export default function Navbar() {
       {/* Collapsible Menu: Search bar and Links */}
       <div className={`${
         isOpen ? 'flex' : 'hidden'
-      } md:flex flex-col md:flex-row items-center gap-4 w-full md:w-auto pb-4 md:pb-0 pt-3 md:pt-0 md:border-t-0 bg-[#0e111e]/95 md:bg-transparent backdrop-blur-md md:backdrop-blur-none p-4 md:p-0 rounded-2xl border border-white/[0.05] md:border-none mt-2 md:mt-0`}>
+      } md:flex flex-col md:flex-row items-center gap-6 w-full md:w-auto pb-4 md:pb-0 pt-3 md:pt-0 bg-[#121008] md:bg-transparent p-4 md:p-0 border-3 border-brand-border md:border-none mt-2 md:mt-0`}>
         
-        {/* Brutalist Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="relative w-full md:w-96 lg:w-[480px]">
+        {/* Search Bar */}
+        <form onSubmit={handleSearchSubmit} className="relative w-full md:w-auto">
           <input
             type="text"
-            placeholder="Search movies, web series..."
+            placeholder="Search movies, TV shows..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 hover:border-white/25 focus:border-brutal-cyan text-white px-4 py-2.5 pl-10 font-bold placeholder-gray-400 text-sm focus:outline-none uppercase rounded-xl transition-all"
+            className="w-full md:w-64 bg-[#1b1810] text-brand-text font-medium border-2 border-brand-border px-4 py-2 pl-9 text-xs placeholder-[#9c9484] focus:outline-none focus:border-[#f4c430] transition-all md:focus:w-80"
           />
-          <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-white/50" />
+          <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-[#9c9484]" />
           <button type="submit" className="hidden">Search</button>
         </form>
 
         {/* Navigation Links */}
-        <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+        <div className="flex flex-col md:flex-row items-center gap-5 w-full md:w-auto">
           {user ? (
             <>
               <Link 
@@ -118,29 +112,17 @@ export default function Navbar() {
                 onClick={handleLinkClick}
                 className={`${
                   isActive('/social')
-                    ? 'text-brutal-cyan border-b-2 border-brutal-cyan font-black'
-                    : 'text-white hover:text-brutal-cyan border-b-2 border-transparent font-bold'
-                } flex items-center justify-center gap-2 text-sm uppercase transition-all py-1.5 w-full md:w-auto hover:translate-y-[-1px]`}
+                    ? 'bg-[#ff4757] text-[#121008] border-brand-border shadow-[2px_2px_0_#f2e9d8] rotate-[-2deg]'
+                    : 'bg-[#1b1810] text-[#f2e9d8] border-brand-border/40 hover:border-brand-border hover:bg-[#ff4757]/10 hover:text-[#ff4757] hover:rotate-[1deg]'
+                } flex items-center justify-center gap-1.5 text-[10px] font-mono font-bold tracking-wider uppercase px-4 py-2 border-2 transition-all transform select-none w-full md:w-auto`}
               >
-                <Users className="w-4 h-4" />
-                <span>Feed</span>
-              </Link>
-              
-              <Link 
-                to={`/profile/${user.username}`} 
-                onClick={handleLinkClick}
-                className={`${
-                  isActive(`/profile/${user.username}`)
-                    ? 'text-brutal-cyan border-b-2 border-brutal-cyan font-black'
-                    : 'text-white hover:text-brutal-cyan border-b-2 border-transparent font-bold'
-                } flex items-center justify-center gap-2 text-sm uppercase transition-all py-1.5 w-full md:w-auto hover:translate-y-[-1px]`}
-              >
-                <Bookmark className="w-4 h-4" />
-                <span>Watchlist</span>
+                <Users className="w-3.5 h-3.5" />
+                <span>Cine-Feed</span>
               </Link>
 
+
               {/* Profile Info */}
-              <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto md:pl-4 border-t md:border-t-0 md:border-l-2 border-white/20 md:border-white pt-2.5 md:pt-0">
+              <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto md:pl-4 border-t-3 md:border-t-0 md:border-l-3 border-brand-border pt-3 md:pt-0">
                 <Link 
                   to={`/profile/${user.username}`} 
                   onClick={handleLinkClick}
@@ -149,9 +131,9 @@ export default function Navbar() {
                   <Avatar
                     username={user.username}
                     url={user.avatar_url}
-                    className="w-7 h-7 border-2 border-white group-hover:border-brutal-cyan transition-colors"
+                    className="w-6 h-6 border-2 border-brand-border group-hover:border-[#ff4757] transition-colors rounded-none"
                   />
-                  <span className="text-sm font-black text-white group-hover:text-brutal-cyan transition-colors">
+                  <span className="text-xs font-mono font-bold text-brand-text group-hover:text-[#ff4757] transition-colors tracking-wider">
                     @{user.username}
                   </span>
                 </Link>
@@ -161,32 +143,33 @@ export default function Navbar() {
                     handleLinkClick();
                   }}
                   title="Log Out"
-                  className="text-white hover:text-brutal-pink p-1.5 hover:bg-white/10 transition-colors w-full md:w-auto flex items-center justify-center gap-2 md:gap-0 border border-white/20 md:border-0 uppercase md:normal-case text-sm font-bold"
+                  className="text-[#9c9484] hover:text-[#ff4757] p-2 hover:bg-[#ff4757]/5 transition-colors w-full md:w-auto flex items-center justify-center gap-1.5 md:gap-0 border-2 border-brand-border md:border-0 rounded-none text-xs font-mono font-bold uppercase tracking-wider"
                 >
-                  <LogOut className="w-4 h-4 md:inline" />
+                  <LogOut className="w-3.5 h-3.5 md:inline" />
                   <span className="md:hidden">Log Out</span>
                 </button>
               </div>
             </>
           ) : (
-            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto border-t md:border-t-0 border-white/20 pt-3 md:pt-0">
+            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto border-t-3 md:border-t-0 border-brand-border pt-3 md:pt-0">
               <Link
                 to="/login"
                 onClick={handleLinkClick}
-                className="text-white hover:underline text-sm font-black uppercase py-1.5"
+                className="text-[#9c9484] hover:text-brand-text text-xs font-mono font-bold uppercase tracking-wider py-1.5"
               >
                 Sign In
               </Link>
               <Link
                 to="/signup"
                 onClick={handleLinkClick}
-                className="bg-brutal-yellow text-black border-2 border-white px-5 py-2.5 font-black text-sm uppercase shadow-[3px_3px_0px_rgba(255,255,255,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center w-full md:w-auto"
+                className="btn-primary px-4 py-2 w-full md:w-auto"
               >
                 Create Account
               </Link>
             </div>
           )}
         </div>
+
       </div>
     </nav>
   );

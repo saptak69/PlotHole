@@ -88,7 +88,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-[#0a84ff] hover:from-blue-500 hover:to-[#3399ff] text-white py-3 font-bold text-xs uppercase rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99] border-none shadow-lg shadow-blue-600/15"
+                className="w-full btn-primary py-3"
               >
                 {loading ? 'Authenticating...' : 'Validate Access Code'}
               </button>
@@ -97,7 +97,7 @@ export default function Login() {
 
           <p className="text-center text-xs text-[#86868b] pt-4 border-t border-white/5 font-mono uppercase">
             No terminal access key?{' '}
-            <Link to="/signup" className="text-[#0a84ff] hover:underline font-bold transition-colors">
+            <Link to="/signup" className="text-brutal-cyan hover:underline font-bold transition-colors">
               Register here
             </Link>
           </p>

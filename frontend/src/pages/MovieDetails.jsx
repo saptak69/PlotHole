@@ -409,7 +409,7 @@ export default function MovieDetails() {
           <p className="text-xs text-brand-text mb-3 uppercase font-medium">Sign in to rate films, bookmark watchlists, and log reviews.</p>
           <Link
             to="/login"
-            className="block bg-brutal-cyan text-black font-bold text-xs py-2 px-4 rounded-lg hover:bg-white transition-all uppercase text-center"
+            className="btn-primary w-full"
           >
             Sign In to PlotHole
           </Link>
@@ -423,25 +423,17 @@ export default function MovieDetails() {
         {isUpcoming ? (
           <button
             onClick={() => excitedMutation.mutate()}
-            className={`w-full py-2.5 rounded-xl border flex items-center justify-center gap-2 font-bold text-sm uppercase transition-all duration-200 ${
-              excitedData?.excited
-                ? 'bg-white/5 border-white/10 text-white/40 shadow-none'
-                : 'bg-gradient-to-r from-brutal-pink to-purple-600 border-none text-white shadow-lg hover:shadow-brutal-pink/20 hover:scale-[1.02]'
-            }`}
+            className={`w-full ${excitedData?.excited ? 'btn-secondary text-white/40 border-white/5' : 'btn-primary'}`}
           >
-            <Flame className={`w-4 h-4 ${excitedData?.excited ? 'fill-white/40' : ''}`} />
+            <Flame className={`w-3.5 h-3.5 ${excitedData?.excited ? 'fill-white/40' : ''}`} />
             <span>{excitedData?.excited ? 'Excited!' : 'Get Excited'}</span>
           </button>
         ) : (
           <button
             onClick={() => watchedMutation.mutate()}
-            className={`w-full py-2.5 rounded-xl border flex items-center justify-center gap-2 font-bold text-sm uppercase transition-all duration-200 ${
-              watchedState?.watched
-                ? 'bg-white/5 border-white/10 text-white/40 shadow-none'
-                : 'bg-gradient-to-r from-brutal-cyan to-blue-600 border-none text-black shadow-lg hover:shadow-brutal-cyan/20 hover:scale-[1.02]'
-            }`}
+            className={`w-full ${watchedState?.watched ? 'btn-secondary text-white/40 border-white/5' : 'btn-primary'}`}
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-3.5 h-3.5" />
             <span>{watchedState?.watched ? 'Watched' : 'Mark as Watched'}</span>
           </button>
         )}
@@ -449,20 +441,20 @@ export default function MovieDetails() {
         {/* Watchlist Button (Secondary CTA) */}
         <button
           onClick={() => watchlistMutation.mutate()}
-          className={`w-full py-2.5 rounded-xl border flex items-center justify-center gap-2 font-bold text-sm uppercase transition-all duration-200 ${
+          className={`w-full ${
             watchlistState?.onWatchlist
-              ? 'bg-gradient-to-r from-brutal-pink to-purple-600 border-none text-white shadow-lg hover:scale-[1.02]'
-              : 'bg-white/5 border-white/10 text-white hover:border-white/30 hover:bg-white/10'
+              ? 'btn-secondary text-brutal-orange border-brutal-orange/30'
+              : 'btn-secondary'
           }`}
         >
-          <Check className="w-4 h-4" />
+          <Check className="w-3.5 h-3.5" />
           <span>{watchlistState?.onWatchlist ? 'In Watchlist' : 'Add to Watchlist'}</span>
         </button>
 
         {/* Log Movie Button */}
         <button
           onClick={() => setIsLogModalOpen(true)}
-          className="w-full bg-gradient-to-r from-brutal-yellow to-amber-500 text-black border-none py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold text-sm uppercase transition-all duration-200 shadow-lg hover:scale-[1.02]"
+          className="w-full btn-primary"
         >
           <span>{isUpcoming ? 'Hype Comment' : 'Comment About This'}</span>
         </button>
@@ -543,7 +535,7 @@ export default function MovieDetails() {
         <img
           src={getBackdropUrl(movie.backdrop_path)}
           alt={displayTitle}
-          className="w-full h-full object-cover grayscale brightness-50"
+          className="w-full h-full object-cover brightness-50"
         />
         <div className="absolute inset-0 bg-black/60" />
       </div>
@@ -725,25 +717,25 @@ export default function MovieDetails() {
           </div>
         </div>
 
-        {/* BRUTALIST COMMENT WALL / DIGITAL CORKBOARD */}
-        <div className="mt-20 border-t-4 border-white pt-12">
+        {/* CINEMATIC COMMENT WALL / DIGITAL CORKBOARD */}
+        <div className="mt-20 border-t border-zinc-800 pt-12">
           <div className="mb-8 font-mono">
-            <h2 className="text-3xl font-black uppercase tracking-wider text-white inline-block bg-brutal-pink text-black px-4 py-2 border-3 border-white shadow-[6px_6px_0px_#000]">
-              The Comment Corkboard
+            <h2 className="text-xl md:text-2xl font-bold uppercase tracking-wider text-white border-b border-zinc-800 pb-2.5">
+              The Film Critics' Corkboard
             </h2>
-            <p className="text-xs text-brand-text-muted mt-3 uppercase tracking-wider">
-              📌 SLAP STICKERS AND DRAG POST-IT NOTES AROUND TO RE-ARRANGE INDEPENDENT REVIEWS.
+            <p className="text-xs text-zinc-500 mt-3 uppercase tracking-wider">
+              📌 Drag comments around to organize reviews on the workspace.
             </p>
           </div>
 
           {stickyNotes.length === 0 ? (
-            <div className="bg-brand-card border-3 border-white p-12 text-center text-brand-text-muted font-mono uppercase">
-              No sticky notes on the wall yet. Be the first to comment!
+            <div className="brutal-border border-zinc-850 p-12 text-center text-zinc-500 font-mono text-xs uppercase font-bold rounded-2xl">
+              No comments on the wall yet. Be the first to log a review!
             </div>
           ) : (
             <div 
               ref={corkboardRef}
-              className="relative w-full bg-brand-card border-4 border-white overflow-hidden select-none bg-[radial-gradient(#1e263f_2px,transparent_2px)] [background-size:24px_24px]"
+              className="relative w-full bg-zinc-950/60 border border-zinc-850 rounded-3xl overflow-hidden select-none bg-[radial-gradient(rgba(255,255,255,0.03)_1.5px,transparent_1.5px)] [background-size:24px_24px]"
               style={{ height: `${boardHeight}px` }}
             >
               {stickyNotes.map((note) => {

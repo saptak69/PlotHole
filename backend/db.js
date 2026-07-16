@@ -173,4 +173,25 @@ export async function initDb() {
     await execute(followsTable);
     console.log('Database tables initialized successfully on SQLite database!');
   }
+
+  // Safe migrations: Add rating and review_text to diary if they don't exist
+  try {
+    if (isPostgres) {
+      await pgPool.query('ALTER TABLE diary ADD COLUMN rating REAL');
+    } else {
+      await execute('ALTER TABLE diary ADD COLUMN rating REAL');
+    }
+  } catch (e) {
+    // Ignore if column already exists
+  }
+
+  try {
+    if (isPostgres) {
+      await pgPool.query('ALTER TABLE diary ADD COLUMN review_text TEXT');
+    } else {
+      await execute('ALTER TABLE diary ADD COLUMN review_text TEXT');
+    }
+  } catch (e) {
+    // Ignore if column already exists
+  }
 }
