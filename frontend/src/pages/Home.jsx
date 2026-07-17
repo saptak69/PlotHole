@@ -126,7 +126,7 @@ export default function Home() {
   const movieDate = heroMovie ? (heroMovie.release_date || heroMovie.first_air_date) : null;
 
   return (
-    <div className="flex-1 pb-16 font-sans text-white select-none">
+    <div className="flex-1 pb-16 font-sans text-white">
       {/* Featured Hero Banner */}
       {heroMovie && (
         <div className="relative h-[450px] md:h-[550px] w-full overflow-hidden mb-12 border-b border-white/10">

@@ -292,6 +292,7 @@ export default function MovieDetails() {
     e.preventDefault();
     logMutation.mutate({
       tmdb_movie_id: parseInt(id),
+      media_type: detectedMediaType,
       rating,
       watched_date: watchedDate,
       review_text: reviewText
@@ -544,7 +545,7 @@ export default function MovieDetails() {
         
         <div className="relative mb-8">
           <h1 
-            className="font-sans text-2xl md:text-[40px] font-extrabold text-white uppercase tracking-tight leading-tight block break-words border border-white/10 p-6 rounded-2xl shadow-2xl backdrop-blur-md bg-brand-card/45"
+            className="font-sans text-2xl md:text-[40px] font-extrabold text-white uppercase tracking-tight leading-tight block break-words border-3 border-brand-border p-6 rounded-sm shadow-md bg-brand-card"
           >
             {displayTitle}
           </h1>
@@ -554,7 +555,7 @@ export default function MovieDetails() {
           
           {/* Left Column: Poster & Mobile Quick Actions */}
           <div className="md:col-span-1 max-w-sm mx-auto md:max-w-none w-full space-y-6">
-            <div className="border border-white/10 bg-black aspect-[2/3] overflow-hidden rounded-2xl shadow-2xl">
+            <div className="border-3 border-brand-border bg-black aspect-[2/3] overflow-hidden rounded-sm shadow-md">
               <img
                 src={getPosterUrl(movie.poster_path)}
                 alt={displayTitle}
@@ -562,13 +563,13 @@ export default function MovieDetails() {
               />
             </div>
             {/* Quick action buttons for mobile only */}
-            <div className="block md:hidden bg-brand-card brutal-border p-4 rounded-2xl">
+            <div className="block md:hidden bg-brand-card brutal-border p-4 rounded-sm">
               {renderActionButtons()}
             </div>
           </div>
 
           {/* Center Column: Movie Details */}
-          <div className="md:col-span-2 space-y-8 brutal-border p-6 rounded-2xl font-mono">
+          <div className="md:col-span-2 space-y-8 brutal-border p-6 rounded-sm font-mono">
             <div className="space-y-2 border-b border-white/10 pb-4">
               <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-white uppercase">
                 <span className="bg-white/10 text-white px-2.5 py-0.5 rounded font-bold border border-white/15">
@@ -639,7 +640,7 @@ export default function MovieDetails() {
 
           {/* Right Column: User Interactions */}
           <div className="md:col-span-1 space-y-6">
-            <div className="brutal-border p-6 space-y-6 rounded-2xl">
+            <div className="brutal-border p-6 space-y-6 rounded-sm">
                            {/* Verdict Section: Rating Distribution OR Upcoming Excited Counter */}
               {isUpcoming ? (
                 <div className="pb-5 border-b border-white/10 text-left font-mono">
@@ -689,7 +690,7 @@ export default function MovieDetails() {
                               <span>{pct}%</span>
                             </div>
                             {/* Progress bar line */}
-                            <div className="h-3 w-full bg-black border-2 border-white/20 overflow-hidden">
+                            <div className="h-3 w-full bg-black border-2 border-brand-border overflow-hidden rounded-sm">
                               <div 
                                 className={`h-full ${barColors[ratingVal]} transition-all duration-500`}
                                 style={{ width: `${pct}%` }}
@@ -743,61 +744,59 @@ export default function MovieDetails() {
                 const RatingIcon = RATING_ICONS[opt.icon] || HelpCircle;
                 
                 return (
-                  <div
-                    key={note.id}
-                    onMouseDown={(e) => handleMouseDown(note.id, e)}
-                    onTouchStart={(e) => handleTouchStart(note.id, e)}
-                    className="absolute w-[240px] border p-4 select-none flex flex-col font-sans transition-all duration-200 rounded-2xl"
-                    style={{
-                      left: `${note.x}px`,
-                      top: `${note.y}px`,
-                      backgroundColor: hexToRgba(note.color, 0.12),
-                      borderColor: hexToRgba(note.color, 0.4),
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      transform: `rotate(${note.rotation}deg)`,
-                      boxShadow: draggingId === note.id 
-                        ? `0 16px 36px ${hexToRgba(note.color, 0.3)}` 
-                        : `0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px ${hexToRgba(note.color, 0.1)}`,
-                      zIndex: draggingId === note.id ? 999 : 10,
-                      cursor: draggingId === note.id ? 'grabbing' : 'grab'
-                    }}
-                  >
-                    {/* Draggable Header */}
-                    <div className="flex items-center gap-2 border-b border-white/10 pb-2 mb-2">
-                      <Avatar
-                        username={note.username}
-                        url={note.avatar_url}
-                        className="w-6 h-6 border border-white/20"
-                      />
-                      <div className="min-w-0 text-left">
-                        <Link 
-                          to={`/profile/${note.username}`}
-                          className="font-bold text-xs text-white hover:underline truncate block"
-                        >
-                          @{note.username}
-                        </Link>
+                    <div
+                      key={note.id}
+                      onMouseDown={(e) => handleMouseDown(note.id, e)}
+                      onTouchStart={(e) => handleTouchStart(note.id, e)}
+                      className="absolute w-[240px] border-3 border-[#121008] p-4 select-none flex flex-col font-sans transition-all duration-200 rounded-sm"
+                      style={{
+                        left: `${note.x}px`,
+                        top: `${note.y}px`,
+                        backgroundColor: note.color,
+                        color: '#121008',
+                        transform: `rotate(${note.rotation}deg)`,
+                        boxShadow: draggingId === note.id 
+                          ? `8px 8px 0 #121008` 
+                          : `4px 4px 0 #121008`,
+                        zIndex: draggingId === note.id ? 999 : 10,
+                        cursor: draggingId === note.id ? 'grabbing' : 'grab'
+                      }}
+                    >
+                      {/* Draggable Header */}
+                      <div className="flex items-center gap-2 border-b border-black/20 pb-2 mb-2">
+                        <Avatar
+                          username={note.username}
+                          url={note.avatar_url}
+                          className="w-6 h-6 border border-black/30"
+                        />
+                        <div className="min-w-0 text-left">
+                          <Link 
+                            to={`/profile/${note.username}`}
+                            className="font-bold text-xs text-black hover:underline truncate block"
+                          >
+                            @{note.username}
+                          </Link>
+                        </div>
+                        
+                        {/* Only display rating icon if it is not a pre-release rating (rating > 0) */}
+                        {note.rating > 0 && (
+                          <span className="ml-auto text-black" title={opt.label}>
+                            <RatingIcon className="w-4 h-4 text-black" />
+                          </span>
+                        )}
                       </div>
-                      
-                      {/* Only display rating icon if it is not a pre-release rating (rating > 0) */}
-                      {note.rating > 0 && (
-                        <span className="ml-auto" style={{ color: note.color }} title={opt.label}>
-                          <RatingIcon className="w-4 h-4" />
-                        </span>
-                      )}
-                    </div>
 
-                    {/* Review Body */}
-                    <div className="text-left flex-1 min-h-[90px] max-h-[140px] overflow-y-auto pr-1">
-                      <p className="text-xs text-white/90 font-medium leading-relaxed font-mono">
-                        {note.review_text || 'Just logged this movie.'}
-                      </p>
-                    </div>
+                      {/* Review Body */}
+                      <div className="text-left flex-1 min-h-[90px] max-h-[140px] overflow-y-auto pr-1">
+                        <p className="text-xs text-black font-medium leading-relaxed font-mono">
+                          {note.review_text || 'Just logged this movie.'}
+                        </p>
+                      </div>
 
-                    {/* Log Date */}
-                    <div className="text-[9px] font-bold text-white/40 text-left mt-2 uppercase font-mono">
-                      Logged: {new Date(note.created_at).toLocaleDateString()}
-                    </div>
+                      {/* Log Date */}
+                      <div className="text-[9px] font-bold text-black/60 text-left mt-2 uppercase font-mono">
+                        Logged: {new Date(note.created_at).toLocaleDateString()}
+                      </div>
 
                     {/* Sticker Slaps */}
                     <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/10">
@@ -936,7 +935,6 @@ export default function MovieDetails() {
                   </label>
                   <textarea
                     rows={4}
-                    required
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
                     className="win95-textarea w-full px-3 py-2 text-black text-sm resize-none focus:ring-0"

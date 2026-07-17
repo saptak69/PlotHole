@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { query, queryOne, execute, initDb, getDbStatus } from './db.js';
+import { query, queryOne, execute, initDb, getDbStatus, withTransaction } from './db.js';
 
 dotenv.config();
 
@@ -565,7 +565,6 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
   }
 
   try {
-    // Check if review already exists
     const existing = await queryOne(
       'SELECT id FROM reviews WHERE user_id = $1 AND tmdb_movie_id = $2',
       [req.user.id, tmdb_movie_id]
@@ -573,16 +572,26 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
 
     if (existing) {
       await execute(
-        'UPDATE reviews SET rating = $1, review_text = $2, created_at = CURRENT_TIMESTAMP WHERE id = $3',
-        [rating, review_text, existing.id]
+        'UPDATE reviews SET rating = $1, review_text = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+        [rating, review_text || '', existing.id]
       );
       res.json({ message: 'Review updated successfully', id: existing.id });
     } else {
       const reviewId = 'rev_' + Math.random().toString(36).substr(2, 9);
-      await execute(
-        'INSERT INTO reviews (id, user_id, tmdb_movie_id, rating, review_text) VALUES ($1, $2, $3, $4, $5)',
-        [reviewId, req.user.id, tmdb_movie_id, rating, review_text]
-      );
+      await withTransaction(async (tx) => {
+        const diaryId = 'dry_' + Math.random().toString(36).substr(2, 9);
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        await tx.execute(
+          'INSERT INTO diary (id, user_id, tmdb_movie_id, media_type, rating, watched_date, review_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          [diaryId, req.user.id, tmdb_movie_id, 'movie', rating, todayStr, reviewId]
+        );
+
+        await tx.execute(
+          'INSERT INTO reviews (id, diary_id, user_id, tmdb_movie_id, rating, review_text) VALUES ($1, $2, $3, $4, $5, $6)',
+          [reviewId, diaryId, req.user.id, tmdb_movie_id, rating, review_text || '']
+        );
+      });
       res.status(201).json({ message: 'Review created successfully', id: reviewId });
     }
   } catch (error) {
@@ -644,6 +653,7 @@ app.get('/api/reviews', async (req, res) => {
       `SELECT r.*, u.username, u.avatar_url 
        FROM reviews r 
        JOIN users u ON r.user_id = u.id 
+       WHERE r.review_text != ''
        ORDER BY r.created_at DESC 
        LIMIT 50`
     );
@@ -660,7 +670,10 @@ app.delete('/api/reviews/:id', authenticateToken, async (req, res) => {
     if (!review) return res.status(404).json({ error: 'Review not found' });
     if (review.user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized to delete this review' });
 
-    await execute('DELETE FROM reviews WHERE id = $1', [req.params.id]);
+    await withTransaction(async (tx) => {
+      await tx.execute('UPDATE diary SET review_id = NULL WHERE review_id = $1', [req.params.id]);
+      await tx.execute('DELETE FROM reviews WHERE id = $1', [req.params.id]);
+    });
     res.json({ message: 'Review deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -719,7 +732,7 @@ app.get('/api/watchlist', authenticateToken, async (req, res) => {
 
 // Log watched movie
 app.post('/api/diary', authenticateToken, async (req, res) => {
-  const { tmdb_movie_id, rating, watched_date, review_text } = req.body;
+  const { tmdb_movie_id, media_type = 'movie', rating, watched_date, review_text } = req.body;
 
   if (!tmdb_movie_id || !watched_date) {
     return res.status(400).json({ error: 'Movie ID and watched date are required' });
@@ -727,30 +740,43 @@ app.post('/api/diary', authenticateToken, async (req, res) => {
 
   try {
     const diaryId = 'dry_' + Math.random().toString(36).substr(2, 9);
-    await execute(
-      'INSERT INTO diary (id, user_id, tmdb_movie_id, rating, watched_date, review_text) VALUES ($1, $2, $3, $4, $5, $6)',
-      [diaryId, req.user.id, tmdb_movie_id, rating, watched_date, review_text]
-    );
+    const reviewId = 'rev_' + Math.random().toString(36).substr(2, 9);
 
-    // If review_text is provided, we also create/update a review automatically
-    if (review_text) {
-      const existingReview = await queryOne(
-        'SELECT id FROM reviews WHERE user_id = $1 AND tmdb_movie_id = $2',
-        [req.user.id, tmdb_movie_id]
-      );
-      if (existingReview) {
-        await execute(
-          'UPDATE reviews SET rating = $1, review_text = $2, created_at = CURRENT_TIMESTAMP WHERE id = $3',
-          [rating, review_text, existingReview.id]
+    const hasRating = rating !== undefined && rating !== null && rating !== 0;
+    const hasText = review_text && review_text.trim().length > 0;
+    const needsReviewRecord = hasRating || hasText;
+
+    await withTransaction(async (tx) => {
+      let finalReviewId = null;
+
+      if (needsReviewRecord) {
+        const existingReview = await tx.queryOne(
+          'SELECT id FROM reviews WHERE user_id = $1 AND tmdb_movie_id = $2',
+          [req.user.id, tmdb_movie_id]
         );
-      } else {
-        const reviewId = 'rev_' + Math.random().toString(36).substr(2, 9);
-        await execute(
-          'INSERT INTO reviews (id, user_id, tmdb_movie_id, rating, review_text) VALUES ($1, $2, $3, $4, $5)',
-          [reviewId, req.user.id, tmdb_movie_id, rating, review_text]
-        );
+
+        const cleanReviewText = review_text ? review_text.trim() : '';
+
+        if (existingReview) {
+          await tx.execute(
+            'UPDATE reviews SET rating = $1, review_text = $2, diary_id = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4',
+            [hasRating ? rating : 0, cleanReviewText, diaryId, existingReview.id]
+          );
+          finalReviewId = existingReview.id;
+        } else {
+          await tx.execute(
+            'INSERT INTO reviews (id, diary_id, user_id, tmdb_movie_id, rating, review_text) VALUES ($1, $2, $3, $4, $5, $6)',
+            [reviewId, diaryId, req.user.id, tmdb_movie_id, hasRating ? rating : 0, cleanReviewText]
+          );
+          finalReviewId = reviewId;
+        }
       }
-    }
+
+      await tx.execute(
+        'INSERT INTO diary (id, user_id, tmdb_movie_id, media_type, rating, watched_date, review_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [diaryId, req.user.id, tmdb_movie_id, media_type, hasRating ? rating : null, watched_date, finalReviewId]
+      );
+    });
 
     res.status(201).json({ message: 'Diary entry created', id: diaryId });
   } catch (error) {
@@ -786,26 +812,30 @@ app.get('/api/diary/check/:movieId', authenticateToken, async (req, res) => {
 
 // Toggle watched status
 app.post('/api/diary/toggle-watched', authenticateToken, async (req, res) => {
-  const { tmdb_movie_id } = req.body;
+  const { tmdb_movie_id, media_type = 'movie' } = req.body;
   if (!tmdb_movie_id) return res.status(400).json({ error: 'Movie ID required' });
 
   try {
     const existing = await queryOne(
-      'SELECT id FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2 LIMIT 1',
+      'SELECT id, review_id FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2 LIMIT 1',
       [req.user.id, tmdb_movie_id]
     );
 
     if (existing) {
-      // Unwatch: Delete diary entries
-      await execute('DELETE FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2', [req.user.id, tmdb_movie_id]);
+      await withTransaction(async (tx) => {
+        if (existing.review_id) {
+          await tx.execute('DELETE FROM reviews WHERE id = $1', [existing.review_id]);
+        }
+        await tx.execute('DELETE FROM reviews WHERE user_id = $1 AND tmdb_movie_id = $2', [req.user.id, tmdb_movie_id]);
+        await tx.execute('DELETE FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2', [req.user.id, tmdb_movie_id]);
+      });
       res.json({ watched: false });
     } else {
-      // Quick watch: Add a log entry for today
       const diaryId = 'dry_' + Math.random().toString(36).substr(2, 9);
       const todayStr = new Date().toISOString().split('T')[0];
       await execute(
-        'INSERT INTO diary (id, user_id, tmdb_movie_id, rating, watched_date, review_text) VALUES ($1, $2, $3, $4, $5, $6)',
-        [diaryId, req.user.id, tmdb_movie_id, null, todayStr, null]
+        'INSERT INTO diary (id, user_id, tmdb_movie_id, media_type, rating, watched_date, review_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [diaryId, req.user.id, tmdb_movie_id, media_type, null, todayStr, null]
       );
       res.json({ watched: true });
     }
@@ -970,14 +1000,16 @@ app.get('/api/social/feed', authenticateToken, async (req, res) => {
       `SELECT 'review' as type, r.id as activity_id, r.created_at AS created_at, r.rating AS rating, r.review_text AS review_text, r.tmdb_movie_id AS tmdb_movie_id, u.username AS username, u.avatar_url AS avatar_url, u.id as user_id
        FROM reviews r
        JOIN users u ON r.user_id = u.id
-       WHERE r.user_id IN (SELECT following_id FROM follows WHERE follower_id = $1)
+       WHERE r.user_id IN (SELECT following_id FROM follows WHERE follower_id = $1) AND r.review_text != ''
        
        UNION ALL
        
-       SELECT 'watch' as type, d.id as activity_id, d.created_at AS created_at, d.rating AS rating, d.review_text AS review_text, d.tmdb_movie_id AS tmdb_movie_id, u.username AS username, u.avatar_url AS avatar_url, u.id as user_id
+       SELECT 'watch' as type, d.id as activity_id, d.created_at AS created_at, d.rating AS rating, NULL AS review_text, d.tmdb_movie_id AS tmdb_movie_id, u.username AS username, u.avatar_url AS avatar_url, u.id as user_id
        FROM diary d
        JOIN users u ON d.user_id = u.id
+       LEFT JOIN reviews r ON d.review_id = r.id
        WHERE d.user_id IN (SELECT following_id FROM follows WHERE follower_id = $1)
+         AND (d.review_id IS NULL OR r.review_text = '')
        
        ORDER BY created_at DESC
        LIMIT 30`,

@@ -26,7 +26,7 @@ function PolaroidCard({ movieId, angle }) {
       style={{ transform: `rotate(${angle}deg)` }}
     >
       <div className="masking-tape" />
-      <Link to={`/movies/${movie.id}`}>
+      <Link to={`/media/${movie.media_type || 'movie'}/${movie.id}`}>
         <div className="aspect-square w-full overflow-hidden border-2 border-black mb-3">
           <img
             src={getPosterUrl(movie.poster_path)}
@@ -56,7 +56,7 @@ function WatchlistCard({ movieId }) {
   if (!movie) return <div className="aspect-[2/3] bg-brand-card border-3 border-white animate-pulse" />;
 
   return (
-    <Link to={`/movies/${movie.id}`} className="group relative block brutal-border-interactive overflow-hidden bg-brand-card">
+    <Link to={`/media/${movie.media_type || 'movie'}/${movie.id}`} className="group relative block brutal-border-interactive overflow-hidden bg-brand-card">
       <div className="aspect-[2/3] w-full">
         <img
           src={getPosterUrl(movie.poster_path)}

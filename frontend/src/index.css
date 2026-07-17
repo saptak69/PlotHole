@@ -26,6 +26,22 @@
 
   --font-sans: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+
+  /* Force all rounded corners to strictly adhere to Neobrutalist tokens (4px or 0px) */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
+
+  /* Force all shadows to be solid, flat Neobrutalist drop shadows */
+  --shadow-sm: 2px 2px 0 #f2e9d8;
+  --shadow-md: 4px 4px 0 #f2e9d8;
+  --shadow-lg: 4px 4px 0 #f4c430;
+  --shadow-xl: 4px 4px 0 #ff4757;
+  --shadow-2xl: 6px 6px 0 #f2e9d8;
 }
 
 /* Base resets */
@@ -119,7 +135,7 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
   border: 3px solid #f2e9d8;
   background-color: #1b1810;
   border-radius: 4px;
-  box-shadow: 5px 5px 0 #f2e9d8;
+  box-shadow: 4px 4px 0 #f2e9d8;
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
@@ -127,19 +143,19 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
   border: 3px solid #f2e9d8;
   background-color: #1b1810;
   border-radius: 4px;
-  box-shadow: 5px 5px 0 #f4c430;
+  box-shadow: 4px 4px 0 #f4c430;
 }
 
 .brutal-border-interactive {
   border: 3px solid #f2e9d8;
   background-color: #1b1810;
   border-radius: 4px;
-  box-shadow: 5px 5px 0 #f2e9d8;
+  box-shadow: 4px 4px 0 #f2e9d8;
   transition: transform 0.15s, box-shadow 0.15s;
 }
 .brutal-border-interactive:hover {
   transform: translateY(-4px);
-  box-shadow: 6px 8px 0 #f4c430;
+  box-shadow: 4px 4px 0 #f4c430;
 }
 
 /* Speed line hover effect */
@@ -287,7 +303,7 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
   font-size: 12px;
   padding: 12px 22px;
   border: 3px solid #f2e9d8;
-  border-radius: 6px;
+  border-radius: 4px;
   box-shadow: 4px 4px 0 #f2e9d8;
   transition: transform 0.15s, box-shadow 0.15s;
   text-align: center;
@@ -315,7 +331,7 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
   font-size: 12px;
   padding: 12px 22px;
   border: 3px solid #f2e9d8;
-  border-radius: 6px;
+  border-radius: 4px;
   box-shadow: 4px 4px 0 #f2e9d8;
   transition: transform 0.15s, box-shadow 0.15s;
   text-align: center;
@@ -343,7 +359,7 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
   font-size: 12px;
   padding: 12px 22px;
   border: 3px solid #f2e9d8;
-  border-radius: 6px;
+  border-radius: 4px;
   box-shadow: 4px 4px 0 #f2e9d8;
   transition: transform 0.15s, box-shadow 0.15s;
   text-align: center;
@@ -366,7 +382,7 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
   font-size: 12px;
   padding: 12px 22px;
   border: 3px solid #f2e9d8;
-  border-radius: 6px;
+  border-radius: 4px;
   box-shadow: 4px 4px 0 #f2e9d8;
   transition: transform 0.15s, box-shadow 0.15s;
   text-align: center;
@@ -392,7 +408,7 @@ a, button, [role="button"], input[type="submit"], select, input[type="checkbox"]
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  border-radius: 6px;
+  border-radius: 4px;
   box-shadow: 4px 4px 0 #f2e9d8;
   transition: transform 0.15s, box-shadow 0.15s;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -35,23 +35,49 @@ function GlobalLogWrapper() {
   const [searching, setSearching] = useState(false);
   const navigate = useNavigate();
 
-  const handleSearch = async (val) => {
+  const searchTimeoutRef = useRef(null);
+  const abortControllerRef = useRef(null);
+
+  const handleSearch = (val) => {
     setQuery(val);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
     if (val.trim().length > 1) {
       setSearching(true);
-      try {
-        const res = await fetch(`${API_URL}/movies/search?query=${encodeURIComponent(val)}`);
-        if (res.ok) {
-          const data = await res.json();
-          setResults(data.results || []);
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      searchTimeoutRef.current = setTimeout(async () => {
+        try {
+          const res = await fetch(
+            `${API_URL}/movies/search?query=${encodeURIComponent(val)}`,
+            { signal: controller.signal }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            setResults(data.results || []);
+          }
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            console.error(err);
+          }
+        } finally {
+          if (abortControllerRef.current === controller) {
+            setSearching(false);
+          }
         }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setSearching(false);
-      }
+      }, 300);
     } else {
       setResults([]);
+      setSearching(false);
     }
   };
 
@@ -66,7 +92,7 @@ function GlobalLogWrapper() {
   return (
     <>
       {/* Standard Brutalist Container */}
-      <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col select-none">
+      <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col">
         <Navbar />
         <main className="flex-1 flex flex-col border-t border-white/10">
           <Routes>
@@ -82,7 +108,7 @@ function GlobalLogWrapper() {
         </main>
         
         {/* Retro Zine Global Footer */}
-        <footer className="py-8 border-t-3 border-brand-border text-center text-xs text-brand-text-muted font-mono select-none">
+        <footer className="py-8 border-t-3 border-brand-border text-center text-xs text-brand-text-muted font-mono">
           <div className="max-w-7xl mx-auto px-6 space-y-2">
             <p className="font-extrabold tracking-widest text-sm text-brand-text uppercase font-bangers">PLOTHOLE — THE CINEMA CHRONICLES</p>
             <p className="font-bold text-[10px] text-brand-text-muted">© {new Date().getFullYear()} SAPTAK MONDAL. ALL RIGHTS RESERVED.</p>

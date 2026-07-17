@@ -93,11 +93,13 @@ export async function initDb() {
   const reviewsTable = `
     CREATE TABLE IF NOT EXISTS reviews (
       id TEXT PRIMARY KEY,
+      diary_id TEXT,
       user_id TEXT NOT NULL,
       tmdb_movie_id INTEGER NOT NULL,
       rating REAL NOT NULL,
-      review_text TEXT,
+      review_text TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `;
@@ -117,9 +119,10 @@ export async function initDb() {
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
       tmdb_movie_id INTEGER NOT NULL,
+      media_type TEXT DEFAULT 'movie',
       rating REAL,
       watched_date TEXT NOT NULL,
-      review_text TEXT,
+      review_id TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
@@ -174,24 +177,57 @@ export async function initDb() {
     console.log('Database tables initialized successfully on SQLite database!');
   }
 
-  // Safe migrations: Add rating and review_text to diary if they don't exist
-  try {
-    if (isPostgres) {
-      await pgPool.query('ALTER TABLE diary ADD COLUMN rating REAL');
-    } else {
-      await execute('ALTER TABLE diary ADD COLUMN rating REAL');
+  // Safe migrations: Helper to run query safely
+  const runMigration = async (sqlPostgres, sqlSqlite) => {
+    try {
+      if (isPostgres) {
+        await pgPool.query(sqlPostgres);
+      } else {
+        await execute(sqlSqlite);
+      }
+    } catch (e) {
+      // Column might already exist
     }
-  } catch (e) {
-    // Ignore if column already exists
-  }
+  };
 
-  try {
-    if (isPostgres) {
-      await pgPool.query('ALTER TABLE diary ADD COLUMN review_text TEXT');
-    } else {
-      await execute('ALTER TABLE diary ADD COLUMN review_text TEXT');
+  await runMigration('ALTER TABLE diary ADD COLUMN media_type TEXT DEFAULT \'movie\'', 'ALTER TABLE diary ADD COLUMN media_type TEXT DEFAULT \'movie\'');
+  await runMigration('ALTER TABLE diary ADD COLUMN review_id TEXT', 'ALTER TABLE diary ADD COLUMN review_id TEXT');
+  await runMigration('ALTER TABLE reviews ADD COLUMN diary_id TEXT', 'ALTER TABLE reviews ADD COLUMN diary_id TEXT');
+  await runMigration('ALTER TABLE reviews ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP', 'ALTER TABLE reviews ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+}
+
+export async function withTransaction(callback) {
+  if (isPostgres) {
+    const client = await pgPool.connect();
+    try {
+      await client.query('BEGIN');
+      const txQuery = (sql, params = []) => client.query(sql, params).then(r => r.rows);
+      const txExecute = (sql, params = []) => client.query(sql, params).then(r => ({ rowCount: r.rowCount, rows: r.rows }));
+      const txQueryOne = (sql, params = []) => txQuery(sql, params).then(rows => rows[0] || null);
+      
+      const result = await callback({ query: txQuery, execute: txExecute, queryOne: txQueryOne });
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
-  } catch (e) {
-    // Ignore if column already exists
+  } else {
+    try {
+      await execute('BEGIN');
+      const txQueryOne = (sql, params = []) => query(sql, params).then(rows => rows[0] || null);
+      const result = await callback({ query, execute, queryOne: txQueryOne });
+      await execute('COMMIT');
+      return result;
+    } catch (error) {
+      try {
+        await execute('ROLLBACK');
+      } catch (rollbackErr) {
+        // Ignore rollback failure if transaction already terminated
+      }
+      throw error;
+    }
   }
 }
