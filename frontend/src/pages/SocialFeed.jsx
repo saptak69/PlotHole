@@ -216,27 +216,29 @@ function SocialFeedItem({ act }) {
       </Link>
       
       <div className="text-left flex-1 min-w-0 font-sans">
-        <div className="flex flex-wrap items-center gap-2.5 mb-2.5 border-b-2 border-brand-border pb-2.5">
-          <Avatar
-            username={act.username}
-            url={act.avatar_url}
-            className="w-6 h-6 border border-brand-border rounded-none"
-          />
-          <Link to={`/profile/${act.username}`} className="font-bold text-brand-text hover:text-[#f4c430] transition-colors text-xs font-mono">
-            @{act.username}
-          </Link>
-          
-          <span className="text-[10px] text-brand-text-muted font-bold font-mono uppercase">
-            {act.type === 'review' ? 'reviewed' : 'watched'}
-          </span>
-          
-          <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="font-bold text-brand-text hover:text-[#f4c430] transition-colors text-xs font-mono">
-            {movieName}
-          </Link>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-2.5 border-b-2 border-brand-border pb-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Avatar
+              username={act.username}
+              url={act.avatar_url}
+              className="w-6 h-6 border border-brand-border rounded-none"
+            />
+            <Link to={`/profile/${act.username}`} className="font-bold text-brand-text hover:text-[#f4c430] transition-colors text-xs font-mono">
+              @{act.username}
+            </Link>
+            
+            <span className="text-[10px] text-brand-text-muted font-bold font-mono uppercase">
+              {act.type === 'review' ? 'reviewed' : 'watched'}
+            </span>
+            
+            <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="font-bold text-brand-text hover:text-[#f4c430] transition-colors text-xs font-mono">
+              {movieName}
+            </Link>
+          </div>
 
           {/* Custom Rating Badge */}
           {act.rating && (
-            <div className="ml-auto">
+            <div className="shrink-0 flex justify-end">
               <RatingBadge rating={act.rating} />
             </div>
           )}

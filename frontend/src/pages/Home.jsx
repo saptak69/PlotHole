@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Play, Sparkles } from 'lucide-react';
@@ -111,6 +111,8 @@ export default function Home() {
   const recentReviews = reviewsData || [];
 
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+  const touchStartXRef = useRef(0);
+  const touchEndXRef = useRef(0);
 
   // Auto-slide effect every 6 seconds
   useEffect(() => {
@@ -121,6 +123,34 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [popularMovies]);
 
+  const handleTouchStart = (e) => {
+    touchStartXRef.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndXRef.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const startX = touchStartXRef.current;
+    const endX = touchEndXRef.current;
+    if (!startX || !endX) return;
+    const diffX = startX - endX;
+
+    if (Math.abs(diffX) > 50) {
+      if (diffX > 0) {
+        // Swiped left -> Next movie
+        setCurrentHeroIndex((prev) => (prev + 1) % Math.min(5, popularMovies.length));
+      } else {
+        // Swiped right -> Previous movie
+        setCurrentHeroIndex((prev) => (prev - 1 + Math.min(5, popularMovies.length)) % Math.min(5, popularMovies.length));
+      }
+    }
+    // Reset refs
+    touchStartXRef.current = 0;
+    touchEndXRef.current = 0;
+  };
+
   // Hero Movie is selected from rotation index
   const heroMovie = popularMovies[currentHeroIndex];
   const movieDate = heroMovie ? (heroMovie.release_date || heroMovie.first_air_date) : null;
@@ -129,52 +159,47 @@ export default function Home() {
     <div className="flex-1 pb-16 font-sans text-white">
       {/* Featured Hero Banner */}
       {heroMovie && (
-        <div className="relative h-[450px] md:h-[550px] w-full overflow-hidden mb-12 border-b border-white/10">
-          {/* Backdrop Image - Smooth GPU accelerated crossfade */}
+        <div 
+          className="relative h-[480px] md:h-[550px] w-full overflow-hidden mb-12 border-b border-white/10"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Background Images - Posters on mobile, Backdrops on desktop */}
           <div className="absolute inset-0 bg-black">
+            {/* Mobile: Vertical Posters fit narrow screens perfectly */}
             {popularMovies.slice(0, 5).map((movie, idx) => (
               <img
-                key={movie.id}
+                key={`poster-${movie.id}`}
+                src={getPosterUrl(movie.poster_path, 'w780')}
+                alt={movie.title}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out md:hidden ${
+                  currentHeroIndex === idx ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+            ))}
+            {/* Desktop: Horizontal Backdrops */}
+            {popularMovies.slice(0, 5).map((movie, idx) => (
+              <img
+                key={`backdrop-${movie.id}`}
                 src={getBackdropUrl(movie.backdrop_path)}
                 alt={movie.title}
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out hidden md:block ${
                   currentHeroIndex === idx ? 'opacity-100' : 'opacity-0'
                 }`}
               />
             ))}
             {/* Smooth bottom gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-transparent pointer-events-none" />
           </div>
 
-          {/* Hero Details Content - Blended directly onto bottom of poster */}
-          <div className="absolute bottom-10 left-6 md:left-12 max-w-3xl text-left space-y-4 z-10">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 bg-brutal-cyan/20 border border-brutal-cyan/30 text-brutal-cyan px-3 py-1 font-extrabold text-[10px] uppercase tracking-widest rounded-full w-fit">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Trending Film</span>
-              </div>
-              
-              {/* Slideshow Selector Buttons */}
-              <div className="flex gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-md">
-                {popularMovies.slice(0, 5).map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentHeroIndex(idx)}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                      currentHeroIndex === idx
-                        ? 'bg-brutal-cyan w-6 shadow-[0_0_8px_var(--color-brutal-cyan)]'
-                        : 'bg-white/30 hover:bg-white/60'
-                    }`}
-                    aria-label={`Slide ${idx + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
+          {/* Hero Details Content - Blended directly onto bottom of background image */}
+          <div className="absolute bottom-16 left-6 right-6 md:left-12 md:right-auto max-w-3xl text-left space-y-4 z-10">
             
             <h1 
               key={`title-${heroMovie.id}`}
               className="text-3xl md:text-[52px] font-black text-white uppercase tracking-tight leading-none animate-in slide-in-from-bottom-4 duration-500 font-sans"
-              style={{ textShadow: '0 4px 15px rgba(0, 0, 0, 0.6)' }}
+              style={{ textShadow: '0 4px 15px rgba(0, 0, 0, 0.9)' }}
             >
               {heroMovie.title}
             </h1>
@@ -200,7 +225,7 @@ export default function Home() {
             
             <p 
               key={`desc-${heroMovie.id}`}
-              className="text-white/80 text-sm md:text-base leading-relaxed max-w-xl font-medium line-clamp-3 animate-in fade-in duration-500 drop-shadow-md"
+              className="text-white/80 text-xs md:text-base leading-relaxed max-w-xl font-medium line-clamp-3 md:line-clamp-4 animate-in fade-in duration-500 drop-shadow-md"
             >
               {heroMovie.overview}
             </p>
@@ -214,6 +239,22 @@ export default function Home() {
                 <span>View Film Details</span>
               </Link>
             </div>
+          </div>
+
+          {/* Comic Booky Slideshow Selector Dots at the bottom middle */}
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-3 z-20">
+            {popularMovies.slice(0, 5).map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentHeroIndex(idx)}
+                className={`w-3.5 h-3.5 rounded-full border-2 border-brand-border transition-all duration-200 cursor-pointer ${
+                  currentHeroIndex === idx
+                    ? 'bg-brutal-yellow translate-y-[-2px] shadow-[2px_2px_0_#ff4757]'
+                    : 'bg-brand-card hover:bg-brand-border/20'
+                }`}
+                aria-label={`Slide ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -424,21 +465,23 @@ function HomeReviewItem({ rev }) {
       </Link>
       
       <div className="text-left flex-1 min-w-0 font-sans">
-        <div className="flex flex-wrap items-center gap-2.5 mb-2.5 border-b-2 border-brand-border pb-2.5">
-          <Avatar
-            username={rev.username}
-            url={rev.avatar_url}
-            className="w-6 h-6 border border-brand-border rounded-none"
-          />
-          <Link to={`/profile/${rev.username}`} className="font-bold text-brand-text hover:text-[#f4c430] text-xs transition-colors font-mono">
-            @{rev.username}
-          </Link>
-          <span className="text-[10px] text-brand-text-muted font-bold font-mono uppercase">
-            logged <Link to={`/media/${mediaType}/${rev.tmdb_movie_id}`} className="text-brand-text hover:text-[#f4c430] transition-colors">{movieName}</Link>
-          </span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-2.5 border-b-2 border-brand-border pb-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Avatar
+              username={rev.username}
+              url={rev.avatar_url}
+              className="w-6 h-6 border border-brand-border rounded-none"
+            />
+            <Link to={`/profile/${rev.username}`} className="font-bold text-brand-text hover:text-[#f4c430] text-xs transition-colors font-mono">
+              @{rev.username}
+            </Link>
+            <span className="text-[10px] text-brand-text-muted font-bold font-mono uppercase">
+              logged <Link to={`/media/${mediaType}/${rev.tmdb_movie_id}`} className="text-brand-text hover:text-[#f4c430] transition-colors">{movieName}</Link>
+            </span>
+          </div>
           
           {/* Custom Rating Badge */}
-          <div className="ml-auto">
+          <div className="shrink-0 flex justify-end">
             <RatingBadge rating={rev.rating} />
           </div>
         </div>

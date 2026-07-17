@@ -290,26 +290,26 @@ export default function Profile() {
  
         {/* Softer Detailed Dashboard Grid for Stats */}
         {/* Detailed Dashboard Grid for Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 border border-zinc-800 w-full lg:w-auto font-mono text-center select-none shrink-0 overflow-hidden rounded-2xl shadow-xl bg-zinc-900/40 backdrop-blur-md">
-          <div className="p-3 border-r border-b border-zinc-800 md:border-b-0">
-            <span className="block text-zinc-500 text-[10px] mb-1 uppercase font-bold">Hrs Wasted</span>
-            <span className="text-sm md:text-base font-black text-amber-500">{hoursWasted.toFixed(1)}</span>
+        <div className="grid grid-cols-2 md:grid-cols-5 brutal-border bg-[#1b1810] w-full lg:w-auto font-mono text-center shrink-0 overflow-hidden rounded-sm shadow-sm">
+          <div className="p-3 border-r-3 border-b-3 border-brand-border md:border-b-0">
+            <span className="block text-brand-text-muted text-[10px] mb-1 uppercase font-bold">Hrs Wasted</span>
+            <span className="text-sm md:text-base font-black text-[#f4c430]">{hoursWasted.toFixed(1)}</span>
           </div>
-          <div className="p-3 border-b border-zinc-800 md:border-r md:border-b-0">
-            <span className="block text-zinc-500 text-[10px] mb-1 uppercase font-bold">Logged</span>
-            <span className="text-sm md:text-base font-black text-white">{uniqueDiary.length}</span>
+          <div className="p-3 border-b-3 border-brand-border md:border-r-3 md:border-b-0">
+            <span className="block text-brand-text-muted text-[10px] mb-1 uppercase font-bold">Logged</span>
+            <span className="text-sm md:text-base font-black text-brand-text">{uniqueDiary.length}</span>
           </div>
-          <div className="p-3 border-r border-b border-zinc-800 md:border-b-0">
-            <span className="block text-zinc-500 text-[10px] mb-1 uppercase font-bold">Reviews</span>
-            <span className="text-sm md:text-base font-black text-rose-400">{stats.reviews}</span>
+          <div className="p-3 border-r-3 border-b-3 border-brand-border md:border-b-0">
+            <span className="block text-brand-text-muted text-[10px] mb-1 uppercase font-bold">Reviews</span>
+            <span className="text-sm md:text-base font-black text-[#ff4757]">{stats.reviews}</span>
           </div>
-          <div className="p-3 border-b border-zinc-800 md:border-b-0 md:border-r">
-            <span className="block text-zinc-500 text-[10px] mb-1 uppercase font-bold">Followers</span>
-            <span className="text-sm md:text-base font-black text-white">{stats.followers}</span>
+          <div className="p-3 border-b-3 border-brand-border md:border-b-0 md:border-r-3">
+            <span className="block text-brand-text-muted text-[10px] mb-1 uppercase font-bold">Followers</span>
+            <span className="text-sm md:text-base font-black text-brand-text">{stats.followers}</span>
           </div>
           <div className="p-3 col-span-2 md:col-span-1">
-            <span className="block text-zinc-500 text-[10px] mb-1 uppercase font-bold">Following</span>
-            <span className="text-sm md:text-base font-black text-white">{stats.following}</span>
+            <span className="block text-brand-text-muted text-[10px] mb-1 uppercase font-bold">Following</span>
+            <span className="text-sm md:text-base font-black text-brand-text">{stats.following}</span>
           </div>
         </div>
       </div>
@@ -317,7 +317,7 @@ export default function Profile() {
       {/* TOP 6 FAVORITES TAPED POLAROID DISPLAY */}
       {topMovieIds.length > 0 && (
         <div className="mb-16">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg w-fit mb-8 shadow-md">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[#f4c430] bg-[#f4c430]/10 border-2 border-brand-border px-3 py-1.5 rounded-sm w-fit mb-8 shadow-sm">
             Pinned Reel Discoveries
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 px-4">
@@ -333,23 +333,23 @@ export default function Profile() {
       )}
 
       {/* Tabs Selector */}
-      <div className="flex border-b border-zinc-800 mb-8 select-none">
+      <div className="flex border-b-3 border-brand-border mb-8 select-none overflow-x-auto">
         <button
           onClick={() => setActiveTab('diary')}
-          className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-2 ${
+          className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-3 whitespace-nowrap ${
             activeTab === 'diary'
-              ? 'border-amber-500 text-amber-500'
-              : 'border-transparent text-zinc-500 hover:text-zinc-200'
+              ? 'border-[#f4c430] text-[#f4c430]'
+              : 'border-transparent text-brand-text-muted hover:text-brand-text'
           }`}
         >
           Diary timeline
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-2 ${
+          className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-3 whitespace-nowrap ${
             activeTab === 'reviews'
-              ? 'border-rose-400 text-rose-400'
-              : 'border-transparent text-zinc-500 hover:text-zinc-200'
+              ? 'border-[#ff4757] text-[#ff4757]'
+              : 'border-transparent text-brand-text-muted hover:text-brand-text'
           }`}
         >
           Reviews log ({reviews.length})
@@ -357,10 +357,10 @@ export default function Profile() {
         {isOwnProfile && (
           <button
             onClick={() => setActiveTab('watchlist')}
-            className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-2 ${
+            className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-3 whitespace-nowrap ${
               activeTab === 'watchlist'
-                ? 'border-cyan-400 text-cyan-400'
-                : 'border-transparent text-zinc-500 hover:text-zinc-200'
+                ? 'border-[#3aa6e0] text-[#3aa6e0]'
+                : 'border-transparent text-brand-text-muted hover:text-brand-text'
             }`}
           >
             Watchlist ({watchlist.length})
