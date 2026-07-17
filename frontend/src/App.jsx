@@ -177,7 +177,7 @@ function GlobalLogWrapper() {
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="win95-btn px-4 py-1.5 h-auto text-xs font-bold uppercase"
+                  className="btn px-4 py-1.5 text-xs font-bold uppercase"
                 >
                   Cancel
                 </button>

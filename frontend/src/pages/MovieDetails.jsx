@@ -947,14 +947,14 @@ export default function MovieDetails() {
                   <button
                     type="button"
                     onClick={() => setIsLogModalOpen(false)}
-                    className="win95-btn px-4 py-1.5 h-auto text-xs font-bold text-black"
+                    className="btn px-4 py-1.5 text-xs font-bold"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={logMutation.isPending}
-                    className="win95-btn px-5 py-1.5 h-auto text-xs font-bold text-black"
+                    className="btn-primary px-5 py-1.5 text-xs font-bold"
                   >
                     {logMutation.isPending ? 'Saving...' : 'Save.txt'}
                   </button>
