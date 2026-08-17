@@ -5,9 +5,20 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import zlib from 'node:zlib';
+import { v2 as cloudinary } from 'cloudinary';
 import { query, queryOne, execute, initDb, getDbStatus, withTransaction } from './db.js';
 
 dotenv.config();
+
+if (process.env.CLOUDINARY_CLOUD_NAME) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true
+  });
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,19 +27,56 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_letterboxd_key';
 const TMDB_API_KEY = process.env.TMDB_API_KEY || ''; // Can be Read Access Token or API Key
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+
+// High-Performance Native Gzip Response Compression Middleware
+app.use((req, res, next) => {
+  const acceptEncoding = req.headers['accept-encoding'] || '';
+  if (!acceptEncoding.includes('gzip')) {
+    return next();
+  }
+
+  const originalSend = res.send;
+  res.send = function (body) {
+    if (!body || req.method === 'HEAD') {
+      return originalSend.call(this, body);
+    }
+
+    try {
+      let buffer;
+      if (Buffer.isBuffer(body)) {
+        buffer = body;
+      } else if (typeof body === 'object') {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        buffer = Buffer.from(JSON.stringify(body));
+      } else if (typeof body === 'string') {
+        buffer = Buffer.from(body);
+      }
+
+      if (buffer && buffer.length > 1024) {
+        const compressed = zlib.gzipSync(buffer, { level: 6 });
+        res.setHeader('Content-Encoding', 'gzip');
+        res.setHeader('Vary', 'Accept-Encoding');
+        res.removeHeader('Content-Length');
+        return originalSend.call(this, compressed);
+      }
+    } catch (e) {
+      // Fallback to uncompressed on error
+    }
+    return originalSend.call(this, body);
+  };
+  next();
+});
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Request logger middleware
+// Fast, non-blocking request logger middleware
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  if (req.body && Object.keys(req.body).length > 0) {
-    const safeBody = { ...req.body };
-    if (safeBody.password) safeBody.password = '***';
-    console.log('  Body:', safeBody);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   }
   next();
 });
@@ -43,7 +91,7 @@ function authenticateToken(req, res, next) {
   if (!token) return res.status(401).json({ error: 'Access token missing' });
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid or expired token' });
+    if (err) return res.status(401).json({ error: 'Invalid or expired token' });
     req.user = user;
     next();
   });
@@ -52,7 +100,57 @@ function authenticateToken(req, res, next) {
 // Simple in-memory cache for TMDB API calls to speed up responses and prevent rate-limiting
 const tmdbCache = new Map();
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes for listings/search
-const DETAIL_CACHE_TTL = 60 * 60 * 1000; // 1 hour for details, credits, recommendations
+const RECOMMENDATION_CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours
+const DETAIL_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours for details, credits, recommendations
+
+function getCloudinaryPublicId(url) {
+  if (!url || !url.includes('res.cloudinary.com')) return null;
+  try {
+    const parts = url.split('/upload/');
+    if (parts.length < 2) return null;
+    const pathAndId = parts[1];
+    const segments = pathAndId.split('/');
+    if (segments[0].startsWith('v')) {
+      segments.shift();
+    }
+    const fullId = segments.join('/');
+    const dotIdx = fullId.lastIndexOf('.');
+    return dotIdx !== -1 ? fullId.substring(0, dotIdx) : fullId;
+  } catch (err) {
+    console.error('Error parsing Cloudinary public ID:', err);
+    return null;
+  }
+}
+
+async function uploadAvatar(avatarDataUrl, oldAvatarUrl, username) {
+  if (!avatarDataUrl) return null;
+  if (!avatarDataUrl.startsWith('data:image/')) {
+    return avatarDataUrl;
+  }
+
+  if (process.env.CLOUDINARY_CLOUD_NAME) {
+    const oldPublicId = getCloudinaryPublicId(oldAvatarUrl);
+    if (oldPublicId) {
+      await cloudinary.uploader.destroy(oldPublicId).catch(err => {
+        console.error('Failed to delete old avatar from Cloudinary:', err);
+      });
+    }
+
+    const uploadRes = await cloudinary.uploader.upload(avatarDataUrl, {
+      folder: 'plothole_avatars',
+      transformation: [
+        { width: 200, height: 200, crop: 'thumb', gravity: 'face' }
+      ]
+    });
+    return uploadRes.secure_url;
+  } else {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Cloudinary is not configured. Avatar uploads are disabled in production.');
+    }
+    console.warn('WARNING: Cloudinary not configured in development. Using Dicebear fallback avatar.');
+    return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}`;
+  }
+}
 
 function getCachedData(key) {
   const cached = tmdbCache.get(key);
@@ -156,23 +254,49 @@ const OFFLINE_MOVIES = [
 ];
 
 function getOfflineFallback(endpoint) {
+  if (endpoint.includes('/videos')) {
+    return {
+      results: [
+        { id: 'off_trailer_1', key: 'L3oOldV-fOG', name: 'Official Trailer', site: 'YouTube', type: 'Trailer' }
+      ]
+    };
+  }
+
+  if (endpoint.includes('/genre/movie/list') || endpoint.includes('/genre/tv/list')) {
+    return {
+      genres: [
+        { id: 28, name: "Action" },
+        { id: 12, name: "Adventure" },
+        { id: 16, name: "Animation" },
+        { id: 35, name: "Comedy" },
+        { id: 80, name: "Crime" },
+        { id: 99, name: "Documentary" },
+        { id: 18, name: "Drama" },
+        { id: 10751, name: "Family" },
+        { id: 14, name: "Fantasy" },
+        { id: 36, name: "History" },
+        { id: 27, name: "Horror" },
+        { id: 10402, name: "Music" },
+        { id: 9648, name: "Mystery" },
+        { id: 10749, name: "Romance" },
+        { id: 878, name: "Science Fiction" },
+        { id: 53, name: "Thriller" },
+        { id: 10752, name: "War" },
+        { id: 37, name: "Western" }
+      ]
+    };
+  }
+
   // If request is for a specific movie details (e.g. /movie/1339713 or /tv/84958)
   const movieDetailMatch = endpoint.match(/\/(movie|tv|media)\/(\d+)/);
   if (movieDetailMatch) {
     const type = movieDetailMatch[1];
     const id = parseInt(movieDetailMatch[2]);
     const mockMovie = OFFLINE_MOVIES.find(m => m.id === id);
-    if (mockMovie) {
-      return {
-        ...mockMovie,
-        media_type: type === 'media' ? mockMovie.media_type : type
-      };
-    }
-    // Return a generic fallback movie details if not in list
-    return {
+    const baseData = mockMovie || {
       id: id,
-      title: `Archive Film #${id}`,
-      name: `Archive Show #${id}`,
+      title: 'Archive Film',
+      name: 'Archive Show',
       overview: "Details for this chronicle are currently archived offline. Please check your internet connection to fetch live data from TMDB.",
       poster_path: null,
       backdrop_path: null,
@@ -181,11 +305,28 @@ function getOfflineFallback(endpoint) {
       genres: [{ id: 18, name: "Drama" }],
       media_type: type === 'tv' ? 'tv' : 'movie'
     };
+
+    return {
+      ...baseData,
+      media_type: type === 'media' ? (mockMovie?.media_type || 'movie') : type,
+      credits: {
+        cast: [
+          { id: 1, name: "Lead Actor", character: "Protagonist", profile_path: null },
+          { id: 2, name: "Supporting Cast", character: "Companion", profile_path: null }
+        ],
+        crew: [{ id: 3, name: "Renowned Director", job: "Director", department: "Directing" }]
+      },
+      recommendations: { results: OFFLINE_MOVIES.slice(0, 4) },
+      videos: {
+        results: [{ id: 'off_trailer_1', key: 'L3oOldV-fOG', name: 'Official Trailer', site: 'YouTube', type: 'Trailer' }]
+      },
+      'watch/providers': { results: {} }
+    };
   }
 
   // If request is for credits
   if (endpoint.includes('/credits')) {
-    return { cast: [{ name: "Director / Cast offline", character: "Self", profile_path: null }] };
+    return { cast: [{ name: "Director / Cast offline", character: "Self", profile_path: null }], crew: [] };
   }
 
   // If request is for recommendations
@@ -277,14 +418,20 @@ async function fetchFromTMDB(endpoint, queryParams = {}) {
   const data = await response.json();
   
   // Choose TTL based on API path
-  const isDetail = endpoint.includes('/movie/') || endpoint.includes('/tv/') || endpoint.includes('/media/');
-  const ttl = isDetail ? DETAIL_CACHE_TTL : CACHE_TTL;
+  let ttl = CACHE_TTL;
+  if (endpoint.includes('/recommendations')) {
+    ttl = RECOMMENDATION_CACHE_TTL;
+  } else if (
+    endpoint.includes('/credits') ||
+    endpoint.match(/\/(movie|tv|media)\/\d+$/)
+  ) {
+    ttl = DETAIL_CACHE_TTL;
+  }
   setCachedData(cacheKey, data, ttl);
   return data;
 }
 
-// --- AUTH ROUTES ---
-
+// --- AUTH ROUTES -
 // Signup
 app.post('/api/auth/signup', async (req, res) => {
   const { username, email, password } = req.body;
@@ -293,11 +440,14 @@ app.post('/api/auth/signup', async (req, res) => {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
+  const normalizedUsername = username.trim().toLowerCase();
+  const normalizedEmail = email.trim().toLowerCase();
+
   try {
-    // Check if user exists
+    // Check if user exists using normalized values
     const existingUser = await queryOne(
       'SELECT id FROM users WHERE email = $1 OR username = $2',
-      [email.toLowerCase(), username.toLowerCase()]
+      [normalizedEmail, normalizedUsername]
     );
     if (existingUser) {
       return res.status(400).json({ error: 'Username or email already exists' });
@@ -306,18 +456,18 @@ app.post('/api/auth/signup', async (req, res) => {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
     const userId = 'usr_' + Math.random().toString(36).substr(2, 9);
-    const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`;
+    const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(normalizedUsername)}`;
 
     await execute(
-      'INSERT INTO users (id, username, email, password_hash, avatar_url, bio) VALUES ($1, $2, $3, $4, $5, $6)',
-      [userId, username, email.toLowerCase(), passwordHash, avatarUrl, 'Movie enthusiast.']
+      'INSERT INTO users (id, username, email, password_hash, avatar_url, bio, display_name) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [userId, normalizedUsername, normalizedEmail, passwordHash, avatarUrl, 'Movie enthusiast.', username.trim()]
     );
 
-    const token = jwt.sign({ id: userId, username, email }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: userId, username: normalizedUsername, email: normalizedEmail }, JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({
       token,
-      user: { id: userId, username, email, avatar_url: avatarUrl, bio: 'Movie enthusiast.' }
+      user: { id: userId, username: normalizedUsername, email: normalizedEmail, avatar_url: avatarUrl, bio: 'Movie enthusiast.', display_name: username.trim() }
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -336,10 +486,12 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
+  const normalizedInput = email.trim().toLowerCase();
+
   try {
     const user = await queryOne(
       'SELECT * FROM users WHERE email = $1 OR username = $2',
-      [email.toLowerCase(), email.toLowerCase()]
+      [normalizedInput, normalizedInput]
     );
     if (!user) {
       return res.status(400).json({ error: 'Invalid email or password' });
@@ -359,7 +511,8 @@ app.post('/api/auth/login', async (req, res) => {
         username: user.username,
         email: user.email,
         avatar_url: user.avatar_url,
-        bio: user.bio
+        bio: user.bio,
+        display_name: user.display_name || user.username
       }
     });
   } catch (error) {
@@ -375,11 +528,14 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const user = await queryOne(
-      'SELECT id, username, email, avatar_url, bio, created_at FROM users WHERE id = $1',
+      'SELECT id, username, email, avatar_url, bio, display_name, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
     if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json(user);
+    res.json({
+      ...user,
+      display_name: user.display_name || user.username
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -389,11 +545,155 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 app.put('/api/auth/profile', authenticateToken, async (req, res) => {
   const { bio, avatar_url } = req.body;
   try {
+    const user = await queryOne('SELECT username, avatar_url FROM users WHERE id = $1', [req.user.id]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const newAvatarUrl = await uploadAvatar(avatar_url, user.avatar_url, user.username);
+
     await execute(
       'UPDATE users SET bio = $1, avatar_url = $2 WHERE id = $3',
-      [bio, avatar_url, req.user.id]
+      [bio, newAvatarUrl || user.avatar_url, req.user.id]
     );
-    res.json({ message: 'Profile updated successfully' });
+    res.json({ message: 'Profile updated successfully', avatar_url: newAvatarUrl || user.avatar_url });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- HIGH PERFORMANCE CONSOLIDATED & PROXY ROUTES ---
+
+// Home Data Bundle: Fetches popular movies, top-rated, upcoming, popular TV, reviews, and ticker in 1 fast compressed call
+app.get('/api/home/bundle', async (req, res) => {
+  try {
+    const [popularData, topRatedData, upcomingData, popularTvData, reviewsData, tickerData] = await Promise.all([
+      fetchFromTMDB('/movie/popular').catch(() => ({ results: [] })),
+      fetchFromTMDB('/movie/top_rated').catch(() => ({ results: [] })),
+      fetchFromTMDB('/movie/upcoming').catch(() => ({ results: [] })),
+      fetchFromTMDB('/tv/popular').catch(() => ({ results: [] })),
+      query(
+        `SELECT r.*, u.username, u.avatar_url 
+         FROM reviews r 
+         JOIN users u ON r.user_id = u.id 
+         JOIN diary d ON r.diary_id = d.id
+         WHERE r.review_text != '' AND d.status = 'watched'
+         ORDER BY r.created_at DESC 
+         LIMIT 20`
+      ).catch(() => []),
+      query(
+        `SELECT d.id, d.tmdb_movie_id, d.media_type, d.rating, d.created_at, u.username, u.display_name, r.review_text
+         FROM diary d
+         JOIN users u ON d.user_id = u.id
+         LEFT JOIN reviews r ON d.review_id = r.id
+         WHERE d.status = 'watched'
+         ORDER BY d.created_at DESC
+         LIMIT 10`
+      ).catch(() => [])
+    ]);
+
+    res.setHeader('Cache-Control', 'public, max-age=180, stale-while-revalidate=3600');
+    res.json({
+      popularMovies: popularData.results || [],
+      topRatedMovies: topRatedData.results || [],
+      upcomingMovies: upcomingData.results || [],
+      popularTv: popularTvData.results || [],
+      recentReviews: reviewsData,
+      tickerItems: tickerData
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Single-Call Full Media Bundle: Uses TMDB append_to_response to return details, credits, recommendations, videos, and watch providers in 1 request
+app.get('/api/media/:mediaType/:id/full', async (req, res) => {
+  const { mediaType, id } = req.params;
+  try {
+    const data = await fetchFromTMDB(`/${mediaType}/${id}`, {
+      append_to_response: 'credits,recommendations,videos,watch/providers'
+    });
+
+    const fullBundle = {
+      ...data,
+      media_type: mediaType,
+      credits: data.credits || { cast: [], crew: [] },
+      recommendations: data.recommendations || { results: [] },
+      videos: data.videos || { results: [] },
+      providers: data['watch/providers'] || { results: {} }
+    };
+
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json(fullBundle);
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+// Single-Call Full Movie Bundle (with auto TV fallback)
+app.get('/api/movies/:id/full', async (req, res) => {
+  const { id } = req.params;
+  try {
+    let data;
+    let mediaType = 'movie';
+    try {
+      data = await fetchFromTMDB(`/movie/${id}`, {
+        append_to_response: 'credits,recommendations,videos,watch/providers'
+      });
+    } catch (movieErr) {
+      if (movieErr.status === 404) {
+        data = await fetchFromTMDB(`/tv/${id}`, {
+          append_to_response: 'credits,recommendations,videos,watch/providers'
+        });
+        mediaType = 'tv';
+      } else {
+        throw movieErr;
+      }
+    }
+
+    const fullBundle = {
+      ...data,
+      media_type: mediaType,
+      credits: data.credits || { cast: [], crew: [] },
+      recommendations: data.recommendations || { results: [] },
+      videos: data.videos || { results: [] },
+      providers: data['watch/providers'] || { results: {} }
+    };
+
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json(fullBundle);
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+// Batch Movie Info: Resolves multiple movie details in parallel
+app.get('/api/movies/batch', async (req, res) => {
+  const idsParam = req.query.ids;
+  if (!idsParam) return res.json({});
+
+  const ids = idsParam.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)).slice(0, 40);
+  try {
+    const moviePromises = ids.map(async (id) => {
+      try {
+        const data = await fetchFromTMDB(`/movie/${id}`);
+        return { id, data: { ...data, media_type: 'movie' } };
+      } catch (err) {
+        try {
+          const tvData = await fetchFromTMDB(`/tv/${id}`);
+          return { id, data: { ...tvData, media_type: 'tv' } };
+        } catch (e) {
+          return { id, data: null };
+        }
+      }
+    });
+
+    const results = await Promise.all(moviePromises);
+    const movieMap = {};
+    results.forEach(({ id, data }) => {
+      if (data) movieMap[id] = data;
+    });
+
+    res.setHeader('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
+    res.json(movieMap);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -404,6 +704,7 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
 app.get('/api/movies/popular', async (req, res) => {
   try {
     const data = await fetchFromTMDB('/movie/popular', { page: req.query.page });
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -413,6 +714,7 @@ app.get('/api/movies/popular', async (req, res) => {
 app.get('/api/movies/top-rated', async (req, res) => {
   try {
     const data = await fetchFromTMDB('/movie/top_rated', { page: req.query.page });
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -422,6 +724,7 @@ app.get('/api/movies/top-rated', async (req, res) => {
 app.get('/api/movies/upcoming', async (req, res) => {
   try {
     const data = await fetchFromTMDB('/movie/upcoming', { page: req.query.page });
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -432,6 +735,7 @@ app.get('/api/movies/upcoming', async (req, res) => {
 app.get('/api/tv/popular', async (req, res) => {
   try {
     const data = await fetchFromTMDB('/tv/popular', { page: req.query.page });
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -442,6 +746,7 @@ app.get('/api/tv/popular', async (req, res) => {
 app.get('/api/tv/top-rated', async (req, res) => {
   try {
     const data = await fetchFromTMDB('/tv/top_rated', { page: req.query.page });
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -492,6 +797,7 @@ app.get('/api/media/:mediaType/:id', async (req, res) => {
   const { mediaType, id } = req.params;
   try {
     const data = await fetchFromTMDB(`/${mediaType}/${id}`);
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
     res.json({ ...data, media_type: mediaType });
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });
@@ -502,6 +808,7 @@ app.get('/api/media/:mediaType/:id/credits', async (req, res) => {
   const { mediaType, id } = req.params;
   try {
     const data = await fetchFromTMDB(`/${mediaType}/${id}/credits`);
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
     res.json(data);
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });
@@ -512,6 +819,53 @@ app.get('/api/media/:mediaType/:id/recommendations', async (req, res) => {
   const { mediaType, id } = req.params;
   try {
     const data = await fetchFromTMDB(`/${mediaType}/${id}/recommendations`);
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json(data);
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+app.get('/api/media/:mediaType/:id/videos', async (req, res) => {
+  const { mediaType, id } = req.params;
+  try {
+    const data = await fetchFromTMDB(`/${mediaType}/${id}/videos`);
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json(data);
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+app.get('/api/media/:mediaType/:id/providers', async (req, res) => {
+  const { mediaType, id } = req.params;
+  try {
+    const data = await fetchFromTMDB(`/${mediaType}/${id}/watch/providers`);
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json(data);
+  } catch (error) {
+    res.json({ results: {} }); // Graceful fallback
+  }
+});
+
+app.get('/api/person/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [details, credits] = await Promise.all([
+      fetchFromTMDB(`/person/${id}`),
+      fetchFromTMDB(`/person/${id}/combined_credits`).catch(() => ({ cast: [], crew: [] }))
+    ]);
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json({ ...details, credits });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message });
+  }
+});
+
+app.get('/api/movies/genres', async (req, res) => {
+  try {
+    const data = await fetchFromTMDB('/genre/movie/list');
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
     res.json(data);
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });
@@ -522,11 +876,13 @@ app.get('/api/media/:mediaType/:id/recommendations', async (req, res) => {
 app.get('/api/movies/:id', async (req, res) => {
   try {
     const data = await fetchFromTMDB(`/movie/${req.params.id}`);
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
     res.json({ ...data, media_type: 'movie' });
   } catch (error) {
     if (error.status === 404) {
       try {
         const tvData = await fetchFromTMDB(`/tv/${req.params.id}`);
+        res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
         return res.json({ ...tvData, media_type: 'tv' });
       } catch (tvErr) {
         // Ignore tv error and throw original movie error
@@ -539,6 +895,7 @@ app.get('/api/movies/:id', async (req, res) => {
 app.get('/api/movies/:id/credits', async (req, res) => {
   try {
     const data = await fetchFromTMDB(`/movie/${req.params.id}/credits`);
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
     res.json(data);
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });
@@ -548,6 +905,7 @@ app.get('/api/movies/:id/credits', async (req, res) => {
 app.get('/api/movies/:id/recommendations', async (req, res) => {
   try {
     const data = await fetchFromTMDB(`/movie/${req.params.id}/recommendations`);
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
     res.json(data);
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });
@@ -558,42 +916,78 @@ app.get('/api/movies/:id/recommendations', async (req, res) => {
 
 // Create or update review
 app.post('/api/reviews', authenticateToken, async (req, res) => {
-  const { tmdb_movie_id, rating, review_text } = req.body;
+  const { tmdb_movie_id, rating, review_text, media_type = 'movie' } = req.body;
 
   if (!tmdb_movie_id || rating === undefined) {
     return res.status(400).json({ error: 'Movie ID and rating are required' });
   }
 
+  const cleanReviewText = review_text ? review_text.trim() : '';
+  const hasText = cleanReviewText.length > 0;
+  const todayStr = new Date().toISOString().split('T')[0];
+
   try {
-    const existing = await queryOne(
-      'SELECT id FROM reviews WHERE user_id = $1 AND tmdb_movie_id = $2',
-      [req.user.id, tmdb_movie_id]
-    );
-
-    if (existing) {
-      await execute(
-        'UPDATE reviews SET rating = $1, review_text = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
-        [rating, review_text || '', existing.id]
+    await withTransaction(async (tx) => {
+      // Find existing diary entry
+      const existingDiary = await tx.queryOne(
+        'SELECT id, review_id FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2',
+        [req.user.id, tmdb_movie_id]
       );
-      res.json({ message: 'Review updated successfully', id: existing.id });
-    } else {
-      const reviewId = 'rev_' + Math.random().toString(36).substr(2, 9);
-      await withTransaction(async (tx) => {
+
+      if (existingDiary) {
+        // Update diary rating
+        await tx.execute(
+          'UPDATE diary SET rating = $1 WHERE id = $2',
+          [rating, existingDiary.id]
+        );
+
+        if (hasText) {
+          if (existingDiary.review_id) {
+            // Update review
+            await tx.execute(
+              'UPDATE reviews SET rating = $1, review_text = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+              [rating, cleanReviewText, existingDiary.review_id]
+            );
+          } else {
+            // Create review and link to diary
+            const newReviewId = 'rev_' + Math.random().toString(36).substr(2, 9);
+            await tx.execute(
+              'INSERT INTO reviews (id, diary_id, user_id, tmdb_movie_id, rating, review_text) VALUES ($1, $2, $3, $4, $5, $6)',
+              [newReviewId, existingDiary.id, req.user.id, tmdb_movie_id, rating, cleanReviewText]
+            );
+            await tx.execute(
+              'UPDATE diary SET review_id = $1 WHERE id = $2',
+              [newReviewId, existingDiary.id]
+            );
+          }
+        } else {
+          // If review_text is empty, delete review if it existed
+          if (existingDiary.review_id) {
+            await tx.execute('DELETE FROM reviews WHERE id = $1', [existingDiary.review_id]);
+            await tx.execute('UPDATE diary SET review_id = NULL WHERE id = $2', [existingDiary.id]);
+          }
+        }
+      } else {
+        // Create new diary entry
         const diaryId = 'dry_' + Math.random().toString(36).substr(2, 9);
-        const todayStr = new Date().toISOString().split('T')[0];
+        let finalReviewId = null;
+
+        if (hasText) {
+          finalReviewId = 'rev_' + Math.random().toString(36).substr(2, 9);
+          await tx.execute(
+            'INSERT INTO reviews (id, diary_id, user_id, tmdb_movie_id, rating, review_text) VALUES ($1, $2, $3, $4, $5, $6)',
+            [finalReviewId, diaryId, req.user.id, tmdb_movie_id, rating, cleanReviewText]
+          );
+        }
 
         await tx.execute(
-          'INSERT INTO diary (id, user_id, tmdb_movie_id, media_type, rating, watched_date, review_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-          [diaryId, req.user.id, tmdb_movie_id, 'movie', rating, todayStr, reviewId]
+          'INSERT INTO diary (id, user_id, tmdb_movie_id, media_type, rating, watched_date, review_id, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+          [diaryId, req.user.id, tmdb_movie_id, media_type, rating, todayStr, finalReviewId, 'watched']
         );
+      }
+    });
 
-        await tx.execute(
-          'INSERT INTO reviews (id, diary_id, user_id, tmdb_movie_id, rating, review_text) VALUES ($1, $2, $3, $4, $5, $6)',
-          [reviewId, diaryId, req.user.id, tmdb_movie_id, rating, review_text || '']
-        );
-      });
-      res.status(201).json({ message: 'Review created successfully', id: reviewId });
-    }
+    res.json({ message: 'Review / Log updated successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -606,7 +1000,8 @@ app.get('/api/reviews/movie/:movieId', async (req, res) => {
       `SELECT r.*, u.username, u.avatar_url 
        FROM reviews r 
        JOIN users u ON r.user_id = u.id 
-       WHERE r.tmdb_movie_id = $1 
+       JOIN diary d ON r.diary_id = d.id
+       WHERE r.tmdb_movie_id = $1 AND d.status = 'watched' AND r.review_text != ''
        ORDER BY r.created_at DESC`,
       [req.params.movieId]
     );
@@ -620,7 +1015,10 @@ app.get('/api/reviews/movie/:movieId', async (req, res) => {
 app.get('/api/reviews/movie/:movieId/distribution', async (req, res) => {
   try {
     const ratings = await query(
-      'SELECT rating, COUNT(*) as count FROM reviews WHERE tmdb_movie_id = $1 GROUP BY rating',
+      `SELECT rating, COUNT(*) as count 
+       FROM diary 
+       WHERE tmdb_movie_id = $1 AND rating IS NOT NULL AND status = 'watched'
+       GROUP BY rating`,
       [req.params.movieId]
     );
 
@@ -653,10 +1051,31 @@ app.get('/api/reviews', async (req, res) => {
       `SELECT r.*, u.username, u.avatar_url 
        FROM reviews r 
        JOIN users u ON r.user_id = u.id 
-       WHERE r.review_text != ''
+       JOIN diary d ON r.diary_id = d.id
+       WHERE r.review_text != '' AND d.status = 'watched'
        ORDER BY r.created_at DESC 
        LIMIT 50`
     );
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get user specific reviews (fast, indexed query)
+app.get('/api/reviews/user/:userId', async (req, res) => {
+  try {
+    const reviews = await query(
+      `SELECT r.*, u.username, u.avatar_url 
+       FROM reviews r 
+       JOIN users u ON r.user_id = u.id 
+       JOIN diary d ON r.diary_id = d.id
+       WHERE r.user_id = $1 AND r.review_text != '' AND d.status = 'watched'
+       ORDER BY r.created_at DESC`,
+      [req.params.userId]
+    );
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -675,6 +1094,253 @@ app.delete('/api/reviews/:id', authenticateToken, async (req, res) => {
       await tx.execute('DELETE FROM reviews WHERE id = $1', [req.params.id]);
     });
     res.json({ message: 'Review deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle Review Like
+app.post('/api/reviews/:id/like', authenticateToken, async (req, res) => {
+  const reviewId = req.params.id;
+  const userId = req.user.id;
+  try {
+    const existing = await queryOne(
+      'SELECT * FROM review_likes WHERE user_id = $1 AND review_id = $2',
+      [userId, reviewId]
+    );
+    if (existing) {
+      await execute('DELETE FROM review_likes WHERE user_id = $1 AND review_id = $2', [userId, reviewId]);
+      const countRes = await queryOne('SELECT COUNT(*) as count FROM review_likes WHERE review_id = $1', [reviewId]);
+      return res.json({ liked: false, count: parseInt(countRes?.count || 0) });
+    } else {
+      await execute('INSERT INTO review_likes (user_id, review_id) VALUES ($1, $2)', [userId, reviewId]);
+      const countRes = await queryOne('SELECT COUNT(*) as count FROM review_likes WHERE review_id = $1', [reviewId]);
+      return res.json({ liked: true, count: parseInt(countRes?.count || 0) });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get Review Comments & Likes info
+app.get('/api/reviews/:id/comments', async (req, res) => {
+  const reviewId = req.params.id;
+  try {
+    const comments = await query(
+      `SELECT c.*, u.username, u.avatar_url 
+       FROM review_comments c
+       JOIN users u ON c.user_id = u.id
+       WHERE c.review_id = $1
+       ORDER BY c.created_at ASC`,
+      [reviewId]
+    );
+    const likesCount = await queryOne('SELECT COUNT(*) as count FROM review_likes WHERE review_id = $1', [reviewId]);
+    res.json({ comments, likesCount: parseInt(likesCount?.count || 0) });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Add Comment to Review
+app.post('/api/reviews/:id/comments', authenticateToken, async (req, res) => {
+  const reviewId = req.params.id;
+  const userId = req.user.id;
+  const { comment_text } = req.body;
+  if (!comment_text || !comment_text.trim()) {
+    return res.status(400).json({ error: 'Comment text is required' });
+  }
+  try {
+    const commentId = 'cm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    await execute(
+      'INSERT INTO review_comments (id, review_id, user_id, comment_text) VALUES ($1, $2, $3, $4)',
+      [commentId, reviewId, userId, comment_text.trim()]
+    );
+    const newComment = await queryOne(
+      `SELECT c.*, u.username, u.avatar_url 
+       FROM review_comments c 
+       JOIN users u ON c.user_id = u.id 
+       WHERE c.id = $1`,
+      [commentId]
+    );
+    res.status(201).json(newComment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete Comment
+app.delete('/api/reviews/comments/:commentId', authenticateToken, async (req, res) => {
+  try {
+    const comment = await queryOne('SELECT user_id FROM review_comments WHERE id = $1', [req.params.commentId]);
+    if (!comment) return res.status(404).json({ error: 'Comment not found' });
+    if (comment.user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized to delete comment' });
+
+    await execute('DELETE FROM review_comments WHERE id = $1', [req.params.commentId]);
+    res.json({ message: 'Comment deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- CUSTOM LISTS ROUTES ---
+
+// Create List
+app.post('/api/lists', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+  const { title, description, is_private } = req.body;
+  if (!title || !title.trim()) {
+    return res.status(400).json({ error: 'List title is required' });
+  }
+  try {
+    const listId = 'lst_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    await execute(
+      'INSERT INTO lists (id, user_id, title, description, is_private) VALUES ($1, $2, $3, $4, $5)',
+      [listId, userId, title.trim(), description || '', is_private ? 1 : 0]
+    );
+    const list = await queryOne('SELECT * FROM lists WHERE id = $1', [listId]);
+    res.status(201).json(list);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get User's Lists
+app.get('/api/lists/user/:username', async (req, res) => {
+  const normalizedUsername = req.params.username.trim().toLowerCase();
+  try {
+    const targetUser = await queryOne('SELECT id FROM users WHERE username = $1', [normalizedUsername]);
+    if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+    const lists = await query(
+      `SELECT l.*, u.username, u.avatar_url,
+         (SELECT COUNT(*) FROM list_items li WHERE li.list_id = l.id) as item_count,
+         (SELECT COUNT(*) FROM list_likes ll WHERE ll.list_id = l.id) as likes_count
+       FROM lists l
+       JOIN users u ON l.user_id = u.id
+       WHERE l.user_id = $1
+       ORDER BY l.created_at DESC`,
+      [targetUser.id]
+    );
+    res.json(lists);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get Single List
+app.get('/api/lists/:id', async (req, res) => {
+  try {
+    const list = await queryOne(
+      `SELECT l.*, u.username, u.avatar_url
+       FROM lists l
+       JOIN users u ON l.user_id = u.id
+       WHERE l.id = $1`,
+      [req.params.id]
+    );
+    if (!list) return res.status(404).json({ error: 'List not found' });
+
+    const items = await query(
+      `SELECT * FROM list_items WHERE list_id = $1 ORDER BY added_at DESC`,
+      [req.params.id]
+    );
+
+    const likes = await queryOne('SELECT COUNT(*) as count FROM list_likes WHERE list_id = $1', [req.params.id]);
+
+    res.json({ ...list, items, likes_count: parseInt(likes?.count || 0) });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Add item to list
+app.post('/api/lists/:id/items', authenticateToken, async (req, res) => {
+  const listId = req.params.id;
+  const { tmdb_movie_id, media_type, title, poster_path, release_date } = req.body;
+  try {
+    const list = await queryOne('SELECT user_id FROM lists WHERE id = $1', [listId]);
+    if (!list) return res.status(404).json({ error: 'List not found' });
+    if (list.user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized' });
+
+    await execute(
+      `INSERT INTO list_items (list_id, tmdb_movie_id, media_type, title, poster_path, release_date)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (list_id, tmdb_movie_id) DO UPDATE SET title = EXCLUDED.title, poster_path = EXCLUDED.poster_path`,
+      [listId, tmdb_movie_id, media_type || 'movie', title, poster_path, release_date]
+    );
+    res.json({ message: 'Item added to list successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Remove item from list
+app.delete('/api/lists/:id/items/:movieId', authenticateToken, async (req, res) => {
+  try {
+    const list = await queryOne('SELECT user_id FROM lists WHERE id = $1', [req.params.id]);
+    if (!list) return res.status(404).json({ error: 'List not found' });
+    if (list.user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized' });
+
+    await execute('DELETE FROM list_items WHERE list_id = $1 AND tmdb_movie_id = $2', [req.params.id, req.params.movieId]);
+    res.json({ message: 'Item removed from list' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete List
+app.delete('/api/lists/:id', authenticateToken, async (req, res) => {
+  try {
+    const list = await queryOne('SELECT user_id FROM lists WHERE id = $1', [req.params.id]);
+    if (!list) return res.status(404).json({ error: 'List not found' });
+    if (list.user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized to delete list' });
+
+    await execute('DELETE FROM lists WHERE id = $1', [req.params.id]);
+    res.json({ message: 'List deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get User Cinephile Stats
+app.get('/api/users/profile/:username/stats', async (req, res) => {
+  const normalizedUsername = req.params.username.trim().toLowerCase();
+  try {
+    const user = await queryOne('SELECT id FROM users WHERE username = $1', [normalizedUsername]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const totalMovies = await queryOne(
+      `SELECT COUNT(*) as count FROM diary WHERE user_id = $1 AND (media_type IS NULL OR media_type = 'movie') AND status = 'watched'`,
+      [user.id]
+    );
+    const totalTv = await queryOne(
+      `SELECT COUNT(*) as count FROM diary WHERE user_id = $1 AND media_type = 'tv' AND status = 'watched'`,
+      [user.id]
+    );
+    const totalReviews = await queryOne(
+      `SELECT COUNT(*) as count FROM reviews WHERE user_id = $1 AND review_text != ''`,
+      [user.id]
+    );
+    const totalWatchlist = await queryOne(
+      `SELECT COUNT(*) as count FROM watchlist WHERE user_id = $1`,
+      [user.id]
+    );
+    const totalLists = await queryOne(
+      `SELECT COUNT(*) as count FROM lists WHERE user_id = $1`,
+      [user.id]
+    );
+    const avgRating = await queryOne(
+      `SELECT AVG(rating) as avg FROM diary WHERE user_id = $1 AND rating IS NOT NULL AND status = 'watched'`,
+      [user.id]
+    );
+
+    res.json({
+      moviesWatched: parseInt(totalMovies?.count || 0),
+      tvWatched: parseInt(totalTv?.count || 0),
+      reviewsCount: parseInt(totalReviews?.count || 0),
+      watchlistCount: parseInt(totalWatchlist?.count || 0),
+      listsCount: parseInt(totalLists?.count || 0),
+      avgRating: avgRating?.avg ? parseFloat(parseFloat(avgRating.avg).toFixed(1)) : 0
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -732,53 +1398,97 @@ app.get('/api/watchlist', authenticateToken, async (req, res) => {
 
 // Log watched movie
 app.post('/api/diary', authenticateToken, async (req, res) => {
-  const { tmdb_movie_id, media_type = 'movie', rating, watched_date, review_text } = req.body;
+  const { tmdb_movie_id, media_type = 'movie', rating, watched_date, review_text, is_upcoming } = req.body;
 
   if (!tmdb_movie_id || !watched_date) {
     return res.status(400).json({ error: 'Movie ID and watched date are required' });
   }
 
+  // Determine target status
+  let isUpcomingVal = false;
+  if (is_upcoming !== undefined) {
+    isUpcomingVal = !!is_upcoming;
+  } else {
+    try {
+      const movieDetails = await fetchFromTMDB(`/${media_type}/${tmdb_movie_id}`);
+      const releaseDate = movieDetails.release_date || movieDetails.first_air_date;
+      if (releaseDate && new Date(releaseDate) > new Date()) {
+        isUpcomingVal = true;
+      }
+    } catch (err) {
+      console.error('Failed to auto-detect release status from TMDB during logging, defaulting to watched:', err.message);
+    }
+  }
+
+  const targetStatus = isUpcomingVal ? 'planned' : 'watched';
+  const cleanReviewText = review_text ? review_text.trim() : '';
+  const hasText = cleanReviewText.length > 0;
+  
+  // Rating is optional, set to null if 0/undefined
+  const finalRating = (rating !== undefined && rating !== null && rating !== 0) ? rating : null;
+
   try {
-    const diaryId = 'dry_' + Math.random().toString(36).substr(2, 9);
-    const reviewId = 'rev_' + Math.random().toString(36).substr(2, 9);
-
-    const hasRating = rating !== undefined && rating !== null && rating !== 0;
-    const hasText = review_text && review_text.trim().length > 0;
-    const needsReviewRecord = hasRating || hasText;
-
     await withTransaction(async (tx) => {
-      let finalReviewId = null;
+      // Find existing diary entry for user/movie
+      const existingDiary = await tx.queryOne(
+        'SELECT id, review_id FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2',
+        [req.user.id, tmdb_movie_id]
+      );
 
-      if (needsReviewRecord) {
-        const existingReview = await tx.queryOne(
-          'SELECT id FROM reviews WHERE user_id = $1 AND tmdb_movie_id = $2',
-          [req.user.id, tmdb_movie_id]
+      if (existingDiary) {
+        // Update diary entry
+        await tx.execute(
+          'UPDATE diary SET media_type = $1, rating = $2, watched_date = $3, status = $4 WHERE id = $5',
+          [media_type, finalRating, watched_date, targetStatus, existingDiary.id]
         );
 
-        const cleanReviewText = review_text ? review_text.trim() : '';
-
-        if (existingReview) {
-          await tx.execute(
-            'UPDATE reviews SET rating = $1, review_text = $2, diary_id = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4',
-            [hasRating ? rating : 0, cleanReviewText, diaryId, existingReview.id]
-          );
-          finalReviewId = existingReview.id;
+        if (hasText) {
+          if (existingDiary.review_id) {
+            // Update existing review
+            await tx.execute(
+              'UPDATE reviews SET rating = $1, review_text = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+              [finalRating || 0, cleanReviewText, existingDiary.review_id]
+            );
+          } else {
+            // Create review and link to diary
+            const newReviewId = 'rev_' + Math.random().toString(36).substr(2, 9);
+            await tx.execute(
+              'INSERT INTO reviews (id, diary_id, user_id, tmdb_movie_id, rating, review_text) VALUES ($1, $2, $3, $4, $5, $6)',
+              [newReviewId, existingDiary.id, req.user.id, tmdb_movie_id, finalRating || 0, cleanReviewText]
+            );
+            await tx.execute(
+              'UPDATE diary SET review_id = $1 WHERE id = $2',
+              [newReviewId, existingDiary.id]
+            );
+          }
         } else {
+          // If no review text is provided, delete review record if it existed
+          if (existingDiary.review_id) {
+            await tx.execute('DELETE FROM reviews WHERE id = $1', [existingDiary.review_id]);
+            await tx.execute('UPDATE diary SET review_id = NULL WHERE id = $2', [existingDiary.id]);
+          }
+        }
+      } else {
+        // Create new diary entry
+        const diaryId = 'dry_' + Math.random().toString(36).substr(2, 9);
+        let finalReviewId = null;
+
+        if (hasText) {
+          finalReviewId = 'rev_' + Math.random().toString(36).substr(2, 9);
           await tx.execute(
             'INSERT INTO reviews (id, diary_id, user_id, tmdb_movie_id, rating, review_text) VALUES ($1, $2, $3, $4, $5, $6)',
-            [reviewId, diaryId, req.user.id, tmdb_movie_id, hasRating ? rating : 0, cleanReviewText]
+            [finalReviewId, diaryId, req.user.id, tmdb_movie_id, finalRating || 0, cleanReviewText]
           );
-          finalReviewId = reviewId;
         }
-      }
 
-      await tx.execute(
-        'INSERT INTO diary (id, user_id, tmdb_movie_id, media_type, rating, watched_date, review_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [diaryId, req.user.id, tmdb_movie_id, media_type, hasRating ? rating : null, watched_date, finalReviewId]
-      );
+        await tx.execute(
+          'INSERT INTO diary (id, user_id, tmdb_movie_id, media_type, rating, watched_date, review_id, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+          [diaryId, req.user.id, tmdb_movie_id, media_type, finalRating, watched_date, finalReviewId, targetStatus]
+        );
+      }
     });
 
-    res.status(201).json({ message: 'Diary entry created', id: diaryId });
+    res.status(201).json({ message: 'Diary entry successfully updated/created' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -788,7 +1498,7 @@ app.post('/api/diary', authenticateToken, async (req, res) => {
 app.get('/api/diary/user/:userId', async (req, res) => {
   try {
     const diary = await query(
-      'SELECT * FROM diary WHERE user_id = $1 ORDER BY watched_date DESC, created_at DESC',
+      "SELECT * FROM diary WHERE user_id = $1 AND status = 'watched' ORDER BY watched_date DESC, created_at DESC",
       [req.params.userId]
     );
     res.json(diary);
@@ -801,7 +1511,7 @@ app.get('/api/diary/user/:userId', async (req, res) => {
 app.get('/api/diary/check/:movieId', authenticateToken, async (req, res) => {
   try {
     const existing = await queryOne(
-      'SELECT 1 FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2 LIMIT 1',
+      "SELECT 1 FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2 AND status = 'watched' LIMIT 1",
       [req.user.id, req.params.movieId]
     );
     res.json({ watched: !!existing });
@@ -812,12 +1522,12 @@ app.get('/api/diary/check/:movieId', authenticateToken, async (req, res) => {
 
 // Toggle watched status
 app.post('/api/diary/toggle-watched', authenticateToken, async (req, res) => {
-  const { tmdb_movie_id, media_type = 'movie' } = req.body;
+  const { tmdb_movie_id, media_type = 'movie', is_upcoming } = req.body;
   if (!tmdb_movie_id) return res.status(400).json({ error: 'Movie ID required' });
 
   try {
     const existing = await queryOne(
-      'SELECT id, review_id FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2 LIMIT 1',
+      'SELECT id, review_id, status FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2 LIMIT 1',
       [req.user.id, tmdb_movie_id]
     );
 
@@ -829,15 +1539,33 @@ app.post('/api/diary/toggle-watched', authenticateToken, async (req, res) => {
         await tx.execute('DELETE FROM reviews WHERE user_id = $1 AND tmdb_movie_id = $2', [req.user.id, tmdb_movie_id]);
         await tx.execute('DELETE FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2', [req.user.id, tmdb_movie_id]);
       });
-      res.json({ watched: false });
+      res.json({ watched: false, status: 'unwatched' });
     } else {
+      // Determine if upcoming
+      let isUpcomingVal = false;
+      if (is_upcoming !== undefined) {
+        isUpcomingVal = !!is_upcoming;
+      } else {
+        try {
+          const movieDetails = await fetchFromTMDB(`/${media_type}/${tmdb_movie_id}`);
+          const releaseDate = movieDetails.release_date || movieDetails.first_air_date;
+          if (releaseDate && new Date(releaseDate) > new Date()) {
+            isUpcomingVal = true;
+          }
+        } catch (err) {
+          console.error('Failed to auto-detect release status from TMDB during toggle:', err.message);
+        }
+      }
+
+      const targetStatus = isUpcomingVal ? 'planned' : 'watched';
       const diaryId = 'dry_' + Math.random().toString(36).substr(2, 9);
       const todayStr = new Date().toISOString().split('T')[0];
+
       await execute(
-        'INSERT INTO diary (id, user_id, tmdb_movie_id, media_type, rating, watched_date, review_id) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [diaryId, req.user.id, tmdb_movie_id, media_type, null, todayStr, null]
+        'INSERT INTO diary (id, user_id, tmdb_movie_id, media_type, rating, watched_date, review_id, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        [diaryId, req.user.id, tmdb_movie_id, media_type, null, todayStr, null, targetStatus]
       );
-      res.json({ watched: true });
+      res.json({ watched: targetStatus === 'watched', status: targetStatus });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -861,12 +1589,12 @@ app.get('/api/movies/:id/excited', async (req, res) => {
   }
 
   try {
-    const countResult = await queryOne('SELECT COUNT(*) as count FROM diary WHERE tmdb_movie_id = $1', [movieId]);
+    const countResult = await queryOne("SELECT COUNT(*) as count FROM diary WHERE tmdb_movie_id = $1 AND status = 'planned'", [movieId]);
     const totalCount = countResult?.count || 0;
 
     let userExcited = false;
     if (currentUserId) {
-      const userCheck = await queryOne('SELECT 1 FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2', [currentUserId, movieId]);
+      const userCheck = await queryOne("SELECT 1 FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2 AND status = 'planned'", [currentUserId, movieId]);
       userExcited = !!userCheck;
     }
 
@@ -918,16 +1646,25 @@ app.get('/api/users/suggestions', authenticateToken, async (req, res) => {
 
 // Get user profile details
 app.get('/api/users/profile/:username', async (req, res) => {
-  const { username } = req.params;
+  const normalizedUsername = req.params.username.trim().toLowerCase();
   const currentUserId = req.query.currentUserId || null;
 
   try {
-    const user = await queryOne('SELECT id, username, avatar_url, bio, created_at FROM users WHERE username = $1', [username.toLowerCase()]);
+    const user = await queryOne('SELECT id, username, avatar_url, bio, display_name, created_at FROM users WHERE username = $1', [normalizedUsername]);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    // Fallback for display_name
+    user.display_name = user.display_name || user.username;
+
     // Fetch stats
-    const reviewsCount = await queryOne('SELECT COUNT(*) as count FROM reviews WHERE user_id = $1', [user.id]);
-    const diaryCount = await queryOne('SELECT COUNT(*) as count FROM diary WHERE user_id = $1', [user.id]);
+    const reviewsCount = await queryOne(
+      'SELECT COUNT(*) as count FROM reviews r JOIN diary d ON r.diary_id = d.id WHERE r.user_id = $1 AND d.status = \'watched\'',
+      [user.id]
+    );
+    const diaryCount = await queryOne(
+      'SELECT COUNT(*) as count FROM diary WHERE user_id = $1 AND status = \'watched\'',
+      [user.id]
+    );
     const watchlistCount = await queryOne('SELECT COUNT(*) as count FROM watchlist WHERE user_id = $1', [user.id]);
     
     const followersCount = await queryOne('SELECT COUNT(*) as count FROM follows WHERE following_id = $1', [user.id]);
@@ -962,10 +1699,9 @@ app.post('/api/social/follow/:userId', authenticateToken, async (req, res) => {
 
   try {
     await execute(
-      'INSERT INTO follows (follower_id, following_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', // ON CONFLICT works in PostgreSQL. In SQLite, we handle it
+      'INSERT INTO follows (follower_id, following_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [req.user.id, targetUserId]
     ).catch(async (err) => {
-      // Fallback for SQLite which doesn't support ON CONFLICT DO NOTHING in this syntax
       try {
         await execute('INSERT INTO follows (follower_id, following_id) VALUES ($1, $2)', [req.user.id, targetUserId]);
       } catch (sqErr) {
@@ -1000,7 +1736,8 @@ app.get('/api/social/feed', authenticateToken, async (req, res) => {
       `SELECT 'review' as type, r.id as activity_id, r.created_at AS created_at, r.rating AS rating, r.review_text AS review_text, r.tmdb_movie_id AS tmdb_movie_id, u.username AS username, u.avatar_url AS avatar_url, u.id as user_id
        FROM reviews r
        JOIN users u ON r.user_id = u.id
-       WHERE r.user_id IN (SELECT following_id FROM follows WHERE follower_id = $1) AND r.review_text != ''
+       JOIN diary d ON r.diary_id = d.id
+       WHERE r.user_id IN (SELECT following_id FROM follows WHERE follower_id = $1) AND r.review_text != '' AND d.status = 'watched'
        
        UNION ALL
        
@@ -1009,6 +1746,7 @@ app.get('/api/social/feed', authenticateToken, async (req, res) => {
        JOIN users u ON d.user_id = u.id
        LEFT JOIN reviews r ON d.review_id = r.id
        WHERE d.user_id IN (SELECT following_id FROM follows WHERE follower_id = $1)
+         AND d.status = 'watched'
          AND (d.review_id IS NULL OR r.review_text = '')
        
        ORDER BY created_at DESC
@@ -1023,19 +1761,195 @@ app.get('/api/social/feed', authenticateToken, async (req, res) => {
 
 // Get User Ratings Distribution (for stats visualizers)
 app.get('/api/users/profile/:username/ratings-dist', async (req, res) => {
+  const normalizedUsername = req.params.username.trim().toLowerCase();
   try {
-    const user = await queryOne('SELECT id FROM users WHERE username = $1', [req.params.username.toLowerCase()]);
+    const user = await queryOne('SELECT id FROM users WHERE username = $1', [normalizedUsername]);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const dist = await query(
       `SELECT rating, COUNT(*) as count 
-       FROM reviews 
-       WHERE user_id = $1 
+       FROM diary 
+       WHERE user_id = $1 AND rating IS NOT NULL AND status = 'watched'
        GROUP BY rating 
        ORDER BY rating ASC`,
       [user.id]
     );
     res.json(dist);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Live Community Activity Ticker (recent logs for home hero ticker)
+app.get('/api/social/ticker', async (req, res) => {
+  try {
+    const recentLogs = await query(
+      `SELECT d.id, d.tmdb_movie_id, d.media_type, d.rating, d.created_at, u.username, u.display_name, r.review_text
+       FROM diary d
+       JOIN users u ON d.user_id = u.id
+       LEFT JOIN reviews r ON d.review_id = r.id
+       WHERE d.status = 'watched'
+       ORDER BY d.created_at DESC
+       LIMIT 10`
+    );
+    res.json(recentLogs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// AI Cinephile Director Assistant Endpoint (Powered by Google Gemini AI)
+app.post('/api/ai/recommend', async (req, res) => {
+  const { prompt, genre, vibe } = req.body || {};
+  const searchQuery = prompt || vibe || genre || 'masterpiece';
+
+  try {
+    const apiKey = process.env.GEMINI_API_KEY || GEMINI_API_KEY;
+    if (apiKey) {
+      console.log(`[GEMINI AI REQUEST] Prompt: "${searchQuery}"`);
+      const geminiPrompt = `You are PlotHole AI Director's Cut, an elite cinephile film critic.
+The user is requesting movie recommendations for this vibe/prompt: "${searchQuery}".
+Provide 3 to 4 real, distinct, renowned film recommendations.
+
+Return ONLY a JSON object matching this schema (do NOT use markdown backticks):
+{
+  "verdict": "A sharp, witty 1-2 sentence film critic analysis summarizing why these films fit the requested vibe",
+  "recommendations": [
+    {
+      "search_title": "Exact film title to search in movie database",
+      "curator_note": "A short, sharp 1-sentence cinephile commentary on this film",
+      "match_score": 96
+    }
+  ]
+}`;
+
+      const models = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
+      let geminiData = null;
+
+      for (const model of models) {
+        try {
+          const geminiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: geminiPrompt }] }]
+              })
+            }
+          );
+          if (geminiRes.ok) {
+            geminiData = await geminiRes.json();
+            console.log(`[GEMINI AI SUCCESS] Generated content using model: ${model}`);
+            break;
+          } else if (geminiRes.status === 429) {
+            console.log(`[GEMINI API INFO] API Key quota limit reached (429). Switching to PlotHole Cinema Engine...`);
+            break;
+          }
+        } catch (err) {
+          console.error(`[GEMINI API ERROR] Model ${model}:`, err.message);
+        }
+      }
+
+      if (geminiData) {
+        const responseText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+
+          const enrichedFilms = await Promise.all(
+            (parsed.recommendations || []).slice(0, 5).map(async (rec) => {
+              try {
+                const searchRes = await fetchFromTMDB('/search/movie', { query: rec.search_title });
+                const film = searchRes.results?.[0];
+                if (film) {
+                  return {
+                    ...film,
+                    curator_note: rec.curator_note,
+                    match_score: rec.match_score || Math.floor(90 + Math.random() * 9)
+                  };
+                }
+              } catch (e) {}
+              return null;
+            })
+          );
+
+          const validEnriched = enrichedFilms.filter(Boolean);
+          if (validEnriched.length > 0) {
+            return res.json({
+              verdict: parsed.verdict || `PlotHole AI Director curated film selections for: "${searchQuery}"`,
+              recommendations: validEnriched
+            });
+          }
+        }
+      }
+    }
+
+    // Fallback if Gemini API is unreachable or quota limited (429 Rate Limit)
+    const tmdbRes = await fetchFromTMDB('/search/movie', { query: searchQuery });
+    const results = (tmdbRes.results || []).slice(0, 5);
+
+    const qLower = searchQuery.toLowerCase();
+    const curatedRecommendations = results.map((movie, idx) => {
+      let curatorNote = "Essential cinephile viewing with exceptional direction and atmosphere.";
+      if (qLower.includes('mind') || qLower.includes('sci-fi') || qLower.includes('thriller')) {
+        curatorNote = "A cerebral, mind-bending narrative with staggering psychological depth.";
+      } else if (qLower.includes('action') || qLower.includes('fast') || qLower.includes('octane')) {
+        curatorNote = "High-octane filmmaking with relentless pacing and visceral set pieces.";
+      } else if (qLower.includes('noir') || qLower.includes('neon') || qLower.includes('mystery')) {
+        curatorNote = "Atmospheric neo-noir masterpiece filled with shadow and moral ambiguity.";
+      } else if (qLower.includes('drama') || qLower.includes('character')) {
+        curatorNote = "A tour de force character study powered by raw emotional performances.";
+      }
+
+      return {
+        ...movie,
+        curator_note: curatorNote,
+        match_score: Math.floor(91 + Math.random() * 8)
+      };
+    });
+
+    res.json({
+      verdict: `PlotHole AI Director curated ${curatedRecommendations.length} film selections matching "${searchQuery}"`,
+      recommendations: curatedRecommendations
+    });
+  } catch (error) {
+    console.error('[AI RECOMMENDATION ROUTE ERROR]:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Export User Diary & Data
+app.get('/api/users/profile/:username/export', async (req, res) => {
+  const normalizedUsername = req.params.username.trim().toLowerCase();
+  try {
+    const user = await queryOne('SELECT id, username, display_name, bio FROM users WHERE username = $1', [normalizedUsername]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const diary = await query(
+      `SELECT d.id, d.tmdb_movie_id, d.media_type, d.rating, d.watched_date, r.review_text
+       FROM diary d
+       LEFT JOIN reviews r ON d.review_id = r.id
+       WHERE d.user_id = $1
+       ORDER BY d.watched_date DESC`,
+      [user.id]
+    );
+
+    const watchlist = await query(
+      'SELECT tmdb_movie_id, created_at FROM watchlist WHERE user_id = $1',
+      [user.id]
+    );
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${user.username}_plothole_archive.json"`);
+    res.json({
+      exported_at: new Date().toISOString(),
+      user: { username: user.username, display_name: user.display_name },
+      stats: { diary_count: diary.length, watchlist_count: watchlist.length },
+      diary,
+      watchlist
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

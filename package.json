@@ -8,9 +8,12 @@
     "build": "npm run build --prefix frontend",
     "start": "cross-env NODE_ENV=production node backend/index.js",
     "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm run dev --prefix frontend"
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev": "npm run dev:backend & npm run dev:frontend"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.1.1",
     "cross-env": "^7.0.3"
   }
 }

@@ -1,67 +1,73 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, AlertCircle, Camera, Edit3, X } from 'lucide-react';
+import { Calendar, AlertCircle, Camera, Edit3, X, Download, Award, Star, Film, Clock, Heart, FolderPlus, Bookmark } from 'lucide-react';
 import { API_URL, getAuthHeaders, getPosterUrl } from '../config';
 import { useAuth } from '../context/AuthContext';
 import RatingBadge from '../components/RatingBadge';
 import Avatar from '../components/Avatar';
 
-// Polaroid Card component with masking tape effect
-function PolaroidCard({ movieId, angle }) {
+function PolaroidCard({ movieId, angle, initialMovie }) {
   const { data: movie } = useQuery({
     queryKey: ['movieDetails', movieId],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/movies/${movieId}`);
       if (!res.ok) throw new Error('Not found');
       return res.json();
-    }
+    },
+    initialData: initialMovie,
+    staleTime: 10 * 60 * 1000
   });
 
-  if (!movie) return <div className="aspect-[3/4] bg-white rounded-none border-2 border-black animate-pulse" />;
+  if (!movie) return <div className="aspect-[3/4] bg-white/5 rounded-xl border border-white/10 animate-pulse" />;
 
   return (
-    <div 
-      className="polaroid-container relative select-none transform transition-transform hover:scale-105 duration-200"
+    <div
+      className="polaroid-container relative transform transition-transform hover:scale-105 duration-200"
       style={{ transform: `rotate(${angle}deg)` }}
     >
-      <div className="masking-tape" />
       <Link to={`/media/${movie.media_type || 'movie'}/${movie.id}`}>
-        <div className="aspect-square w-full overflow-hidden border-2 border-black mb-3">
+        <div className="aspect-square w-full overflow-hidden rounded-md border border-white/10 mb-2.5 bg-black">
           <img
-            src={getPosterUrl(movie.poster_path)}
+            src={getPosterUrl(movie.poster_path, 'w300')}
             alt={movie.title}
-            className="w-full h-full object-cover bitmap-hover"
+            className="w-full h-full object-cover"
+            loading="lazy"
           />
         </div>
-        <p className="font-mono text-[10px] font-black text-black uppercase tracking-tight truncate text-center">
-          {movie.title}
+        <p className="font-display text-[11px] font-bold text-slate-200 truncate text-center">
+          {movie.title || movie.name}
         </p>
       </Link>
     </div>
   );
 }
 
-// Watchlist card item in list
-function WatchlistCard({ movieId }) {
+function WatchlistCard({ movieId, initialMovie }) {
   const { data: movie } = useQuery({
     queryKey: ['movieDetails', movieId],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/movies/${movieId}`);
       if (!res.ok) throw new Error('Not found');
       return res.json();
-    }
+    },
+    initialData: initialMovie,
+    staleTime: 10 * 60 * 1000
   });
 
-  if (!movie) return <div className="aspect-[2/3] bg-brand-card border-3 border-white animate-pulse" />;
+  if (!movie) return <div className="aspect-[2/3] bg-white/5 rounded-xl border border-white/10 animate-pulse" />;
 
   return (
-    <Link to={`/media/${movie.media_type || 'movie'}/${movie.id}`} className="group relative block brutal-border-interactive overflow-hidden bg-brand-card">
+    <Link 
+      to={`/media/${movie.media_type || 'movie'}/${movie.id}`} 
+      className="group relative block rounded-xl overflow-hidden bg-white/5 border border-white/10 hover:border-amber-400/50 transition-all hover:-translate-y-1 shadow-lg"
+    >
       <div className="aspect-[2/3] w-full">
         <img
-          src={getPosterUrl(movie.poster_path)}
-          alt={movie.title}
-          className="w-full h-full object-cover bitmap-hover"
+          src={getPosterUrl(movie.poster_path, 'w300')}
+          alt={movie.title || movie.name}
+          className="w-full h-full object-cover"
+          loading="lazy"
         />
       </div>
     </Link>
@@ -74,7 +80,6 @@ export default function Profile() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('diary');
 
-  // Edit profile states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editBio, setEditBio] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
@@ -95,6 +100,17 @@ export default function Profile() {
   const profileUser = profile?.user;
   const stats = profile?.stats;
   const isFollowing = profile?.isFollowing;
+
+  // Fetch Rating Distribution Histogram
+  const { data: ratingsDist = [] } = useQuery({
+    queryKey: ['userRatingsDist', username],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/users/profile/${username}/ratings-dist`);
+      if (res.ok) return res.json();
+      return [];
+    },
+    enabled: !!profileUser
+  });
 
   const openEditModal = () => {
     setEditBio(profileUser?.bio || '');
@@ -135,15 +151,16 @@ export default function Profile() {
     }
   };
 
+  const handleExportData = () => {
+    window.open(`${API_URL}/users/profile/${username}/export`, '_blank');
+  };
+
   // Fetch user reviews
   const { data: reviews = [], isLoading: reviewsLoading } = useQuery({
     queryKey: ['userReviews', profileUser?.id],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/reviews`);
-      if (res.ok) {
-        const allReviews = await res.json();
-        return allReviews.filter(r => r.user_id === profileUser.id);
-      }
+      const res = await fetch(`${API_URL}/reviews/user/${profileUser.id}`);
+      if (res.ok) return res.json();
       return [];
     },
     enabled: !!profileUser?.id
@@ -175,17 +192,26 @@ export default function Profile() {
     enabled: !!profileUser?.id && !!currentUser
   });
 
-  // Deduplicate diary entries by movie ID to show unique watched movies
+  // Fetch user custom lists
+  const { data: userLists = [], isLoading: listsLoading } = useQuery({
+    queryKey: ['userLists', profileUser?.username],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/lists/user/${profileUser.username}`);
+      if (res.ok) return res.json();
+      return [];
+    },
+    enabled: !!profileUser?.username
+  });
+
   const uniqueDiary = useMemo(() => {
     const seen = new Set();
-    return diary.filter(entry => {
+    return diary.filter((entry) => {
       if (seen.has(entry.tmdb_movie_id)) return false;
       seen.add(entry.tmdb_movie_id);
       return true;
     });
   }, [diary]);
 
-  // Follow/Unfollow Mutation
   const followMutation = useMutation({
     mutationFn: async () => {
       const endpoint = isFollowing ? 'unfollow' : 'follow';
@@ -195,27 +221,28 @@ export default function Profile() {
       });
       return res.json();
     },
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['userProfile', username, currentUser?.id] });
     }
   });
 
   if (profileLoading) {
     return (
-      <div className="flex-1 max-w-7xl mx-auto px-6 py-12 flex flex-col items-center justify-center animate-pulse text-white font-mono uppercase">
-        <h2 className="text-xl">RECLAIMING SCRAPBOOK DOSSIER...</h2>
+      <div className="flex-1 max-w-7xl mx-auto px-6 py-20 flex flex-col items-center justify-center text-amber-400 font-mono uppercase space-y-3">
+        <div className="w-10 h-10 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto" />
+        <h2 className="text-xs font-bold tracking-widest">RECLAIMING CINEPHILE DOSSIER...</h2>
       </div>
     );
   }
 
   if (profileError || !profileUser) {
     return (
-      <div className="flex-1 max-w-7xl mx-auto px-6 py-12 text-left">
-        <div className="p-6 bg-red-600/10 border-4 border-red-500 text-red-500 rounded-none flex items-start gap-4">
+      <div className="flex-1 max-w-7xl mx-auto px-6 py-12 text-left font-mono">
+        <div className="p-6 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-2xl flex items-start gap-4">
           <AlertCircle className="w-8 h-8 shrink-0" />
           <div>
-            <h3 className="font-extrabold text-xl uppercase">SCRAPBOOK ERROR</h3>
-            <p className="text-sm mt-1">{profileError?.message || 'USER DOSSIER NOT RETRIEVED.'}</p>
+            <h3 className="font-display font-bold text-xl uppercase">USER DOSSIER NOT FOUND</h3>
+            <p className="text-xs mt-1">{profileError?.message || 'USER DOSSIER NOT RETRIEVED.'}</p>
           </div>
         </div>
       </div>
@@ -223,144 +250,192 @@ export default function Profile() {
   }
 
   const isOwnProfile = currentUser && currentUser.id === profileUser.id;
-  
-  // Calculate simulated "Hours Wasted" (2 hours per watch log + 0.5 hours per rant)
-  const hoursWasted = Math.max(0, ((uniqueDiary.length || 0) * 2) + ((stats.reviews || 0) * 0.5));
+  const hoursWasted = Math.max(0, uniqueDiary.length * 2.1 + (stats?.reviews || 0) * 0.4);
 
-  // Determine top 6 films to showcase in polaroids (use first 6 items in watchlist/diary)
-  const topMovieIds = watchlist.length > 0 
-    ? watchlist.slice(0, 6).map(w => w.tmdb_movie_id)
-    : uniqueDiary.slice(0, 6).map(d => d.tmdb_movie_id);
+  const topMovieIds =
+    watchlist.length > 0
+      ? watchlist.slice(0, 6).map((w) => w.tmdb_movie_id)
+      : uniqueDiary.slice(0, 6).map((d) => d.tmdb_movie_id);
 
-  // Rotation angles for top polaroids
-  const rotations = [-3, 2, -1, 3, -2, 1];
- 
+  const rotations = [-3, 2, -1.5, 2.5, -2, 1.5];
+
+  // Process rating histogram
+  const distMap = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  let maxCount = 1;
+  ratingsDist.forEach((r) => {
+    const star = Math.round(parseFloat(r.rating) || 1);
+    distMap[star] = (distMap[star] || 0) + parseInt(r.count || 0);
+    if (distMap[star] > maxCount) maxCount = distMap[star];
+  });
+
+  // Calculate unlockable badges
+  const badges = [
+    { title: 'Film Marathoner', icon: Clock, unlocked: uniqueDiary.length >= 5, desc: 'Logged 5+ films' },
+    { title: '5-Star Hunter', icon: Star, unlocked: diary.some((d) => d.rating >= 5), desc: 'Rated a film Pure Cinema' },
+    { title: 'Zine Critic', icon: Film, unlocked: (stats?.reviews || 0) >= 3, desc: 'Wrote 3+ reviews' },
+    { title: 'List Architect', icon: Award, unlocked: userLists.length >= 1, desc: 'Created a custom list' }
+  ];
+
   return (
-    <div className="flex-1 max-w-7xl mx-auto px-6 md:px-12 py-12 text-left font-mono">
-      
-      {/* Scrapbook Header Info Panel */}
-      <div className="brutal-border p-6 md:p-8 mb-12 flex flex-col lg:flex-row items-center lg:items-start gap-8">
-        
-        {/* Oversized square flip phone avatar */}
-        <div className="shrink-0 w-32 h-32 brutal-border rounded-none overflow-hidden bg-black">
-          <Avatar
-            username={profileUser.username}
-            url={profileUser.avatar_url}
-            className="w-full h-full"
-          />
+    <div className="flex-1 max-w-7xl mx-auto px-6 md:px-12 py-10 text-left font-sans space-y-10">
+      {/* Profile Header Bento Card */}
+      <div className="border border-white/15 bg-[#0e111a]/85 backdrop-blur-2xl p-6 md:p-8 flex flex-col lg:flex-row items-center lg:items-start gap-8 rounded-2xl shadow-2xl">
+        <div className="shrink-0 w-28 h-28 md:w-32 md:h-32 border border-white/20 rounded-2xl overflow-hidden bg-black shadow-xl">
+          <Avatar username={profileUser.username} url={profileUser.avatar_url} className="w-full h-full" />
         </div>
-        
-        {/* Bio information */}
+
         <div className="flex-1 text-center lg:text-left space-y-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight">@{profileUser.username}</h1>
-            
-            {/* Inline Stats Line */}
-            <p className="text-sm text-brutal-cyan font-black mt-2 uppercase tracking-wide">
-              {hoursWasted.toFixed(0)}h wasted • {uniqueDiary.length} films logged • {stats.reviews} reviews • {stats.followers} followers • {stats.following} following
-            </p>
-            
-            <p className="text-xs text-brand-text-muted mt-1 uppercase">JOINED DATABASE: {new Date(profileUser.created_at).toLocaleDateString()}</p>
-          </div>
-          <p className="text-sm md:text-base text-brand-text max-w-xl leading-relaxed uppercase border-l-3 border-brutal-pink pl-4">
-            {profileUser.bio}
-          </p>
-          
-          {/* Follow Actions */}
-          {!isOwnProfile && currentUser && (
-            <button
-              onClick={() => followMutation.mutate()}
-              disabled={followMutation.isPending}
-              className={isFollowing ? 'btn-secondary' : 'btn-primary'}
-            >
-              {isFollowing ? 'Unfollow' : 'Follow'}
-            </button>
-          )}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+              <h1 className="text-2xl md:text-3xl font-display font-extrabold text-white">
+                {profileUser.display_name || profileUser.username}
+              </h1>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                @{profileUser.username}
+              </span>
+            </div>
 
-          {isOwnProfile && (
-            <button
-              onClick={openEditModal}
-              className="btn-primary"
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>Edit Profile</span>
-            </button>
-          )}
+            <p className="text-xs text-sky-400 font-mono font-bold mt-2">
+              {hoursWasted.toFixed(0)}h watch time • {uniqueDiary.length} films logged • {stats?.reviews || 0} reviews • {stats?.followers || 0} followers
+            </p>
+
+            <p className="text-[10px] font-mono text-slate-500 mt-1">
+              MEMBER SINCE: {new Date(profileUser.created_at).toLocaleDateString()}
+            </p>
+          </div>
+
+          <p className="text-xs md:text-sm text-slate-300 max-w-xl leading-relaxed border-l-2 border-amber-400 pl-3.5 italic">
+            "{profileUser.bio || 'Cinephile exploring cinema timelines.'}"
+          </p>
+
+          <div className="flex gap-2.5 flex-wrap justify-center lg:justify-start pt-1">
+            {!isOwnProfile && currentUser && (
+              <button
+                onClick={() => followMutation.mutate()}
+                disabled={followMutation.isPending}
+                className={isFollowing ? 'btn-secondary text-xs px-4 py-2' : 'btn-primary text-xs px-4 py-2'}
+              >
+                {isFollowing ? 'Unfollow' : 'Follow Cinephile'}
+              </button>
+            )}
+
+            {isOwnProfile && (
+              <>
+                <button onClick={openEditModal} className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5">
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit Profile</span>
+                </button>
+
+                <button onClick={handleExportData} className="btn-secondary text-xs px-4 py-2 flex items-center gap-1.5 text-amber-300 border-amber-400/30">
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export Archive</span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
- 
-        {/* Softer Detailed Dashboard Grid for Stats */}
-        {/* Detailed Dashboard Grid for Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 brutal-border bg-[#1b1810] w-full lg:w-auto font-mono text-center shrink-0 overflow-hidden rounded-sm shadow-sm">
-          <div className="p-3 border-r-3 border-b-3 border-brand-border md:border-b-0">
-            <span className="block text-brand-text-muted text-[10px] mb-1 uppercase font-bold">Hrs Wasted</span>
-            <span className="text-sm md:text-base font-black text-[#f4c430]">{hoursWasted.toFixed(1)}</span>
-          </div>
-          <div className="p-3 border-b-3 border-brand-border md:border-r-3 md:border-b-0">
-            <span className="block text-brand-text-muted text-[10px] mb-1 uppercase font-bold">Logged</span>
-            <span className="text-sm md:text-base font-black text-brand-text">{uniqueDiary.length}</span>
-          </div>
-          <div className="p-3 border-r-3 border-b-3 border-brand-border md:border-b-0">
-            <span className="block text-brand-text-muted text-[10px] mb-1 uppercase font-bold">Reviews</span>
-            <span className="text-sm md:text-base font-black text-[#ff4757]">{stats.reviews}</span>
-          </div>
-          <div className="p-3 border-b-3 border-brand-border md:border-b-0 md:border-r-3">
-            <span className="block text-brand-text-muted text-[10px] mb-1 uppercase font-bold">Followers</span>
-            <span className="text-sm md:text-base font-black text-brand-text">{stats.followers}</span>
-          </div>
-          <div className="p-3 col-span-2 md:col-span-1">
-            <span className="block text-brand-text-muted text-[10px] mb-1 uppercase font-bold">Following</span>
-            <span className="text-sm md:text-base font-black text-brand-text">{stats.following}</span>
+
+        {/* Rating Distribution Histogram Bento Card */}
+        <div className="border border-white/10 bg-black/40 p-4 rounded-xl w-full lg:w-64 space-y-3 shrink-0 shadow-lg">
+          <span className="text-[11px] font-mono font-bold text-amber-400 uppercase block border-b border-white/10 pb-2">
+            Rating Distribution
+          </span>
+
+          <div className="flex items-end justify-between h-24 gap-2 pt-2 px-1">
+            {[1, 2, 3, 4, 5].map((star) => {
+              const count = distMap[star] || 0;
+              const heightPct = Math.max(12, Math.round((count / maxCount) * 100));
+              return (
+                <div key={star} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                  <div
+                    className="w-full bg-amber-400/80 rounded-t transition-all hover:bg-amber-300"
+                    style={{ height: `${heightPct}%` }}
+                    title={`${count} films rated ${star} stars`}
+                  />
+                  <span className="text-[9px] font-mono text-slate-400">{star}★</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* TOP 6 FAVORITES TAPED POLAROID DISPLAY */}
+      {/* Cinephile Badges Showcase */}
+      <div className="space-y-3">
+        <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
+          Cinephile Badges & Milestones
+        </h3>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          {badges.map((b) => {
+            const Icon = b.icon;
+            return (
+              <div
+                key={b.title}
+                className={`p-4 border rounded-xl flex items-center gap-3 transition-all ${
+                  b.unlocked
+                    ? 'bg-white/5 border-amber-400/30 text-slate-100 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
+                    : 'bg-white/2 border-white/5 text-slate-500 opacity-40'
+                }`}
+              >
+                <div className={`p-2.5 rounded-lg border ${b.unlocked ? 'bg-amber-400/20 text-amber-300 border-amber-400/30' : 'bg-black/30 border-white/5'}`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-display font-bold text-xs text-slate-100 uppercase">{b.title}</h4>
+                  <p className="text-[10px] text-slate-400">{b.desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Pinned Polaroid Discoveries */}
       {topMovieIds.length > 0 && (
-        <div className="mb-16">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-[#f4c430] bg-[#f4c430]/10 border-2 border-brand-border px-3 py-1.5 rounded-sm w-fit mb-8 shadow-sm">
+        <div className="space-y-3">
+          <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
             Pinned Reel Discoveries
           </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-5 pt-2">
             {topMovieIds.map((mId, idx) => (
-              <PolaroidCard 
-                key={mId} 
-                movieId={mId} 
-                angle={rotations[idx % rotations.length]} 
-              />
+              <PolaroidCard key={mId} movieId={mId} angle={rotations[idx % rotations.length]} />
             ))}
           </div>
         </div>
       )}
 
-      {/* Tabs Selector */}
-      <div className="flex border-b-3 border-brand-border mb-8 select-none overflow-x-auto">
+      {/* Sliding Pill Tabs Bar */}
+      <div className="flex border-b border-white/10 select-none overflow-x-auto gap-2 p-1 bg-white/5 rounded-xl w-fit">
         <button
           onClick={() => setActiveTab('diary')}
-          className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-3 whitespace-nowrap ${
-            activeTab === 'diary'
-              ? 'border-[#f4c430] text-[#f4c430]'
-              : 'border-transparent text-brand-text-muted hover:text-brand-text'
+          className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-lg transition-all ${
+            activeTab === 'diary' ? 'bg-amber-500 text-[#08090d] shadow-md' : 'text-slate-400 hover:text-white'
           }`}
         >
-          Diary timeline
+          Diary timeline ({uniqueDiary.length})
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-3 whitespace-nowrap ${
-            activeTab === 'reviews'
-              ? 'border-[#ff4757] text-[#ff4757]'
-              : 'border-transparent text-brand-text-muted hover:text-brand-text'
+          className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-lg transition-all ${
+            activeTab === 'reviews' ? 'bg-amber-500 text-[#08090d] shadow-md' : 'text-slate-400 hover:text-white'
           }`}
         >
-          Reviews log ({reviews.length})
+          Reviews ({reviews.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('lists')}
+          className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-lg transition-all ${
+            activeTab === 'lists' ? 'bg-amber-500 text-[#08090d] shadow-md' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          Custom Lists ({userLists.length})
         </button>
         {isOwnProfile && (
           <button
             onClick={() => setActiveTab('watchlist')}
-            className={`px-6 py-3 font-bold text-xs uppercase tracking-wider transition-all duration-200 border-b-3 whitespace-nowrap ${
-              activeTab === 'watchlist'
-                ? 'border-[#3aa6e0] text-[#3aa6e0]'
-                : 'border-transparent text-brand-text-muted hover:text-brand-text'
+            className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-lg transition-all ${
+              activeTab === 'watchlist' ? 'bg-amber-500 text-[#08090d] shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
             Watchlist ({watchlist.length})
@@ -373,76 +448,41 @@ export default function Profile() {
         {activeTab === 'diary' && (
           <div>
             {diaryLoading ? (
-              <div className="p-12 text-center text-sm animate-pulse">LOADING DIARY TIMELINE...</div>
+              <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING DIARY TIMELINE...</div>
             ) : uniqueDiary.length === 0 ? (
-              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-sm font-bold">
+              <div className="border border-white/10 bg-white/5 p-8 rounded-2xl text-center text-slate-400 text-xs font-mono">
                 Timeline is currently empty.
               </div>
             ) : (
-              <>
-                {/* Mobile View: List of Log Cards */}
-                <div className="block md:hidden space-y-4">
-                  {uniqueDiary.map((entry) => (
-                    <div key={entry.id} className="brutal-border p-4 bg-brand-card space-y-3">
-                      <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                        <span className="font-bold text-white flex items-center gap-1.5 text-xs">
-                          <Calendar className="w-4 h-4 text-brutal-cyan" />
-                          {entry.watched_date}
-                        </span>
-                        <RatingBadge rating={entry.rating} />
-                      </div>
-                      <div className="text-sm">
-                        <span className="text-brand-text-muted uppercase">Film: </span>
-                        <MovieNameLink 
-                          movieId={entry.tmdb_movie_id} 
-                          className="font-black text-brutal-cyan hover:underline" 
-                        />
-                      </div>
-                      {entry.review_text && (
-                        <p className="text-sm text-brand-text leading-relaxed bg-black/40 p-3 rounded-lg border border-white/5 uppercase">
-                          {entry.review_text}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Desktop View: Table */}
-                <div className="hidden md:block border border-white/10 rounded-2xl overflow-hidden shadow-2xl bg-black/25">
-                  <table className="w-full text-sm uppercase text-left border-collapse">
-                    <thead>
-                      <tr className="bg-brand-card text-white font-black border-b border-white/10">
-                        <th className="px-6 py-3">Watched Date</th>
-                        <th className="px-6 py-3">Movie</th>
-                        <th className="px-6 py-3">Verdict</th>
-                        <th className="px-6 py-3">Notes</th>
+              <div className="border border-white/10 rounded-2xl overflow-hidden shadow-xl bg-[#0e111a]">
+                <table className="w-full text-xs text-left border-collapse font-sans">
+                  <thead>
+                    <tr className="bg-white/5 text-slate-300 font-mono uppercase text-[11px] border-b border-white/10">
+                      <th className="px-6 py-3.5">Watched Date</th>
+                      <th className="px-6 py-3.5">Movie</th>
+                      <th className="px-6 py-3.5">Rating</th>
+                      <th className="px-6 py-3.5">Review Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {uniqueDiary.map((entry) => (
+                      <tr key={entry.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4 font-mono text-slate-400 flex items-center gap-2">
+                          <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                          <span>{entry.watched_date}</span>
+                        </td>
+                        <td className="px-6 py-4 font-display font-bold text-slate-100">
+                          <MovieNameLink movieId={entry.tmdb_movie_id} className="hover:text-amber-400 transition-colors" />
+                        </td>
+                        <td className="px-6 py-4">
+                          <RatingBadge rating={entry.rating} size="xs" />
+                        </td>
+                        <td className="px-6 py-4 text-slate-400 max-w-xs truncate">{entry.review_text || '—'}</td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10 bg-[#07090e]/40">
-                      {uniqueDiary.map((entry) => (
-                        <tr key={entry.id} className="hover:bg-brand-card-hover transition-colors">
-                          <td className="px-6 py-4 font-bold text-white flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-brutal-cyan" />
-                            <span>{entry.watched_date}</span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <MovieNameLink 
-                              movieId={entry.tmdb_movie_id} 
-                              className="hover:underline font-black text-brutal-cyan" 
-                            />
-                          </td>
-                          <td className="px-6 py-4">
-                            <RatingBadge rating={entry.rating} />
-                          </td>
-                          <td className="px-6 py-4 text-brand-text max-w-xs truncate" title={entry.review_text}>
-                            {entry.review_text || '—'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         )}
@@ -450,31 +490,65 @@ export default function Profile() {
         {activeTab === 'reviews' && (
           <div>
             {reviewsLoading ? (
-              <div className="p-12 text-center text-sm animate-pulse">LOADING USER REVIEWS...</div>
+              <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING USER REVIEWS...</div>
             ) : reviews.length === 0 ? (
-              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-sm font-bold">
+              <div className="border border-white/10 bg-white/5 p-8 rounded-2xl text-center text-slate-400 text-xs font-mono">
                 No user reviews written yet.
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reviews.map((rev) => (
-                  <div key={rev.id} className="brutal-border p-6 text-left relative">
-                    <div className="flex items-center gap-4 mb-4 border-b border-white/10 pb-3">
-                      <span className="text-brand-text-muted text-xs uppercase font-bold">Reviewed Film: </span>
-                      <MovieNameLink 
-                        movieId={rev.tmdb_movie_id} 
-                        className="font-black text-white hover:underline text-sm uppercase" 
-                      />
-                      <div className="ml-auto">
-                        <RatingBadge rating={rev.rating} />
+                  <div key={rev.id} className="border border-white/10 bg-white/5 p-6 rounded-2xl space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                      <div>
+                        <span className="text-slate-400 text-xs font-mono">Reviewed Film: </span>
+                        <MovieNameLink movieId={rev.tmdb_movie_id} className="font-display font-bold text-slate-100 hover:text-amber-400 transition-colors block text-sm" />
                       </div>
+                      <RatingBadge rating={rev.rating} size="xs" />
                     </div>
-                    <p className="text-sm md:text-base text-brand-text leading-relaxed whitespace-pre-wrap font-mono uppercase bg-black border border-brand-border/10 p-4">
-                      {rev.review_text}
+                    <p className="text-xs md:text-sm text-slate-200 leading-relaxed font-sans bg-black/40 border border-white/5 p-3.5 rounded-xl italic">
+                      "{rev.review_text}"
                     </p>
-                    <span className="block text-xs text-brand-text-muted mt-3 font-bold">
-                      SLAMMING DATE: {new Date(rev.created_at).toLocaleString()}
+                    <span className="block text-[10px] font-mono text-slate-500">
+                      Logged: {new Date(rev.created_at).toLocaleDateString()}
                     </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'lists' && (
+          <div>
+            {listsLoading ? (
+              <div className="p-12 text-center text-xs animate-pulse font-mono text-slate-400">LOADING CUSTOM LISTS...</div>
+            ) : userLists.length === 0 ? (
+              <div className="border border-white/10 bg-white/5 p-8 rounded-2xl text-center text-slate-400 text-xs font-mono">
+                No custom lists created yet.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {userLists.map((lst) => (
+                  <div key={lst.id} className="border border-white/10 p-5 bg-white/5 hover:border-amber-400/40 rounded-2xl flex flex-col justify-between transition-all">
+                    <div>
+                      <Link to={`/lists/${lst.id}`}>
+                        <h3 className="font-display font-bold text-lg text-slate-100 hover:text-amber-400 transition-colors">
+                          {lst.title}
+                        </h3>
+                      </Link>
+                      {lst.description && (
+                        <p className="font-sans text-xs text-slate-400 mt-2 line-clamp-2 italic">
+                          "{lst.description}"
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-white/10 font-mono text-xs mt-4">
+                      <span className="text-slate-400">{lst.item_count || 0} Titles</span>
+                      <Link to={`/lists/${lst.id}`} className="text-amber-400 hover:underline font-bold uppercase">
+                        View List →
+                      </Link>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -485,13 +559,13 @@ export default function Profile() {
         {activeTab === 'watchlist' && isOwnProfile && (
           <div>
             {watchlistLoading ? (
-              <div className="p-12 text-center text-sm animate-pulse">LOADING WATCHLIST POSTERS...</div>
+              <div className="p-12 text-center text-xs animate-pulse font-mono text-slate-400">LOADING WATCHLIST POSTERS...</div>
             ) : watchlist.length === 0 ? (
-              <div className="brutal-border p-8 text-center text-brand-text-muted uppercase text-sm font-bold">
+              <div className="border border-white/10 bg-white/5 p-8 rounded-2xl text-center text-slate-400 text-xs font-mono">
                 Your watchlist is currently empty.
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
                 {watchlist.map((item) => (
                   <WatchlistCard key={item.tmdb_movie_id} movieId={item.tmdb_movie_id} />
                 ))}
@@ -501,101 +575,70 @@ export default function Profile() {
         )}
       </div>
 
-      {/* Edit Profile Glassmorphic Modal */}
+      {/* Edit Profile Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-          <div className="win95-notepad w-full max-w-md animate-in zoom-in-95 duration-150">
-            <div className="win95-titlebar font-sans">
-              <span>Edit_Profile.docket - Config</span>
-              <button onClick={() => setIsEditModalOpen(false)} className="win95-btn">
-                <X className="w-3.5 h-3.5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-2xl">
+          <div 
+            className="w-full max-w-md rounded-2xl overflow-hidden border border-white/15 bg-[#0e111a] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9)]"
+            style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
+          >
+            <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10">
+              <span className="font-display font-bold text-sm text-slate-100 uppercase tracking-wide">
+                Edit Profile Dossier
+              </span>
+              <button 
+                onClick={() => setIsEditModalOpen(false)} 
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="p-6 space-y-6 font-mono">
-              {editError && (
-                <div className="p-3 border border-red-600 bg-red-600/10 text-red-500 rounded-lg text-xs uppercase">
-                  [SYSTEM ERROR]: {editError}
-                </div>
-              )}
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-5 text-left text-xs">
+              {editError && <div className="p-3 bg-rose-500/20 border border-rose-500/40 text-rose-400 rounded-lg">{editError}</div>}
 
-              {/* Avatar Upload Container */}
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white/20 bg-black group/avatar shadow-lg">
-                  <Avatar
-                    username={profileUser.username}
-                    url={editAvatar}
-                    className="w-full h-full"
-                  />
-                  <label 
-                    htmlFor="avatar-file-input"
-                    className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer"
-                  >
-                    <Camera className="w-6 h-6 text-white" />
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative w-20 h-20 rounded-2xl border border-white/20 bg-black overflow-hidden shadow-lg">
+                  <Avatar username={profileUser.username} url={editAvatar} className="w-full h-full" />
+                  <label htmlFor="avatar-file-input" className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                    <Camera className="w-5 h-5 text-white" />
                   </label>
                 </div>
-                <input
-                  id="avatar-file-input"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => document.getElementById('avatar-file-input').click()}
-                  className="btn-secondary px-3 py-1.5"
-                >
-                  Change Photo
+                <input id="avatar-file-input" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                <button type="button" onClick={() => document.getElementById('avatar-file-input').click()} className="btn-secondary px-3 py-1.5 text-xs">
+                  Change Avatar
                 </button>
               </div>
 
-              {/* Bio Text Area */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase text-brand-text-muted">
+              <div>
+                <label className="block font-mono font-bold uppercase tracking-wider text-[11px] text-slate-300 mb-1.5">
                   Personal Biography
                 </label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   maxLength={250}
                   required
                   value={editBio}
                   onChange={(e) => setEditBio(e.target.value)}
-                  className="win95-textarea w-full text-white text-sm"
-                  placeholder="Enter bio details..."
+                  className="w-full p-3 bg-black/40 border border-white/10 rounded-lg text-slate-100 font-sans text-xs focus:outline-none focus:border-amber-400/50 leading-relaxed"
                 />
-                <div className="text-right text-[10px] text-brand-text-muted">
-                  {editBio.length}/250 chars
-                </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="btn-primary"
-                >
-                  {isSaving ? 'Saving...' : 'Save Config'}
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="btn-secondary px-4 py-2 text-xs">Cancel</button>
+                <button type="submit" disabled={isSaving} className="btn-primary px-6 py-2 text-xs font-bold">
+                  {isSaving ? 'Saving...' : 'Save Profile'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 }
 
-function MovieNameLink({ movieId, className = "" }) {
+function MovieNameLink({ movieId, className = '' }) {
   const { data: movie } = useQuery({
     queryKey: ['movieDetailsSimple', movieId],
     queryFn: async () => {
@@ -606,7 +649,7 @@ function MovieNameLink({ movieId, className = "" }) {
     staleTime: 1000 * 60 * 10
   });
 
-  const title = movie?.title || movie?.name || `Film #${movieId}`;
+  const title = movie?.title || movie?.name || 'Film';
   const mediaType = movie?.media_type || 'movie';
 
   return (

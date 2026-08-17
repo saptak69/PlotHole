@@ -1,417 +1,406 @@
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@700;800&family=Bangers&display=swap');
 
 @import "tailwindcss";
 
 @theme {
-  --color-brand-bg: #121008;
-  --color-brand-card: #1b1810;
-  --color-brand-border: #f2e9d8;
-  --color-brand-text: #f2e9d8;
-  --color-brand-text-muted: #9c9484;
-  --color-brand-heading: #f2e9d8;
-  
-  --color-comic-black: #f2e9d8;
-  --color-comic-yellow: #f4c430;
-  --color-comic-red: #ff4757;
-  --color-comic-blue: #3aa6e0;
-  --color-comic-white: #1b1810;
-  
-  /* Legacy mapping overrides */
-  --color-brutal-cyan: #3aa6e0;
-  --color-brutal-orange: #ff4757;
-  --color-brutal-yellow: #f4c430;
-  --color-brutal-pink: #ff4757;
-  --color-brutal-green: #3aa6e0;
-  --color-brutal-blue: #3aa6e0;
+  --color-brand-bg: #08090d;
+  --color-brand-card: #111420;
+  --color-brand-card-hover: #161b2b;
+  --color-brand-surface: rgba(18, 22, 34, 0.75);
+  --color-brand-border: rgba(255, 255, 255, 0.08);
+  --color-brand-border-glow: rgba(245, 158, 11, 0.35);
+  --color-brand-text: #f8fafc;
+  --color-brand-text-muted: #94a3b8;
+  --color-brand-heading: #ffffff;
 
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --color-amber-glow: #f59e0b;
+  --color-amber-light: #fbbf24;
+  --color-cyan-glow: #38bdf8;
+  --color-crimson-glow: #f43f5e;
+  --color-purple-glow: #a855f7;
+  --color-emerald-glow: #10b981;
+
+  /* Legacy aliases for clean backward compatibility */
+  --color-comic-yellow: #f59e0b;
+  --color-comic-red: #f43f5e;
+  --color-comic-blue: #38bdf8;
+  --color-comic-black: #f8fafc;
+  --color-comic-white: #111420;
+  --color-brutal-cyan: #38bdf8;
+  --color-brutal-orange: #f43f5e;
+  --color-brutal-yellow: #f59e0b;
+  --color-brutal-pink: #f43f5e;
+  --color-brutal-green: #10b981;
+  --color-brutal-blue: #38bdf8;
+
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-syne: 'Syne', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-bangers: 'Bangers', cursive;
 
-  /* Force all rounded corners to strictly adhere to Neobrutalist tokens (4px or 0px) */
-  --radius-xs: 2px;
-  --radius-sm: 4px;
-  --radius-md: 4px;
-  --radius-lg: 4px;
-  --radius-xl: 4px;
-  --radius-2xl: 4px;
-  --radius-3xl: 4px;
-
-  /* Force all shadows to be solid, flat Neobrutalist drop shadows */
-  --shadow-sm: 2px 2px 0 #f2e9d8;
-  --shadow-md: 4px 4px 0 #f2e9d8;
-  --shadow-lg: 4px 4px 0 #f4c430;
-  --shadow-xl: 4px 4px 0 #ff4757;
-  --shadow-2xl: 6px 6px 0 #f2e9d8;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
 }
 
-/* Base resets */
+/* ============================================================
+   BASE RESETS & SCROLLBAR
+   ============================================================ */
 * {
   box-sizing: border-box;
 }
 
-*:focus-visible {
-  outline: 3px solid #ff4757 !important;
-  outline-offset: 2px !important;
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
-  background-color: #121008;
-  color: #f2e9d8;
+  background-color: #08090d;
+  color: #f8fafc;
   font-family: 'Plus Jakarta Sans', sans-serif;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-a, button, [role="button"], input[type="submit"], select, input[type="checkbox"], input[type="radio"] {
-  cursor: pointer;
-}
-
-/* Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #121008;
+  background: #08090d;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2b2820;
-  border: 2px solid #121008;
+  background: #1e2436;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f4c430;
+  background: #f59e0b;
 }
 
-/* Halftones */
-.halftone-red {
-  background-color: #ff4757;
-  background-image: radial-gradient(#00000035 1px, transparent 1.4px);
-  background-size: 6px 6px;
-}
-.halftone-blue {
-  background-color: #3aa6e0;
-  background-image: radial-gradient(#00000035 1px, transparent 1.4px);
-  background-size: 6px 6px;
-}
-.halftone-yellow {
-  background-color: #f4c430;
-  background-image: radial-gradient(#00000030 1px, transparent 1.4px);
-  background-size: 6px 6px;
-}
-.halftone-dark {
-  background-color: #2b2820;
-  background-image: radial-gradient(#f2e9d825 1px, transparent 1.4px);
-  background-size: 6px 6px;
+*:focus-visible {
+  outline: 2px solid #f59e0b !important;
+  outline-offset: 2px !important;
 }
 
-/* Comic / Zine Fonts & Typography */
-.font-bangers {
-  font-family: 'Bangers', cursive;
-  letter-spacing: 0.02em;
-  line-height: 1;
+/* ============================================================
+   TRANSITIONS.DEV EASINGS & TIMINGS
+   ============================================================ */
+:root {
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ease-bounce-soft: cubic-bezier(0.34, 1.45, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  --duration-fast: 200ms;
+  --duration-medium: 350ms;
+  --duration-slow: 500ms;
 }
 
-.text-outline {
-  font-family: 'Bangers', cursive;
-  letter-spacing: 0.02em;
-  text-shadow: 2px 2px 0 #ff4757;
+/* ============================================================
+   GLASSMORPHISM & SURFACE ELEVATION
+   ============================================================ */
+.glass-panel {
+  background: rgba(18, 22, 34, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
-.text-outline-white {
-  font-family: 'Bangers', cursive;
-  letter-spacing: 0.02em;
-  text-shadow: 2px 2px 0 #3aa6e0;
+.glass-card {
+  background: rgba(17, 20, 32, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all var(--duration-fast) var(--ease-smooth-out);
 }
 
-.font-heading {
-  font-family: 'Bangers', cursive;
-  letter-spacing: 0.02em;
-  line-height: 1;
+.glass-card:hover {
+  background: rgba(22, 27, 43, 0.8);
+  border-color: rgba(245, 158, 11, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5), 0 0 20px -4px rgba(245, 158, 11, 0.15);
 }
 
-/* Card layout settings */
-.brutal-border {
-  border: 3px solid #f2e9d8;
-  background-color: #1b1810;
-  border-radius: 4px;
-  box-shadow: 4px 4px 0 #f2e9d8;
-  transition: transform 0.15s, box-shadow 0.15s;
+.glass-input {
+  background: rgba(13, 16, 26, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: #f8fafc;
+  transition: all var(--duration-fast) var(--ease-smooth-out);
 }
 
-.brutal-border-highlight {
-  border: 3px solid #f2e9d8;
-  background-color: #1b1810;
-  border-radius: 4px;
-  box-shadow: 4px 4px 0 #f4c430;
+.glass-input:focus {
+  background: rgba(18, 22, 36, 0.95);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
 }
 
-.brutal-border-interactive {
-  border: 3px solid #f2e9d8;
-  background-color: #1b1810;
-  border-radius: 4px;
-  box-shadow: 4px 4px 0 #f2e9d8;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.brutal-border-interactive:hover {
-  transform: translateY(-4px);
-  box-shadow: 4px 4px 0 #f4c430;
+/* ============================================================
+   ACETERNITY & 21ST.DEV ANIMATIONS
+   ============================================================ */
+
+/* Shimmer Text */
+@keyframes shimmer-text {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-/* Speed line hover effect */
-.speed {
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(115deg, transparent 0 10px, rgba(242,233,216,0.08) 10px 11px);
-  opacity: 0;
-  transition: opacity 0.15s;
-  pointer-events: none;
-}
-.card:hover .speed {
-  opacity: 1;
+.shimmer-text {
+  background: linear-gradient(90deg, #94a3b8 0%, #f8fafc 45%, #f59e0b 50%, #f8fafc 55%, #94a3b8 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer-text 3.5s linear infinite;
 }
 
-/* Speech/Verdicts Bubble */
-.bubble {
-  background: #f2e9d8;
-  border: 2.5px solid #121008;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Bangers', cursive;
-  font-size: 13px;
-  color: #121008;
-  z-index: 2;
-  transform: rotate(-4deg);
+/* Border Beam */
+@keyframes border-beam {
+  0% { offset-distance: 0%; }
+  100% { offset-distance: 100%; }
 }
 
-.bitmap-hover {
-  transition: transform 0.15s;
-}
-.bitmap-hover:hover {
-  transform: scale(1.03);
-}
-
-/* Avatar Negative Mounted Cells */
-.dithered-avatar {
-  border: 2px solid #f2e9d8;
-  border-radius: 4px;
-}
-
-/* Slide Mount Polaroid mock */
-.polaroid-container {
-  background: #1b1810;
-  padding: 10px 10px 24px 10px;
-  border: 3px solid #f2e9d8;
-  border-radius: 4px;
-  box-shadow: 5px 5px 0 #f2e9d8;
-  transform: rotate(-2deg);
-}
-
-/* Industrial Modals */
-.win95-notepad {
-  background: #121008;
-  border: 3px solid #f2e9d8;
-  border-radius: 4px;
-  box-shadow: 8px 8px 0 #ff4757;
-  padding: 0;
+.border-beam-card {
+  position: relative;
   overflow: hidden;
 }
 
-.win95-titlebar {
-  background: #1b1810;
-  border-bottom: 3px solid #f2e9d8;
-  color: #f2e9d8;
-  padding: 12px 18px;
-  font-family: 'Bangers', cursive;
-  font-size: 18px;
-  letter-spacing: 0.05em;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.border-beam-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(245, 158, 11, 0.45) 0%, transparent 60%);
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
 }
 
-.win95-btn {
-  background: transparent;
-  border: 2px solid #f2e9d8;
-  color: #f2e9d8;
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-  cursor: pointer;
-}
-.win95-btn:hover {
-  background: #ff4757;
-  color: #121008;
+.border-beam-card:hover::before {
+  opacity: 1;
 }
 
-.win95-textarea {
-  background: #1b1810;
-  color: #f2e9d8;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 14px;
-  border: 2px solid #f2e9d8;
-  border-radius: 4px;
-  outline: none;
-  transition: all 0.15s ease;
-}
-.win95-textarea:focus {
-  border-color: #f4c430;
+/* Aurora Backdrop Mesh */
+@keyframes aurora-pulse {
+  0%, 100% {
+    transform: scale(1) translate(-50%, -50%);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.08) translate(-49%, -52%);
+    opacity: 0.6;
+  }
 }
 
-/* Rating selectors */
-.ascii-rating-btn {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 6px 12px;
-  border: 2px solid #f2e9d8;
-  border-radius: 4px;
-  background: #1b1810;
-  color: #9c9484;
-  transition: all 0.15s ease;
-}
-.ascii-rating-btn:hover {
-  background: #2b2820;
-  color: #f4c430;
-}
-.ascii-rating-btn.active {
-  background: #f4c430;
-  color: #121008;
-  border-color: #f2e9d8;
+.aurora-glow {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;
+  max-width: 1100px;
+  height: 500px;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(245, 158, 11, 0.12) 0%, rgba(56, 189, 248, 0.08) 45%, rgba(168, 85, 247, 0.05) 70%, transparent 100%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  animation: aurora-pulse 12s ease-in-out infinite;
 }
 
-/* Retro Zine Buttons */
-.btn {
+/* Spotlight overlay */
+.spotlight-radial {
+  background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.06), transparent 40%);
+}
+
+/* Marquee ticker animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background-color: transparent;
-  color: #f2e9d8;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 12px;
-  padding: 12px 22px;
-  border: 3px solid #f2e9d8;
-  border-radius: 4px;
-  box-shadow: 4px 4px 0 #f2e9d8;
-  transition: transform 0.15s, box-shadow 0.15s;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.btn:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #f2e9d8;
-}
-.btn:active {
-  transform: translate(4px, 4px);
-  box-shadow: 0px 0px 0 #f2e9d8;
+  white-space: nowrap;
+  animation: marquee 28s linear infinite;
 }
 
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ============================================================
+   BUTTONS & BADGES
+   ============================================================ */
 .btn-primary {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #08090d;
+  font-weight: 700;
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: 0.02em;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px -2px rgba(245, 158, 11, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: all var(--duration-fast) var(--ease-smooth-out);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background-color: #f4c430;
-  color: #121008;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 12px;
-  padding: 12px 22px;
-  border: 3px solid #f2e9d8;
-  border-radius: 4px;
-  box-shadow: 4px 4px 0 #f2e9d8;
-  transition: transform 0.15s, box-shadow 0.15s;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  gap: 0.5rem;
 }
+
 .btn-primary:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #f2e9d8;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px -2px rgba(245, 158, 11, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
+
 .btn-primary:active {
-  transform: translate(4px, 4px);
-  box-shadow: 0px 0px 0 #f2e9d8;
+  transform: scale(0.98);
 }
 
 .btn-secondary {
+  background: rgba(22, 27, 43, 0.7);
+  backdrop-filter: blur(8px);
+  color: #f8fafc;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all var(--duration-fast) var(--ease-smooth-out);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background-color: transparent;
-  color: #f2e9d8;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 12px;
-  padding: 12px 22px;
-  border: 3px solid #f2e9d8;
-  border-radius: 4px;
-  box-shadow: 4px 4px 0 #f2e9d8;
-  transition: transform 0.15s, box-shadow 0.15s;
-  text-align: center;
-  text-transform: uppercase;
+  gap: 0.5rem;
 }
+
 .btn-secondary:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #f2e9d8;
+  background: rgba(30, 36, 56, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
 }
 
 .btn-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background-color: #ff4757;
-  color: #121008;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 12px;
-  padding: 12px 22px;
-  border: 3px solid #f2e9d8;
-  border-radius: 4px;
-  box-shadow: 4px 4px 0 #f2e9d8;
-  transition: transform 0.15s, box-shadow 0.15s;
-  text-align: center;
-  text-transform: uppercase;
-}
-.btn-danger:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #f2e9d8;
+  background: rgba(244, 63, 94, 0.15);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all var(--duration-fast) var(--ease-smooth-out);
 }
 
-/* Floating Action Button */
-.brutal-log-btn {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 99;
-  background: #f4c430;
-  color: #121008;
-  border: 3px solid #f2e9d8;
-  padding: 12px 24px;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  border-radius: 4px;
-  box-shadow: 4px 4px 0 #f2e9d8;
-  transition: transform 0.15s, box-shadow 0.15s;
+.btn-danger:hover {
+  background: rgba(244, 63, 94, 0.3);
+  border-color: #f43f5e;
 }
-.brutal-log-btn:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #f2e9d8;
+
+/* Neobrutalist compatibility wrappers with sleek modern uplift */
+.brutal-border {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #111420;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s var(--ease-smooth-out), border-color 0.2s, box-shadow 0.2s;
 }
+
+.brutal-border:hover {
+  border-color: rgba(245, 158, 11, 0.25);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.1);
+}
+
+.brutal-border-interactive {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background-color: #111420;
+  transition: all 0.25s var(--ease-smooth-out);
+}
+
+.brutal-border-interactive:hover {
+  border-color: #f59e0b;
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 24px -4px rgba(245, 158, 11, 0.25);
+}
+
+/* ============================================================
+   POLAROID GALLERY DIARY TILT
+   ============================================================ */
+.polaroid-container {
+  background: #181c2b;
+  padding: 10px 10px 18px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s;
+}
+
+.polaroid-container:hover {
+  z-index: 10;
+  transform: scale(1.06) rotate(0deg) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 25px rgba(245, 158, 11, 0.3);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+/* Skeleton Loading Shimmer */
+@keyframes skeleton-shimmer {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.4; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #111420 25%, #1b2033 50%, #111420 75%);
+  background-size: 200% 100%;
+  animation: shimmer-text 2s infinite linear;
+  border-radius: 8px;
+}
+
+/* ============================================================
+   REACT BITS ANIMATIONS & UTILITIES
+   ============================================================ */
+@keyframes shine {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.animate-shine {
+  animation: shine 3s linear infinite;
+}
+
+@keyframes laser-flow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.laser-glow-border {
+  position: relative;
+  overflow: hidden;
+}
+
+.laser-glow-border::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(transparent, rgba(245, 158, 11, 0.8), transparent 30%);
+  animation: laser-flow 4s linear infinite;
+  z-index: 0;
+}
+

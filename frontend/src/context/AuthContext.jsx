@@ -23,12 +23,14 @@ export function AuthProvider({ children }) {
           const userData = await res.json();
           setUser(userData);
         } else {
-          // Token expired or invalid
+          // Stale or expired token
           localStorage.removeItem('plothole_token');
           setUser(null);
         }
       } catch (err) {
         console.error('Failed to load user:', err);
+        localStorage.removeItem('plothole_token');
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -82,12 +84,17 @@ export function AuthProvider({ children }) {
       body: JSON.stringify({ bio, avatar_url: avatarUrl })
     });
 
+    if (res.status === 401 || res.status === 403) {
+      logout();
+      throw new Error('Your session has expired. Please sign in again.');
+    }
+
     if (!res.ok) {
       const data = await res.json();
       throw new Error(data.error || 'Failed to update profile');
     }
 
-    setUser(prev => ({ ...prev, bio, avatar_url: avatarUrl }));
+    setUser((prev) => ({ ...prev, bio, avatar_url: avatarUrl }));
   };
 
   const value = {

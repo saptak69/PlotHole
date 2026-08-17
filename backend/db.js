@@ -18,7 +18,11 @@ if (process.env.DATABASE_URL) {
     connectionString: process.env.DATABASE_URL,
     ssl: {
       rejectUnauthorized: false
-    }
+    },
+    connectionTimeoutMillis: 3000,
+    idleTimeoutMillis: 30000,
+    max: 20,
+    keepAlive: true
   });
   isPostgres = true;
 } else {
@@ -86,6 +90,7 @@ export async function initDb() {
       password_hash TEXT NOT NULL,
       avatar_url TEXT,
       bio TEXT,
+      display_name TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -100,7 +105,8 @@ export async function initDb() {
       review_text TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (diary_id) REFERENCES diary(id) ON DELETE CASCADE
     );
   `;
 
@@ -123,8 +129,10 @@ export async function initDb() {
       rating REAL,
       watched_date TEXT NOT NULL,
       review_id TEXT,
+      status TEXT DEFAULT 'watched',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE SET NULL
     );
   `;
 
@@ -139,6 +147,67 @@ export async function initDb() {
     );
   `;
 
+  const reviewLikesTable = `
+    CREATE TABLE IF NOT EXISTS review_likes (
+      user_id TEXT NOT NULL,
+      review_id TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, review_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE
+    );
+  `;
+
+  const reviewCommentsTable = `
+    CREATE TABLE IF NOT EXISTS review_comments (
+      id TEXT PRIMARY KEY,
+      review_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      comment_text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (review_id) REFERENCES reviews(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `;
+
+  const listsTable = `
+    CREATE TABLE IF NOT EXISTS lists (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      is_private INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `;
+
+  const listItemsTable = `
+    CREATE TABLE IF NOT EXISTS list_items (
+      list_id TEXT NOT NULL,
+      tmdb_movie_id INTEGER NOT NULL,
+      media_type TEXT DEFAULT 'movie',
+      title TEXT,
+      poster_path TEXT,
+      release_date TEXT,
+      added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (list_id, tmdb_movie_id),
+      FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
+    );
+  `;
+
+  const listLikesTable = `
+    CREATE TABLE IF NOT EXISTS list_likes (
+      list_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (list_id, user_id),
+      FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `;
+
   if (isPostgres) {
     try {
       // Test PostgreSQL connection
@@ -149,8 +218,17 @@ export async function initDb() {
       await pgPool.query(watchlistTable);
       await pgPool.query(diaryTable);
       await pgPool.query(followsTable);
+      await pgPool.query(reviewLikesTable);
+      await pgPool.query(reviewCommentsTable);
+      await pgPool.query(listsTable);
+      await pgPool.query(listItemsTable);
+      await pgPool.query(listLikesTable);
       console.log('Database tables initialized successfully on PostgreSQL!');
     } catch (err) {
+      if (process.env.NODE_ENV === 'production') {
+        console.error('CRITICAL: PostgreSQL connection/initialization failed in PRODUCTION mode. Startup terminated.', err);
+        process.exit(1);
+      }
       console.error('PostgreSQL connection/initialization failed. Falling back to local SQLite database...', err);
       isPostgres = false;
       usingFallback = true;
@@ -165,6 +243,11 @@ export async function initDb() {
       await execute(watchlistTable);
       await execute(diaryTable);
       await execute(followsTable);
+      await execute(reviewLikesTable);
+      await execute(reviewCommentsTable);
+      await execute(listsTable);
+      await execute(listItemsTable);
+      await execute(listLikesTable);
       console.log('Database tables initialized successfully on SQLite fallback database!');
     }
   } else {
@@ -174,6 +257,11 @@ export async function initDb() {
     await execute(watchlistTable);
     await execute(diaryTable);
     await execute(followsTable);
+    await execute(reviewLikesTable);
+    await execute(reviewCommentsTable);
+    await execute(listsTable);
+    await execute(listItemsTable);
+    await execute(listLikesTable);
     console.log('Database tables initialized successfully on SQLite database!');
   }
 
@@ -194,6 +282,37 @@ export async function initDb() {
   await runMigration('ALTER TABLE diary ADD COLUMN review_id TEXT', 'ALTER TABLE diary ADD COLUMN review_id TEXT');
   await runMigration('ALTER TABLE reviews ADD COLUMN diary_id TEXT', 'ALTER TABLE reviews ADD COLUMN diary_id TEXT');
   await runMigration('ALTER TABLE reviews ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP', 'ALTER TABLE reviews ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+  await runMigration('ALTER TABLE users ADD COLUMN display_name TEXT', 'ALTER TABLE users ADD COLUMN display_name TEXT');
+  await runMigration('ALTER TABLE diary ADD COLUMN status TEXT DEFAULT \'watched\'', 'ALTER TABLE diary ADD COLUMN status TEXT DEFAULT \'watched\'');
+
+  // Create database indexes for frequently queried fields
+  const createIndexes = async () => {
+    const indexes = [
+      'CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);',
+      'CREATE INDEX IF NOT EXISTS idx_reviews_movie_id ON reviews(tmdb_movie_id);',
+      'CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews(user_id);',
+      'CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at);',
+      'CREATE INDEX IF NOT EXISTS idx_diary_user_id ON diary(user_id);',
+      'CREATE INDEX IF NOT EXISTS idx_diary_movie_id ON diary(tmdb_movie_id);',
+      'CREATE INDEX IF NOT EXISTS idx_follows_follower_id ON follows(follower_id);',
+      'CREATE INDEX IF NOT EXISTS idx_follows_following_id ON follows(following_id);',
+      'CREATE INDEX IF NOT EXISTS idx_review_comments_review_id ON review_comments(review_id);',
+      'CREATE INDEX IF NOT EXISTS idx_lists_user_id ON lists(user_id);',
+      'CREATE INDEX IF NOT EXISTS idx_list_items_list_id ON list_items(list_id);'
+    ];
+    for (const sql of indexes) {
+      try {
+        if (isPostgres) {
+          await pgPool.query(sql);
+        } else {
+          await execute(sql);
+        }
+      } catch (e) {
+        // Index might already exist or error can be ignored
+      }
+    }
+  };
+  await createIndexes();
 }
 
 export async function withTransaction(callback) {

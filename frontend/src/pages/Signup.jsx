@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, Film } from 'lucide-react';
+import { AlertCircle, Film, Sparkles, Lock, Mail, User, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Signup() {
@@ -40,91 +40,105 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center py-16 px-6 font-mono text-[#f2e9d8] bg-[#121008]">
-      <div className="relative w-full max-w-md brutal-border p-8 bg-[#1b1810] overflow-hidden">
-        {/* Retro Ticket Cutouts */}
-        <div className="absolute -left-4 top-24 w-8 h-8 rounded-full bg-[#121008] border-3 border-brand-border z-20" />
-        <div className="absolute -right-4 top-24 w-8 h-8 rounded-full bg-[#121008] border-3 border-brand-border z-20" />
-        
-        {/* Ticket Header */}
+    <div className="flex-1 flex items-center justify-center py-20 px-6 font-sans text-slate-100 relative">
+      <div className="aurora-glow opacity-60" />
+
+      <div 
+        className="relative w-full max-w-md rounded-2xl border border-white/15 bg-[#0e111a]/90 backdrop-blur-2xl p-8 overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.8),0_0_40px_rgba(245,158,11,0.1)] z-10"
+        style={{ animation: 'fade-up 300ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
+      >
+        {/* Ambient Top Glow */}
+        <div className="absolute top-0 inset-x-0 h-28 bg-gradient-to-b from-amber-500/20 via-transparent to-transparent pointer-events-none" />
+
+        {/* Header */}
         <div className="text-center pb-6 space-y-2 relative">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <Film className="w-4 h-4 text-[#9c9484]" />
-            <span className="font-extrabold text-[10px] tracking-widest text-[#9c9484] uppercase">CINEMA ACCESS // REGISTER ACCESS</span>
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-400 mx-auto mb-3 shadow-lg">
+            <Film className="w-6 h-6" />
           </div>
-          <h2 className="text-2xl font-black uppercase text-brand-text tracking-tight font-bangers">Join PlotHole</h2>
-          <p className="text-[9px] text-[#ff4757] font-bold tracking-widest uppercase">NEW PILOT ADMIT INTERFACE // #0807-PH</p>
+          <h2 className="text-2xl md:text-3xl font-display font-extrabold text-white tracking-tight">
+            Join the Cinephiles
+          </h2>
+          <p className="text-xs text-slate-400 font-sans">
+            Log movies, share ratings, and discover cinema masterpieces
+          </p>
         </div>
 
-        {/* Dashed line separating ticket stub */}
-        <div className="border-t-3 border-dashed border-brand-border/40 my-1 mx-[-32px] relative z-10" />
-
         {/* Form Content */}
-        <div className="pt-6 space-y-6">
+        <div className="space-y-5">
           {error && (
-            <div className="p-3 border-2 border-red-500 bg-red-500/10 text-red-500 rounded-sm flex items-start gap-2.5 text-xs font-mono">
+            <div className="p-3.5 border border-rose-500/30 bg-rose-500/10 text-rose-400 rounded-xl flex items-start gap-2.5 text-xs font-sans">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span className="font-semibold text-left">{error}</span>
+              <span className="text-left leading-relaxed">{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-left font-mono">
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold uppercase text-[#9c9484] tracking-wider">
-                Set Username (Min 3 chars)
+          <form onSubmit={handleSubmit} className="space-y-4 text-left font-sans">
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-mono font-bold uppercase text-slate-300 tracking-wider">
+                Username
               </label>
-              <input
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-[#121008] text-[#f2e9d8] border-2 border-brand-border px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-[#f4c430] transition-all uppercase placeholder-brand-text-muted/40 font-mono"
-                placeholder="CHOOSE ALIAS..."
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-black/40 text-slate-100 border border-white/10 px-4 py-3 pl-10 text-xs rounded-xl focus:outline-none focus:border-amber-400/60 focus:bg-black/80 transition-all placeholder:text-slate-500"
+                  placeholder="cinephile_alias"
+                />
+                <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold uppercase text-[#9c9484] tracking-wider">
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-mono font-bold uppercase text-slate-300 tracking-wider">
                 Email Address
               </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#121008] text-[#f2e9d8] border-2 border-brand-border px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-[#f4c430] transition-all uppercase placeholder-brand-text-muted/40 font-mono"
-                placeholder="ALIAS@DOMAIN.COM"
-              />
+              <div className="relative">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-black/40 text-slate-100 border border-white/10 px-4 py-3 pl-10 text-xs rounded-xl focus:outline-none focus:border-amber-400/60 focus:bg-black/80 transition-all placeholder:text-slate-500"
+                  placeholder="name@domain.com"
+                />
+                <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold uppercase text-[#9c9484] tracking-wider">
-                Create Passcode (Min 6 chars)
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-mono font-bold uppercase text-slate-300 tracking-wider">
+                Password (Min 6 characters)
               </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#121008] text-[#f2e9d8] border-2 border-brand-border px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-[#f4c430] transition-all placeholder-brand-text-muted/40 font-mono"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-black/40 text-slate-100 border border-white/10 px-4 py-3 pl-10 text-xs rounded-xl focus:outline-none focus:border-amber-400/60 focus:bg-black/80 transition-all placeholder:text-slate-500"
+                  placeholder="••••••••"
+                />
+                <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+              </div>
             </div>
 
             <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full btn-primary py-3"
+                className="w-full btn-primary py-3 text-xs flex items-center justify-center gap-2 shadow-lg"
               >
-                {loading ? 'Registering Access...' : 'Create Access Node'}
+                <span>{loading ? 'Creating Account...' : 'Join PlotHole Free'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </form>
 
-          <p className="text-center text-xs text-[#9c9484] pt-4 border-t border-brand-border/20 uppercase font-mono">
-            Already have an access node?{' '}
-            <Link to="/login" className="text-[#3aa6e0] hover:underline font-bold transition-colors">
+          <p className="text-center text-xs text-slate-400 pt-4 border-t border-white/10 font-sans">
+            Already have an account?{' '}
+            <Link to="/login" className="text-amber-400 hover:text-amber-300 font-semibold transition-colors">
               Sign In here
             </Link>
           </p>

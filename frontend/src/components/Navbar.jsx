@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, LogOut, Bookmark, Users, Menu, X } from 'lucide-react';
+import { Search, Film, Users, FolderPlus, LogOut, Menu, X, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
 
@@ -8,36 +8,38 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const searchInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const [visible, setVisible] = useState(true);
-  const [scrolled, setScrolled] = useState(false);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      // 1. Add/remove tint based on whether we are at the very top (y = 0)
-      if (currentScrollY > 10) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-
-      // 2. Hide when scrolling down, show when scrolling up
-      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
         setVisible(false);
       } else {
         setVisible(true);
       }
-
       lastScrollY.current = currentScrollY;
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Global Ctrl+K / Cmd+K search shortcut
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const isActive = (path) => location.pathname === path;
@@ -55,122 +57,168 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`sticky z-50 transition-all duration-300 select-none py-4 px-6 md:px-12 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 border-b-3 border-brand-border bg-[#121008] ${
-      visible ? 'top-0' : '-top-32 md:-top-28'
-    }`}>
-      
-      {/* Top Header Row: Logo & Hamburger button */}
-      <div className="flex items-center justify-between w-full md:w-auto">
-        <Link to="/" className="flex items-center gap-3 transition-transform hover:opacity-95" onClick={handleLinkClick}>
-          <div className="w-[42px] h-[42px] border-3 border-brand-border rounded-full flex items-center justify-center bg-[#f4c430] text-[#121008] font-bangers text-[22px] transform rotate-[-6deg] shadow-md">
-            P!
+    <header
+      className={`sticky z-50 transition-all duration-300 select-none py-3.5 px-6 md:px-12 border-b border-white/8 bg-[#090b12]/90 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)] ${
+        visible ? 'top-0' : '-top-28'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
+        {/* Brand Logo */}
+        <Link to="/" className="flex items-center gap-3 group" onClick={handleLinkClick}>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-[#090b12] shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-transform group-hover:scale-105">
+            <Film className="w-4 h-4 stroke-[2.5]" />
           </div>
-          <div className="flex flex-col text-left">
-            <span className="font-bangers text-[30px] tracking-wide leading-none text-brand-text">
-              Plot<span className="text-[#ff4757]">Hole</span>
-            </span>
-            <span className="font-mono text-[9px] tracking-widest text-brand-text-muted uppercase font-bold mt-1">
-              The Cinema Chronicles
-            </span>
-          </div>
+          <span className="font-display font-bold text-xl tracking-tight text-white flex items-center gap-1">
+            Plot<span className="text-amber-400">Hole</span>
+          </span>
         </Link>
 
-        {/* Mobile Toggle Trigger */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden w-10 h-10 bg-[#1b1810] border-3 border-brand-border flex items-center justify-center hover:bg-[#2b2820] text-brand-text transition-colors"
-          aria-label="Toggle navigation menu"
-        >
-          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-      </div>
+        {/* Desktop Navigation Links */}
+        <nav className="hidden md:flex items-center gap-1 bg-white/5 border border-white/8 p-1 rounded-xl">
+          <Link
+            to="/"
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
+              isActive('/')
+                ? 'bg-amber-500 text-[#090b12] shadow-sm font-bold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Discover
+          </Link>
+          <Link
+            to="/social"
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
+              isActive('/social')
+                ? 'bg-amber-500 text-[#090b12] shadow-sm font-bold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Community
+          </Link>
+          <Link
+            to="/lists"
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
+              isActive('/lists')
+                ? 'bg-amber-500 text-[#090b12] shadow-sm font-bold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Lists
+          </Link>
+        </nav>
 
-      {/* Collapsible Menu: Search bar and Links */}
-      <div className={`${
-        isOpen ? 'flex' : 'hidden'
-      } md:flex flex-col md:flex-row items-center gap-6 w-full md:w-auto pb-4 md:pb-0 pt-3 md:pt-0 bg-[#121008] md:bg-transparent p-4 md:p-0 border-3 border-brand-border md:border-none mt-2 md:mt-0`}>
-        
-        {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="relative w-full md:w-auto">
-          <input
-            type="text"
-            placeholder="Search movies, TV shows..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full md:w-64 bg-[#1b1810] text-brand-text font-medium border-2 border-brand-border px-4 py-2 pl-9 text-xs placeholder-[#9c9484] focus:outline-none focus:border-[#f4c430] transition-all md:focus:w-80"
-          />
-          <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-[#9c9484]" />
-          <button type="submit" className="hidden">Search</button>
-        </form>
+        {/* Search & User Profile */}
+        <div className="flex items-center gap-3">
+          {/* Universal Search Bar */}
+          <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search films, series, people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-56 md:w-72 bg-white/5 hover:bg-white/8 text-slate-100 text-xs px-3.5 py-2 pl-9 pr-10 rounded-xl border border-white/10 focus:outline-none focus:border-amber-400/60 focus:w-80 transition-all placeholder:text-slate-500"
+            />
+            <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
+            <kbd className="absolute right-2.5 top-2 px-1.5 py-0.5 rounded bg-white/10 text-[9px] font-mono text-slate-400 border border-white/10 pointer-events-none">
+              ⌘K
+            </kbd>
+          </form>
 
-        {/* Navigation Links */}
-        <div className="flex flex-col md:flex-row items-center gap-5 w-full md:w-auto">
+          {/* User Account / Sign In */}
           {user ? (
-            <>
-              <Link 
-                to="/social" 
-                onClick={handleLinkClick}
-                className={`${
-                  isActive('/social')
-                    ? 'bg-[#ff4757] text-[#121008] border-brand-border shadow-[2px_2px_0_#f2e9d8] rotate-[-2deg]'
-                    : 'bg-[#1b1810] text-[#f2e9d8] border-brand-border/40 hover:border-brand-border hover:bg-[#ff4757]/10 hover:text-[#ff4757] hover:rotate-[1deg]'
-                } flex items-center justify-center gap-1.5 text-[10px] font-mono font-bold tracking-wider uppercase px-4 py-2 border-2 transition-all transform select-none w-full md:w-auto`}
+            <div className="flex items-center gap-3 pl-2 border-l border-white/10">
+              <Link
+                to={`/profile/${user.username}`}
+                className="flex items-center gap-2 py-1 px-2.5 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all"
+                title="View your diary & profile"
               >
-                <Users className="w-3.5 h-3.5" />
-                <span>Cine-Feed</span>
+                <Avatar username={user.username} url={user.avatar_url} className="w-7 h-7 border border-amber-400/30" />
+                <span className="hidden md:inline font-mono text-xs font-semibold text-slate-200">
+                  @{user.username}
+                </span>
               </Link>
-
-
-              {/* Profile Info */}
-              <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto md:pl-4 border-t-3 md:border-t-0 md:border-l-3 border-brand-border pt-3 md:pt-0">
-                <Link 
-                  to={`/profile/${user.username}`} 
-                  onClick={handleLinkClick}
-                  className="flex items-center gap-2 group py-1"
-                >
-                  <Avatar
-                    username={user.username}
-                    url={user.avatar_url}
-                    className="w-6 h-6 border-2 border-brand-border group-hover:border-[#ff4757] transition-colors rounded-none"
-                  />
-                  <span className="text-xs font-mono font-bold text-brand-text group-hover:text-[#ff4757] transition-colors tracking-wider">
-                    @{user.username}
-                  </span>
-                </Link>
-                <button
-                  onClick={() => {
-                    logout();
-                    handleLinkClick();
-                  }}
-                  title="Log Out"
-                  className="text-[#9c9484] hover:text-[#ff4757] p-2 hover:bg-[#ff4757]/5 transition-colors w-full md:w-auto flex items-center justify-center gap-1.5 md:gap-0 border-2 border-brand-border md:border-0 rounded-none text-xs font-mono font-bold uppercase tracking-wider"
-                >
-                  <LogOut className="w-3.5 h-3.5 md:inline" />
-                  <span className="md:hidden">Log Out</span>
-                </button>
-              </div>
-            </>
+              <button
+                onClick={logout}
+                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-white/8 flex items-center justify-center transition-all"
+                title="Sign Out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
           ) : (
-            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto border-t-3 md:border-t-0 border-brand-border pt-3 md:pt-0">
+            <div className="flex items-center gap-2">
               <Link
                 to="/login"
-                onClick={handleLinkClick}
-                className="text-[#9c9484] hover:text-brand-text text-xs font-mono font-bold uppercase tracking-wider py-1.5"
+                className="px-3.5 py-1.5 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 to="/signup"
-                onClick={handleLinkClick}
-                className="btn-primary px-4 py-2 w-full md:w-auto"
+                className="btn-primary px-4 py-1.5 text-xs font-bold shadow-md"
               >
-                Create Account
+                Join Free
               </Link>
             </div>
           )}
-        </div>
 
+          {/* Mobile Menu Trigger */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white"
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
-    </nav>
+
+      {/* Mobile Drawer */}
+      {isOpen && (
+        <div className="md:hidden pt-4 pb-2 border-t border-white/10 mt-3 space-y-3">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <input
+              type="text"
+              placeholder="Search films, series..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white/5 text-slate-100 text-xs px-3.5 py-2.5 pl-9 rounded-xl border border-white/10"
+            />
+            <Search className="absolute left-3 top-3 w-3.5 h-3.5 text-slate-400" />
+          </form>
+
+          <div className="flex flex-col gap-1 text-left">
+            <Link
+              to="/"
+              onClick={handleLinkClick}
+              className={`px-3.5 py-2 rounded-lg text-xs font-semibold ${
+                isActive('/') ? 'bg-amber-500 text-black font-bold' : 'text-slate-300'
+              }`}
+            >
+              Discover
+            </Link>
+            <Link
+              to="/social"
+              onClick={handleLinkClick}
+              className={`px-3.5 py-2 rounded-lg text-xs font-semibold ${
+                isActive('/social') ? 'bg-amber-500 text-black font-bold' : 'text-slate-300'
+              }`}
+            >
+              Community
+            </Link>
+            <Link
+              to="/lists"
+              onClick={handleLinkClick}
+              className={`px-3.5 py-2 rounded-lg text-xs font-semibold ${
+                isActive('/lists') ? 'bg-amber-500 text-black font-bold' : 'text-slate-300'
+              }`}
+            >
+              Lists
+            </Link>
+          </div>
+        </div>
+      )}
+    </header>
   );
 }
