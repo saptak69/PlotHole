@@ -994,8 +994,9 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
 });
 
 // Get reviews for a movie
-app.get('/api/reviews/movie/:movieId', async (req, res) => {
+const handleGetMovieReviews = async (req, res) => {
   try {
+    const movieId = req.params.movieId || req.params.id;
     const reviews = await query(
       `SELECT r.*, u.username, u.avatar_url 
        FROM reviews r 
@@ -1003,23 +1004,27 @@ app.get('/api/reviews/movie/:movieId', async (req, res) => {
        JOIN diary d ON r.diary_id = d.id
        WHERE r.tmdb_movie_id = $1 AND d.status = 'watched' AND r.review_text != ''
        ORDER BY r.created_at DESC`,
-      [req.params.movieId]
+      [movieId]
     );
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+};
+
+app.get('/api/reviews/movie/:movieId', handleGetMovieReviews);
+app.get('/api/movies/:id/reviews', handleGetMovieReviews);
 
 // Get rating distribution for a movie
-app.get('/api/reviews/movie/:movieId/distribution', async (req, res) => {
+const handleGetRatingDistribution = async (req, res) => {
   try {
+    const movieId = req.params.movieId || req.params.id;
     const ratings = await query(
       `SELECT rating, COUNT(*) as count 
        FROM diary 
        WHERE tmdb_movie_id = $1 AND rating IS NOT NULL AND status = 'watched'
        GROUP BY rating`,
-      [req.params.movieId]
+      [movieId]
     );
 
     const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
@@ -1042,7 +1047,10 @@ app.get('/api/reviews/movie/:movieId/distribution', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+};
+
+app.get('/api/reviews/movie/:movieId/distribution', handleGetRatingDistribution);
+app.get('/api/movies/:id/reviews/distribution', handleGetRatingDistribution);
 
 // Get all reviews
 app.get('/api/reviews', async (req, res) => {
@@ -1508,7 +1516,7 @@ app.get('/api/diary/user/:userId', async (req, res) => {
 });
 
 // Check if movie is watched
-app.get('/api/diary/check/:movieId', authenticateToken, async (req, res) => {
+const handleCheckWatched = async (req, res) => {
   try {
     const existing = await queryOne(
       "SELECT 1 FROM diary WHERE user_id = $1 AND tmdb_movie_id = $2 AND status = 'watched' LIMIT 1",
@@ -1518,7 +1526,10 @@ app.get('/api/diary/check/:movieId', authenticateToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+};
+
+app.get('/api/diary/check/:movieId', authenticateToken, handleCheckWatched);
+app.get('/api/diary/check-watched/:movieId', authenticateToken, handleCheckWatched);
 
 // Toggle watched status
 app.post('/api/diary/toggle-watched', authenticateToken, async (req, res) => {

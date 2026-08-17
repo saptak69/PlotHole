@@ -13,7 +13,7 @@ export default function ShareCardModal({ movie, review, rating, username, isOpen
   const year = (movie.release_date || movie.first_air_date || '').split('-')[0];
 
   const handleCopyText = () => {
-    const textToCopy = `FILM: "${title}" (${year})\nRating: ${rating || 5}/5\n\n"${review || 'Watched on PlotHole!'}"\n\n— Logged by @${username || 'cinephile'} on PlotHole Cinema Chronicles`;
+    const textToCopy = `FILM: "${title}" (${year})\nRating: ${rating || 5}/5\n\n"${review || 'Watched on PlotHole!'}"\n\n— Reviewed by @${username || 'cinephile'} on PlotHole Cinema Chronicles`;
 
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
@@ -64,7 +64,7 @@ export default function ShareCardModal({ movie, review, rating, username, isOpen
               {/* Header */}
               <div className="flex justify-between items-start border-b border-white/10 pb-3">
                 <span className="font-display font-bold text-xs text-amber-400 uppercase tracking-widest">PLOTHOLE CHRONICLES</span>
-                <span className="font-mono text-[10px] text-slate-400">LOGGED BY @{username || 'CINEPHILE'}</span>
+                <span className="font-mono text-[10px] text-slate-400">REVIEWED BY @{username || 'CINEPHILE'}</span>
               </div>
 
               {/* Film details */}

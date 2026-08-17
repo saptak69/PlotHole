@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Play, X, Film, Loader2, Star, Sparkles, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
-import { getBackdropUrl, getPosterUrl, API_URL } from '../config';
+import { Play, X, Film, Loader2, Star, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { getBackdropUrl, API_URL } from '../config';
 
 /**
  * TrailerHero Component
- * Cinematic panoramic banner with "Watch Trailer" button and optional slideshow controls.
+ * Cinematic panoramic banner with subtle transparent "Watch Trailer" button and mobile-responsive layout.
  */
 export default function TrailerHero({
   movie,
@@ -98,10 +98,10 @@ export default function TrailerHero({
           {/* Close Button */}
           <button
             onClick={handleStopTrailer}
-            className="absolute top-4 right-4 z-30 px-3.5 py-1.5 rounded-full bg-black/70 hover:bg-black/90 text-slate-200 hover:text-white border border-white/20 text-xs font-mono font-semibold flex items-center gap-1.5 backdrop-blur-md transition-all shadow-xl cursor-pointer"
+            className="absolute top-3 right-3 md:top-4 md:right-4 z-30 px-3 py-1.5 rounded-full bg-black/80 hover:bg-black text-slate-200 hover:text-white border border-white/20 text-xs font-mono font-semibold flex items-center gap-1.5 backdrop-blur-md transition-all shadow-xl cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
-            <span>Close Trailer</span>
+            <span>Close</span>
           </button>
 
           {loading ? (
@@ -110,13 +110,13 @@ export default function TrailerHero({
               <span>Loading Official Cinema Stream...</span>
             </div>
           ) : error || !videoKey ? (
-            <div className="text-center p-8 space-y-3 font-sans max-w-md">
+            <div className="text-center p-6 md:p-8 space-y-3 font-sans max-w-md">
               <Film className="w-10 h-10 text-amber-400/60 mx-auto mb-2" />
               <h4 className="text-sm font-display font-bold text-slate-200 uppercase">
-                Trailer Video Unavailable in Archive
+                Trailer Video Unavailable
               </h4>
               <p className="text-xs text-slate-400">
-                No direct YouTube stream found for this title. Search directly on YouTube:
+                No direct YouTube stream found. Search directly on YouTube:
               </p>
               <div className="pt-2 flex justify-center gap-2">
                 <a
@@ -132,7 +132,7 @@ export default function TrailerHero({
                   onClick={handleStopTrailer}
                   className="btn-secondary text-xs py-2 px-4 cursor-pointer"
                 >
-                  Back to Banner
+                  Back
                 </button>
               </div>
             </div>
@@ -148,7 +148,7 @@ export default function TrailerHero({
         </div>
       ) : (
         /* ================= CINEMATIC BACKDROP BANNER ================= */
-        <div className="relative aspect-[16/8] md:aspect-[21/9] w-full group overflow-hidden">
+        <div className="relative aspect-[16/10] sm:aspect-[16/8] md:aspect-[21/9] w-full group overflow-hidden">
           {/* Backdrop Image */}
           {backdropUrl ? (
             <img
@@ -161,7 +161,7 @@ export default function TrailerHero({
           )}
 
           {/* Vignette Gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#090b12] via-[#090b12]/40 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#090b12] via-[#090b12]/50 to-transparent pointer-events-none" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#090b12]/90 via-[#090b12]/40 to-transparent pointer-events-none" />
 
           {/* Slideshow Arrow Controls (if provided) */}
@@ -171,10 +171,10 @@ export default function TrailerHero({
                 e.stopPropagation();
                 onPrev();
               }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/15 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 cursor-pointer"
+              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/40 hover:bg-black/80 text-white border border-white/15 backdrop-blur-md flex items-center justify-center opacity-80 md:opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 cursor-pointer"
               title="Previous Movie"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           )}
 
@@ -184,24 +184,24 @@ export default function TrailerHero({
                 e.stopPropagation();
                 onNext();
               }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/15 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 cursor-pointer"
+              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/40 hover:bg-black/80 text-white border border-white/15 backdrop-blur-md flex items-center justify-center opacity-80 md:opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 cursor-pointer"
               title="Next Movie"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           )}
 
-          {/* Centered Large Play Button Overlay */}
-          <div className="absolute inset-0 flex items-center justify-center z-20">
+          {/* Centered Subtle & Transparent Play Button */}
+          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
             <button
               onClick={handleStartTrailer}
-              className="group/btn flex items-center gap-3 px-6 py-3.5 rounded-full bg-[#090b12]/80 hover:bg-amber-500 text-white hover:text-black border border-amber-400/40 hover:border-amber-300 shadow-[0_10px_35px_rgba(0,0,0,0.8),0_0_25px_rgba(245,158,11,0.3)] backdrop-blur-xl transition-all duration-300 transform hover:scale-108 cursor-pointer"
+              className="pointer-events-auto group/btn flex items-center gap-2.5 px-4 py-2 md:px-5 md:py-2.5 rounded-full bg-black/35 hover:bg-black/60 text-white/90 hover:text-white border border-white/20 hover:border-white/45 shadow-[0_8px_30px_rgba(0,0,0,0.6)] backdrop-blur-md transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer"
               title="Play Official Trailer"
             >
-              <div className="w-8 h-8 rounded-full bg-amber-400 group-hover/btn:bg-black text-black group-hover/btn:text-amber-400 flex items-center justify-center transition-colors">
-                <Play className="w-4 h-4 fill-current ml-0.5" />
+              <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-white/15 group-hover/btn:bg-amber-400 group-hover/btn:text-black text-white flex items-center justify-center transition-colors">
+                <Play className="w-3 h-3 md:w-3.5 md:h-3.5 fill-current ml-0.5" />
               </div>
-              <span className="font-display font-bold text-xs md:text-sm tracking-wider uppercase">
+              <span className="font-sans font-medium text-xs md:text-sm tracking-wide text-slate-200 group-hover/btn:text-white">
                 Watch Trailer
               </span>
             </button>
@@ -209,30 +209,30 @@ export default function TrailerHero({
 
           {/* Bottom Title & Metadata Overlay */}
           {showMeta && (
-            <div className="absolute bottom-6 left-6 right-6 md:left-10 md:right-10 text-left z-20 pointer-events-none max-w-2xl">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-[10px] font-mono font-bold uppercase">
-                  {mediaType === 'tv' ? 'Series' : 'Feature Film'}
+            <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-10 md:right-10 text-left z-20 pointer-events-none max-w-2xl">
+              <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-[9px] md:text-[10px] font-mono font-bold uppercase">
+                  {mediaType === 'tv' ? 'Series' : 'Film'}
                 </span>
                 {year && (
-                  <span className="font-mono text-xs text-slate-300 bg-black/40 px-2 py-0.5 rounded border border-white/10">
+                  <span className="font-mono text-[10px] md:text-xs text-slate-300 bg-black/50 px-2 py-0.5 rounded border border-white/10">
                     {year}
                   </span>
                 )}
                 {rating && (
-                  <span className="font-mono text-xs text-amber-400 font-bold flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded border border-white/10">
-                    <Star className="w-3 h-3 fill-amber-400" />
+                  <span className="font-mono text-[10px] md:text-xs text-amber-400 font-bold flex items-center gap-1 bg-black/50 px-2 py-0.5 rounded border border-white/10">
+                    <Star className="w-2.5 h-2.5 md:w-3 md:h-3 fill-amber-400" />
                     {rating}
                   </span>
                 )}
               </div>
 
-              <h2 className="font-display font-extrabold text-2xl md:text-4xl text-white tracking-tight leading-tight drop-shadow-xl line-clamp-2">
+              <h2 className="font-display font-extrabold text-lg sm:text-2xl md:text-4xl text-white tracking-tight leading-tight drop-shadow-xl line-clamp-2">
                 {displayTitle}
               </h2>
 
               {movie?.overview && (
-                <p className="text-xs text-slate-300 font-sans mt-2 line-clamp-2 leading-relaxed drop-shadow max-w-xl hidden sm:block">
+                <p className="text-xs text-slate-300/90 font-sans mt-1.5 line-clamp-2 leading-relaxed drop-shadow max-w-xl hidden sm:block">
                   {movie.overview}
                 </p>
               )}

@@ -6,7 +6,7 @@ export default function ShortcutsModal({ isOpen, onClose }) {
 
   const shortcuts = [
     { key: '⌘ / Ctrl + K', description: 'Open Global Film & TV Search' },
-    { key: '⌘ / Ctrl + L', description: 'Quick Log a Movie / Show' },
+    { key: '⌘ / Ctrl + L', description: 'Quick Review a Movie / Show' },
     { key: 'Shift + A', description: 'Open AI Director Assistant' },
     { key: '?', description: 'Toggle Keyboard Shortcuts Modal' },
     { key: 'Esc', description: 'Close any active overlay or modal' }
