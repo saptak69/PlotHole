@@ -81,21 +81,21 @@ export default function SocialFeed() {
   const activeFeed = feedMode === 'following' ? feed : globalReviews;
 
   return (
-    <div className="flex-1 max-w-4xl mx-auto px-6 py-10 text-left font-sans space-y-8">
+    <div className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-6 md:space-y-8">
       {/* Page Header & Feed Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
-          <h1 className="font-display font-bold text-2xl md:text-3xl text-slate-100 flex items-center gap-2.5">
-            <Users className="w-6 h-6 text-amber-400" />
+          <h1 className="font-display font-bold text-xl sm:text-2xl md:text-3xl text-slate-100 flex items-center gap-2.5">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
             <span>Community Feed</span>
           </h1>
-          <p className="text-xs font-mono text-slate-400 mt-0.5">Live diary logs and ratings from fellow cinephiles</p>
+          <p className="text-xs font-mono text-slate-400 mt-0.5">Live reviews and ratings from fellow cinephiles</p>
         </div>
 
-        <div className="flex gap-2 p-1 bg-white/5 border border-white/10 rounded-xl">
+        <div className="flex gap-1.5 p-1 bg-white/5 border border-white/10 rounded-2xl self-start sm:self-auto">
           <button
             onClick={() => setFeedMode('following')}
-            className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-lg transition-all ${
+            className={`px-3.5 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer ${
               feedMode === 'following'
                 ? 'bg-amber-500 text-[#08090d] shadow-md'
                 : 'text-slate-400 hover:text-white'
@@ -105,7 +105,7 @@ export default function SocialFeed() {
           </button>
           <button
             onClick={() => setFeedMode('global')}
-            className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-lg transition-all ${
+            className={`px-3.5 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer ${
               feedMode === 'global'
                 ? 'bg-amber-500 text-[#08090d] shadow-md'
                 : 'text-slate-400 hover:text-white'
@@ -119,7 +119,7 @@ export default function SocialFeed() {
       {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-36 rounded-2xl bg-white/5 border border-white/10 skeleton-shimmer" />
+            <div key={i} className="h-32 rounded-2xl bg-white/5 border border-white/10 skeleton-shimmer" />
           ))}
         </div>
       ) : error ? (
@@ -128,11 +128,11 @@ export default function SocialFeed() {
         </div>
       ) : feedMode === 'following' && followingCount === 0 ? (
         <div className="space-y-6">
-          <div className="border border-white/10 bg-white/5 p-8 text-center text-slate-400 space-y-3 rounded-2xl shadow-xl">
-            <Users className="w-10 h-10 text-amber-400 mx-auto" />
-            <h3 className="font-display font-bold text-xl text-slate-100">Your Following Feed is Quiet</h3>
-            <p className="text-xs max-w-md mx-auto font-sans leading-relaxed">
-              You aren't following any critics yet! Discover fellow cinephiles below or switch to Global Stream to explore recent logs.
+          <div className="border border-white/10 bg-[#0e121e] p-6 sm:p-8 text-center text-slate-400 space-y-3 rounded-2xl shadow-xl">
+            <Users className="w-9 h-9 text-amber-400 mx-auto" />
+            <h3 className="font-display font-bold text-lg sm:text-xl text-slate-100">Your Following Feed is Quiet</h3>
+            <p className="text-xs max-w-md mx-auto font-sans leading-relaxed text-slate-300">
+              You aren't following any critics yet! Discover fellow cinephiles below or switch to Global Stream to explore recent community critiques.
             </p>
           </div>
 
@@ -154,13 +154,13 @@ export default function SocialFeed() {
           </div>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {activeFeed.length === 0 ? (
             <div className="border border-white/10 bg-white/5 p-10 text-center text-slate-400 text-xs font-mono rounded-2xl">
-              No activity logged yet in this stream.
+              No activity recorded yet in this stream.
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               {activeFeed.map((act, idx) => (
                 <SocialFeedItem key={act.id || idx} act={act} />
               ))}
@@ -168,7 +168,7 @@ export default function SocialFeed() {
           )}
 
           {suggestions.length > 0 && feedMode === 'following' && (
-            <div className="mt-10 border-t border-white/10 pt-6 space-y-3.5">
+            <div className="mt-8 border-t border-white/10 pt-6 space-y-3.5">
               <h3 className="text-xs font-mono font-bold text-slate-300 uppercase flex items-center gap-2">
                 <UserPlus className="w-4 h-4 text-amber-400" />
                 <span>Critics with Shared Movie Taste</span>
@@ -193,13 +193,13 @@ export default function SocialFeed() {
 
 function SuggestionCard({ sug, onFollow, isPending }) {
   return (
-    <div className="border border-white/10 bg-white/5 hover:bg-white/8 hover:border-amber-400/30 p-4 flex items-center gap-4 transition-all rounded-2xl shadow-md">
-      <Avatar username={sug.username} url={sug.avatar_url} className="w-10 h-10 border border-white/15" />
+    <div className="border border-white/10 bg-[#0e121e] hover:bg-[#131726] hover:border-amber-400/30 p-4 flex items-center gap-3.5 transition-all rounded-2xl shadow-md">
+      <Avatar username={sug.username} url={sug.avatar_url} className="w-10 h-10 border border-white/15 shrink-0" />
       <div className="text-left flex-1 min-w-0 font-sans">
-        <Link to={`/profile/${sug.username}`} className="font-mono font-bold text-slate-200 hover:text-amber-400 text-xs transition-colors">
+        <Link to={`/profile/${sug.username}`} className="font-mono font-bold text-slate-200 hover:text-amber-400 text-xs transition-colors block truncate">
           @{sug.username}
         </Link>
-        <p className="text-xs text-slate-400 truncate mt-0.5">
+        <p className="text-[11px] text-slate-400 truncate mt-0.5">
           {sug.mutual_count > 0 && (
             <span className="text-amber-400 font-mono font-semibold mr-1.5 inline-flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-amber-400" /> Shares {sug.mutual_count} films •
@@ -211,7 +211,7 @@ function SuggestionCard({ sug, onFollow, isPending }) {
       <button 
         onClick={() => onFollow(sug.id)} 
         disabled={isPending} 
-        className="btn-primary px-4 py-1.5 text-xs shrink-0"
+        className="btn-primary px-3.5 py-1.5 text-xs shrink-0 font-bold"
       >
         Follow
       </button>
@@ -234,46 +234,47 @@ function SocialFeedItem({ act }) {
   const mediaType = movie?.media_type || 'movie';
 
   return (
-    <div className="border border-white/10 bg-white/5 hover:bg-white/8 hover:border-amber-400/30 p-4 rounded-2xl flex gap-4 transition-all shadow-md">
+    <div className="border border-white/10 bg-[#0e121e] hover:bg-[#131726] hover:border-amber-400/30 p-4 rounded-2xl flex gap-3.5 sm:gap-4 transition-all shadow-md">
       <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="w-14 h-20 shrink-0 overflow-hidden rounded-xl border border-white/10 block bg-slate-900">
         <img src={getPosterUrl(movie?.poster_path, 'w185')} alt={movieName} className="w-full h-full object-cover" />
       </Link>
 
-      <div className="text-left flex-1 min-w-0 font-sans">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 pb-2 border-b border-white/10">
-          <div className="flex flex-wrap items-center gap-2">
-            <Avatar username={act.username} url={act.avatar_url} className="w-5 h-5 border border-white/15" />
-            <Link to={`/profile/${act.username}`} className="font-mono font-bold text-slate-200 hover:text-amber-400 transition-colors text-xs">
-              @{act.username}
-            </Link>
+      <div className="text-left flex-1 min-w-0 font-sans flex flex-col justify-between">
+        <div>
+          <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5 pb-1.5 border-b border-white/10">
+            <div className="flex flex-wrap items-center gap-1.5 truncate">
+              <Avatar username={act.username} url={act.avatar_url} className="w-5 h-5 border border-white/15" />
+              <Link to={`/profile/${act.username}`} className="font-mono font-bold text-slate-200 hover:text-amber-400 transition-colors text-xs truncate">
+                @{act.username}
+              </Link>
+              <span className="text-[10px] text-slate-500 font-mono">
+                {act.review_text ? 'reviewed' : 'watched'}
+              </span>
+            </div>
 
-            <span className="text-[11px] text-slate-500 font-mono">
-              {act.review_text ? 'reviewed' : 'logged'}
-            </span>
-
-            <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="font-display font-bold text-slate-100 hover:text-amber-300 transition-colors text-xs">
-              {movieName}
-            </Link>
+            {act.rating && (
+              <div className="shrink-0">
+                <RatingBadge rating={act.rating} size="xs" />
+              </div>
+            )}
           </div>
 
-          {act.rating && (
-            <div className="shrink-0 flex justify-end">
-              <RatingBadge rating={act.rating} size="xs" />
-            </div>
+          <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="font-display font-bold text-xs sm:text-sm text-slate-100 hover:text-amber-300 transition-colors line-clamp-1">
+            {movieName}
+          </Link>
+
+          {act.review_text && (
+            <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="block mt-1.5">
+              <p className="text-xs text-slate-300 leading-relaxed bg-black/40 p-2.5 rounded-xl border border-white/5 italic line-clamp-3">
+                "{act.review_text}"
+              </p>
+            </Link>
           )}
         </div>
 
-        {act.review_text && (
-          <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="block">
-            <p className="text-xs md:text-sm text-slate-200 leading-relaxed bg-black/40 p-3 rounded-xl border border-white/5 italic">
-              "{act.review_text}"
-            </p>
-          </Link>
-        )}
-
-        <div className="flex items-center gap-1.5 mt-2.5 text-[10px] font-mono text-slate-500">
+        <div className="flex items-center gap-1.5 mt-2 text-[10px] font-mono text-slate-500">
           <Clock className="w-3 h-3 text-slate-500" />
-          <span>Logged {new Date(act.created_at).toLocaleDateString()}</span>
+          <span>{new Date(act.created_at).toLocaleDateString()}</span>
         </div>
       </div>
     </div>

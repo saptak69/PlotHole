@@ -100,7 +100,7 @@ export default function ListsPage() {
   // Single List View
   if (id && listDetails) {
     return (
-      <div className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-12 space-y-8 text-left font-sans">
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 space-y-6 md:space-y-8 text-left font-sans">
         <Link
           to={user ? `/profile/${listDetails.username}` : '/'}
           className="inline-flex items-center gap-2 font-mono text-xs font-bold text-slate-400 hover:text-amber-400 transition-colors uppercase"
@@ -110,10 +110,10 @@ export default function ListsPage() {
         </Link>
 
         {/* List Header */}
-        <div className="border border-white/15 bg-[#0e111a]/85 backdrop-blur-2xl p-6 md:p-8 rounded-2xl shadow-2xl space-y-4">
+        <div className="border border-white/15 bg-[#0e111a]/85 backdrop-blur-2xl p-5 sm:p-6 md:p-8 rounded-2xl shadow-2xl space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1.5">
                 <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-mono text-[10px] font-bold uppercase border border-amber-400/30">
                   Custom Collection
                 </span>
@@ -121,7 +121,7 @@ export default function ListsPage() {
                   {listDetails.items?.length || 0} Titles
                 </span>
               </div>
-              <h1 className="font-display font-extrabold text-3xl md:text-5xl text-white tracking-tight">
+              <h1 className="font-display font-extrabold text-2xl sm:text-3xl md:text-5xl text-white tracking-tight">
                 {listDetails.title}
               </h1>
               <div className="flex items-center gap-3 mt-2 font-mono text-xs text-slate-400">
@@ -147,7 +147,7 @@ export default function ListsPage() {
           </div>
 
           {listDetails.description && (
-            <p className="font-sans text-sm text-slate-300 italic bg-black/40 p-4 rounded-xl border border-white/5 leading-relaxed">
+            <p className="font-sans text-xs sm:text-sm text-slate-300 italic bg-black/40 p-3.5 sm:p-4 rounded-xl border border-white/5 leading-relaxed">
               "{listDetails.description}"
             </p>
           )}
@@ -155,7 +155,7 @@ export default function ListsPage() {
 
         {/* List Items Grid */}
         <div className="space-y-4">
-          <h2 className="font-display font-bold text-2xl text-slate-100 flex items-center gap-2">
+          <h2 className="font-display font-bold text-lg sm:text-2xl text-slate-100 flex items-center gap-2">
             <Film className="w-5 h-5 text-amber-400" />
             <span>Films in this Collection ({listDetails.items?.length || 0})</span>
           </h2>
@@ -165,7 +165,7 @@ export default function ListsPage() {
               No films added to this list yet. Browse cinema titles and click "Add to List"!
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4 md:gap-5">
               {listDetails.items.map((item) => (
                 <div key={item.tmdb_movie_id} className="relative group">
                   <MovieCard
@@ -181,7 +181,7 @@ export default function ListsPage() {
                   {user && user.id === listDetails.user_id && (
                     <button
                       onClick={() => handleRemoveItem(listDetails.id, item.tmdb_movie_id)}
-                      className="absolute top-2 right-2 z-10 bg-rose-600 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 shadow-lg"
+                      className="absolute top-2 right-2 z-10 bg-rose-600 text-white p-1.5 rounded-lg opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 shadow-lg cursor-pointer"
                       title="Remove from list"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -198,11 +198,11 @@ export default function ListsPage() {
 
   // General Lists Overview
   return (
-    <div className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-12 space-y-8 text-left font-sans">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
+    <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 space-y-6 md:space-y-8 text-left font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div>
-          <h1 className="font-display font-extrabold text-3xl md:text-4xl text-white flex items-center gap-2.5">
-            <FolderPlus className="w-7 h-7 text-amber-400" />
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl text-white flex items-center gap-2.5">
+            <FolderPlus className="w-6 h-6 sm:w-7 sm:h-7 text-amber-400" />
             <span>Custom Cinema Lists</span>
           </h1>
           <p className="font-mono text-xs text-slate-400 mt-1">
@@ -213,7 +213,7 @@ export default function ListsPage() {
         {user && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="btn-primary py-2.5 px-5 text-xs flex items-center gap-2 self-start md:self-auto"
+            className="btn-primary py-2.5 px-4 sm:px-5 text-xs flex items-center justify-center gap-2 self-start sm:self-auto font-bold cursor-pointer"
           >
             <ListPlus className="w-4 h-4" />
             <span>Create New List</span>
@@ -222,37 +222,37 @@ export default function ListsPage() {
       </div>
 
       {!user ? (
-        <div className="border border-white/10 bg-white/5 p-12 rounded-2xl text-center space-y-4">
-          <Film className="w-12 h-12 text-amber-400 mx-auto" />
-          <h2 className="font-display font-bold text-2xl text-slate-100">Sign In to Build Your Lists</h2>
-          <p className="font-sans text-xs text-slate-400 max-w-md mx-auto">
+        <div className="border border-white/10 bg-[#0e121e] p-8 sm:p-12 rounded-2xl text-center space-y-4 shadow-xl">
+          <Film className="w-10 h-10 sm:w-12 sm:h-12 text-amber-400 mx-auto" />
+          <h2 className="font-display font-bold text-xl sm:text-2xl text-slate-100">Sign In to Build Your Lists</h2>
+          <p className="font-sans text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
             Create custom ranked movie lists, marathon watchlists, and favorite director picks to showcase on your profile.
           </p>
-          <Link to="/login" className="btn-primary inline-block py-2.5 px-6 text-xs">
+          <Link to="/login" className="btn-primary inline-block py-2.5 px-6 text-xs font-bold">
             Sign In Now
           </Link>
         </div>
       ) : userLists.length === 0 ? (
-        <div className="border border-white/10 bg-white/5 p-12 rounded-2xl text-center space-y-4">
-          <Film className="w-12 h-12 text-sky-400 mx-auto" />
-          <h2 className="font-display font-bold text-2xl text-slate-100">You Have No Custom Lists Yet</h2>
-          <p className="font-sans text-xs text-slate-400 max-w-md mx-auto">
+        <div className="border border-white/10 bg-[#0e121e] p-8 sm:p-12 rounded-2xl text-center space-y-4 shadow-xl">
+          <Film className="w-10 h-10 sm:w-12 sm:h-12 text-sky-400 mx-auto" />
+          <h2 className="font-display font-bold text-xl sm:text-2xl text-slate-100">You Have No Custom Lists Yet</h2>
+          <p className="font-sans text-xs text-slate-300 max-w-md mx-auto">
             Start curating your cinephile collections right now!
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="btn-primary py-2.5 px-6 text-xs"
+            className="btn-primary py-2.5 px-6 text-xs font-bold"
           >
             Create Your First List
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {userLists.map((lst) => (
-            <div key={lst.id} className="border border-white/10 p-6 space-y-4 bg-white/5 hover:border-amber-400/40 rounded-2xl flex flex-col justify-between transition-all shadow-lg">
+            <div key={lst.id} className="border border-white/10 p-5 sm:p-6 space-y-4 bg-[#0e121e] hover:border-amber-400/40 rounded-2xl flex flex-col justify-between transition-all shadow-lg">
               <div>
                 <Link to={`/lists/${lst.id}`}>
-                  <h3 className="font-display font-bold text-xl text-slate-100 hover:text-amber-400 transition-colors">
+                  <h3 className="font-display font-bold text-lg sm:text-xl text-slate-100 hover:text-amber-400 transition-colors">
                     {lst.title}
                   </h3>
                 </Link>
@@ -264,7 +264,7 @@ export default function ListsPage() {
               </div>
 
               <div className="flex items-center justify-between pt-3 border-t border-white/10 font-mono text-xs">
-                <span className="text-slate-400">{lst.item_count || 0} Titles</span>
+                <span className="text-slate-400 text-[11px]">{lst.item_count || 0} Titles</span>
                 <div className="flex items-center gap-3">
                   <Link
                     to={`/lists/${lst.id}`}
@@ -274,7 +274,7 @@ export default function ListsPage() {
                   </Link>
                   <button
                     onClick={() => handleDeleteList(lst.id)}
-                    className="text-slate-500 hover:text-rose-400 p-1 transition-colors"
+                    className="text-slate-500 hover:text-rose-400 p-1 transition-colors cursor-pointer"
                     title="Delete list"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

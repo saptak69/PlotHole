@@ -53,11 +53,11 @@ export default function Home() {
 
   return (
     <div className="flex-1 pb-24 font-sans text-slate-100 relative">
-      {/* Symmetrical Hero Slideshow Showcase */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-6 pb-10 space-y-4">
+      {/* Symmetrical Hero Slideshow Showcase (Bigger & Mobile Touch Ready) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-6 pb-8 md:pb-10 space-y-4">
         {heroMovie ? (
           <div className="space-y-3.5">
-            {/* Direct Trailer Hero with Watch Trailer Button & Slideshow Arrows */}
+            {/* Direct Trailer Hero with Transparent Play Button & Touch Swipe Support */}
             <TrailerHero
               key={`hero-${heroMovie.id}`}
               movie={heroMovie}
@@ -67,7 +67,7 @@ export default function Home() {
               onTrailerStateChange={(active) => setIsTrailerActive(active)}
             />
 
-            {/* Perfectly Centered Symmetrical Slideshow Indicator Dots */}
+            {/* Symmetrical Slideshow Indicator Dots */}
             <div className="flex items-center justify-center gap-2 pt-2">
               {featuredList.map((_, idx) => (
                 <button
@@ -75,7 +75,7 @@ export default function Home() {
                   onClick={() => setHeroIndex(idx)}
                   className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                     heroIndex === idx
-                      ? 'w-8 bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.6)]'
+                      ? 'w-7 sm:w-8 bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.6)]'
                       : 'w-2 bg-white/20 hover:bg-white/40'
                   }`}
                   aria-label={`Go to slide ${idx + 1}`}
@@ -84,15 +84,15 @@ export default function Home() {
             </div>
           </div>
         ) : bundleLoading ? (
-          <div className="aspect-[21/9] w-full rounded-3xl bg-white/5 border border-white/10 skeleton-shimmer" />
+          <div className="aspect-[4/3] sm:aspect-[16/8] md:aspect-[21/9] min-h-[360px] w-full rounded-3xl bg-white/5 border border-white/10 skeleton-shimmer" />
         ) : null}
       </div>
 
       {/* Main Content Vault */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-16">
-        {/* Category Rails Header */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4 flex-wrap gap-4">
-          <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1 rounded-xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 space-y-12 md:space-y-16">
+        {/* Category Rails Header (Smooth Horizontal Scroll on Mobile) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-4 gap-3.5">
+          <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 p-1 rounded-2xl overflow-x-auto whitespace-nowrap scrollbar-none w-full sm:w-auto">
             {[
               { id: 'trending', label: 'Trending', icon: Flame },
               { id: 'toprated', label: 'Hall of Fame', icon: Trophy },
@@ -105,7 +105,7 @@ export default function Home() {
                 <button
                   key={tab.id}
                   onClick={() => setSelectedCategory(tab.id)}
-                  className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-2 select-none cursor-pointer ${
+                  className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 select-none cursor-pointer shrink-0 ${
                     active
                       ? 'bg-amber-500 text-black font-bold shadow-md'
                       : 'text-slate-400 hover:text-white'
@@ -120,7 +120,7 @@ export default function Home() {
 
           <Link
             to="/search"
-            className="text-xs font-mono text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1.5 uppercase"
+            className="text-xs font-mono text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1.5 uppercase self-end sm:self-auto"
           >
             <span>Explore All Titles</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -154,15 +154,15 @@ export default function Home() {
           </section>
         )}
 
-        {/* Community Diary Stream */}
+        {/* Community Reviews Stream */}
         <section className="space-y-6 text-left">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-3 gap-2">
             <div>
-              <h3 className="font-display font-bold text-xl text-white">
-                Recent Community Reviews
+              <h3 className="font-display font-bold text-lg sm:text-xl text-white">
+                Recent Member Reviews
               </h3>
               <p className="text-xs text-slate-400 mt-0.5 font-sans">
-                Unfiltered ratings and logs from fellow cinephiles
+                Unfiltered ratings and critiques from fellow film lovers
               </p>
             </div>
             <Link
@@ -184,7 +184,7 @@ export default function Home() {
               No reviews logged yet. Be the first cinephile to share your thoughts!
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
               {recentReviews.slice(0, 6).map((rev) => (
                 <ReviewCard key={rev.id} rev={rev} />
               ))}
@@ -199,7 +199,7 @@ export default function Home() {
 function MovieGrid({ movies, loading, title }) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 sm:gap-4 md:gap-5">
         {[...Array(10)].map((_, i) => (
           <div key={i} className="aspect-[2/3] rounded-2xl bg-white/5 border border-white/10 skeleton-shimmer" />
         ))}
@@ -209,8 +209,8 @@ function MovieGrid({ movies, loading, title }) {
 
   return (
     <div className="space-y-4 text-left">
-      <h3 className="font-display font-bold text-lg text-slate-200">{title}</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
+      <h3 className="font-display font-bold text-base sm:text-lg text-slate-200">{title}</h3>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 sm:gap-4 md:gap-5">
         {movies.slice(0, 10).map((movie) => (
           <MovieCard key={movie.id} movie={movie} />
         ))}
@@ -234,7 +234,7 @@ function ReviewCard({ rev }) {
   const mediaType = movie?.media_type || 'movie';
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/4 hover:bg-white/7 hover:border-white/15 p-4 flex gap-4 transition-all shadow-md">
+    <div className="rounded-2xl border border-white/8 bg-[#0e121e] hover:bg-[#131726] hover:border-amber-400/30 p-3.5 sm:p-4 flex gap-3.5 transition-all shadow-md">
       <Link
         to={`/media/${mediaType}/${rev.tmdb_movie_id}`}
         className="w-14 h-20 shrink-0 overflow-hidden rounded-xl border border-white/10 block bg-slate-900"
@@ -243,17 +243,18 @@ function ReviewCard({ rev }) {
           src={getPosterUrl(movie?.poster_path, 'w185')}
           alt={movieName}
           className="w-full h-full object-cover"
+          loading="lazy"
         />
       </Link>
 
       <div className="text-left flex-1 min-w-0 flex flex-col justify-between">
         <div>
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="flex items-center gap-2 truncate">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <div className="flex items-center gap-1.5 truncate">
               <Avatar username={rev.username} url={rev.avatar_url} className="w-5 h-5 border border-white/15" />
               <Link
                 to={`/profile/${rev.username}`}
-                className="font-mono text-xs font-bold text-slate-200 hover:text-amber-400 transition-colors"
+                className="font-mono text-xs font-bold text-slate-200 hover:text-amber-400 transition-colors truncate"
               >
                 @{rev.username}
               </Link>
@@ -275,7 +276,7 @@ function ReviewCard({ rev }) {
           )}
         </div>
 
-        <div className="flex items-center gap-1 text-[10px] font-mono text-slate-500 mt-2">
+        <div className="flex items-center gap-1 text-[10px] font-mono text-slate-500 mt-1.5">
           <Clock className="w-3 h-3 text-slate-500" />
           <span>{new Date(rev.created_at).toLocaleDateString()}</span>
         </div>

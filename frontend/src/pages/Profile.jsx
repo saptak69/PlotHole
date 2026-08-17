@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, AlertCircle, Camera, Edit3, X, Download, Award, Star, Film, Clock, Heart, FolderPlus, Bookmark } from 'lucide-react';
+import { Calendar, AlertCircle, Camera, Edit3, X, Download, Award, Star, Film, Clock, Heart, FolderPlus, Bookmark, Eye, MessageSquare } from 'lucide-react';
 import { API_URL, getAuthHeaders, getPosterUrl } from '../config';
 import { useAuth } from '../context/AuthContext';
 import RatingBadge from '../components/RatingBadge';
@@ -30,7 +30,7 @@ function PolaroidCard({ movieId, angle, initialMovie }) {
         <div className="aspect-square w-full overflow-hidden rounded-md border border-white/10 mb-2.5 bg-black">
           <img
             src={getPosterUrl(movie.poster_path, 'w300')}
-            alt={movie.title}
+            alt={movie.title || movie.name}
             className="w-full h-full object-cover"
             loading="lazy"
           />
@@ -70,7 +70,58 @@ function WatchlistCard({ movieId, initialMovie }) {
           loading="lazy"
         />
       </div>
+      <div className="p-2 bg-gradient-to-t from-black via-black/80 to-transparent">
+        <p className="text-[11px] font-bold text-slate-200 truncate">{movie.title || movie.name}</p>
+      </div>
     </Link>
+  );
+}
+
+function DiaryMobileCard({ entry }) {
+  const { data: movie } = useQuery({
+    queryKey: ['movieDetailsSimple', entry.tmdb_movie_id],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/movies/${entry.tmdb_movie_id}`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 10
+  });
+
+  const title = movie?.title || movie?.name || `Film #${entry.tmdb_movie_id}`;
+  const mediaType = movie?.media_type || entry.media_type || 'movie';
+
+  return (
+    <div className="p-4 rounded-2xl border border-white/10 bg-[#0e121e] shadow-md space-y-3">
+      <div className="flex items-center gap-3">
+        <Link to={`/media/${mediaType}/${entry.tmdb_movie_id}`} className="shrink-0 w-14 h-20 rounded-lg overflow-hidden border border-white/15 bg-black">
+          <img
+            src={getPosterUrl(movie?.poster_path, 'w185')}
+            alt={title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </Link>
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <Link to={`/media/${mediaType}/${entry.tmdb_movie_id}`} className="font-display font-bold text-sm text-slate-100 hover:text-amber-400 block truncate">
+            {title}
+          </Link>
+          <div className="flex items-center gap-2 flex-wrap">
+            <RatingBadge rating={entry.rating} size="xs" />
+            <span className="font-mono text-[10px] text-slate-400 flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-amber-400" />
+              {entry.watched_date}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {entry.review_text && (
+        <p className="text-xs text-slate-300 italic bg-black/40 p-2.5 rounded-xl border border-white/5 leading-relaxed">
+          "{entry.review_text}"
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -228,7 +279,7 @@ export default function Profile() {
 
   if (profileLoading) {
     return (
-      <div className="flex-1 max-w-7xl mx-auto px-6 py-20 flex flex-col items-center justify-center text-amber-400 font-mono uppercase space-y-3">
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-20 flex flex-col items-center justify-center text-amber-400 font-mono uppercase space-y-3">
         <div className="w-10 h-10 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto" />
         <h2 className="text-xs font-bold tracking-widest">RECLAIMING CINEPHILE DOSSIER...</h2>
       </div>
@@ -237,7 +288,7 @@ export default function Profile() {
 
   if (profileError || !profileUser) {
     return (
-      <div className="flex-1 max-w-7xl mx-auto px-6 py-12 text-left font-mono">
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-12 text-left font-mono">
         <div className="p-6 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-2xl flex items-start gap-4">
           <AlertCircle className="w-8 h-8 shrink-0" />
           <div>
@@ -277,43 +328,64 @@ export default function Profile() {
   ];
 
   return (
-    <div className="flex-1 max-w-7xl mx-auto px-6 md:px-12 py-10 text-left font-sans space-y-10">
-      {/* Profile Header Bento Card */}
-      <div className="border border-white/15 bg-[#0e111a]/85 backdrop-blur-2xl p-6 md:p-8 flex flex-col lg:flex-row items-center lg:items-start gap-8 rounded-2xl shadow-2xl">
-        <div className="shrink-0 w-28 h-28 md:w-32 md:h-32 border border-white/20 rounded-2xl overflow-hidden bg-black shadow-xl">
+    <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-8 md:space-y-10">
+      
+      {/* ================= PROFILE HEADER BENTO CARD ================= */}
+      <div className="border border-white/15 bg-[#0e111a]/85 backdrop-blur-2xl p-5 sm:p-6 md:p-8 flex flex-col lg:flex-row items-center lg:items-start gap-6 md:gap-8 rounded-2xl shadow-2xl">
+        {/* Avatar */}
+        <div className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 border border-white/20 rounded-2xl overflow-hidden bg-black shadow-xl">
           <Avatar username={profileUser.username} url={profileUser.avatar_url} className="w-full h-full" />
         </div>
 
-        <div className="flex-1 text-center lg:text-left space-y-4">
+        {/* User Identity & Stats */}
+        <div className="flex-1 text-center lg:text-left space-y-4 w-full">
           <div>
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-              <h1 className="text-2xl md:text-3xl font-display font-extrabold text-white">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-extrabold text-white">
                 {profileUser.display_name || profileUser.username}
               </h1>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
                 @{profileUser.username}
               </span>
             </div>
 
-            <p className="text-xs text-sky-400 font-mono font-bold mt-2">
-              {hoursWasted.toFixed(0)}h watch time • {uniqueDiary.length} films logged • {stats?.reviews || 0} reviews • {stats?.followers || 0} followers
-            </p>
+            {/* Responsive 4-Stat Metric Pill Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3">
+              <div className="bg-white/5 border border-white/8 p-2.5 rounded-xl text-center">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block">Watch Time</span>
+                <span className="font-mono font-bold text-sm text-sky-400">{hoursWasted.toFixed(0)}h</span>
+              </div>
+              <div className="bg-white/5 border border-white/8 p-2.5 rounded-xl text-center">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block">Films</span>
+                <span className="font-mono font-bold text-sm text-amber-400">{uniqueDiary.length}</span>
+              </div>
+              <div className="bg-white/5 border border-white/8 p-2.5 rounded-xl text-center">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block">Reviews</span>
+                <span className="font-mono font-bold text-sm text-emerald-400">{stats?.reviews || 0}</span>
+              </div>
+              <div className="bg-white/5 border border-white/8 p-2.5 rounded-xl text-center">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block">Followers</span>
+                <span className="font-mono font-bold text-sm text-purple-400">{stats?.followers || 0}</span>
+              </div>
+            </div>
 
-            <p className="text-[10px] font-mono text-slate-500 mt-1">
-              MEMBER SINCE: {new Date(profileUser.created_at).toLocaleDateString()}
+            <p className="text-[10px] font-mono text-slate-500 mt-2">
+              MEMBER SINCE {new Date(profileUser.created_at).toLocaleDateString()}
             </p>
           </div>
 
-          <p className="text-xs md:text-sm text-slate-300 max-w-xl leading-relaxed border-l-2 border-amber-400 pl-3.5 italic">
+          {/* Bio */}
+          <p className="text-xs md:text-sm text-slate-300 max-w-xl leading-relaxed border-l-2 border-amber-400 pl-3.5 italic mx-auto lg:mx-0 text-left">
             "{profileUser.bio || 'Cinephile exploring cinema timelines.'}"
           </p>
 
+          {/* Actions */}
           <div className="flex gap-2.5 flex-wrap justify-center lg:justify-start pt-1">
             {!isOwnProfile && currentUser && (
               <button
                 onClick={() => followMutation.mutate()}
                 disabled={followMutation.isPending}
-                className={isFollowing ? 'btn-secondary text-xs px-4 py-2' : 'btn-primary text-xs px-4 py-2'}
+                className={isFollowing ? 'btn-secondary text-xs px-5 py-2.5 w-full sm:w-auto' : 'btn-primary text-xs px-5 py-2.5 w-full sm:w-auto font-bold'}
               >
                 {isFollowing ? 'Unfollow' : 'Follow Cinephile'}
               </button>
@@ -321,12 +393,12 @@ export default function Profile() {
 
             {isOwnProfile && (
               <>
-                <button onClick={openEditModal} className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5">
+                <button onClick={openEditModal} className="btn-primary text-xs px-4 py-2 flex items-center justify-center gap-1.5 flex-1 sm:flex-none font-bold">
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Edit Profile</span>
                 </button>
 
-                <button onClick={handleExportData} className="btn-secondary text-xs px-4 py-2 flex items-center gap-1.5 text-amber-300 border-amber-400/30">
+                <button onClick={handleExportData} className="btn-secondary text-xs px-4 py-2 flex items-center justify-center gap-1.5 text-amber-300 border-amber-400/30 flex-1 sm:flex-none">
                   <Download className="w-3.5 h-3.5" />
                   <span>Export Archive</span>
                 </button>
@@ -337,7 +409,7 @@ export default function Profile() {
 
         {/* Rating Distribution Histogram Bento Card */}
         <div className="border border-white/10 bg-black/40 p-4 rounded-xl w-full lg:w-64 space-y-3 shrink-0 shadow-lg">
-          <span className="text-[11px] font-mono font-bold text-amber-400 uppercase block border-b border-white/10 pb-2">
+          <span className="text-[11px] font-mono font-bold text-amber-400 uppercase block border-b border-white/10 pb-2 text-center lg:text-left">
             Rating Distribution
           </span>
 
@@ -360,30 +432,30 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Cinephile Badges Showcase */}
+      {/* ================= CINEPHILE BADGES SHOWCASE ================= */}
       <div className="space-y-3">
         <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
           Cinephile Badges & Milestones
         </h3>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {badges.map((b) => {
             const Icon = b.icon;
             return (
               <div
                 key={b.title}
-                className={`p-4 border rounded-xl flex items-center gap-3 transition-all ${
+                className={`p-3.5 border rounded-xl flex items-center gap-3 transition-all ${
                   b.unlocked
                     ? 'bg-white/5 border-amber-400/30 text-slate-100 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
                     : 'bg-white/2 border-white/5 text-slate-500 opacity-40'
                 }`}
               >
-                <div className={`p-2.5 rounded-lg border ${b.unlocked ? 'bg-amber-400/20 text-amber-300 border-amber-400/30' : 'bg-black/30 border-white/5'}`}>
+                <div className={`p-2.5 rounded-lg border shrink-0 ${b.unlocked ? 'bg-amber-400/20 text-amber-300 border-amber-400/30' : 'bg-black/30 border-white/5'}`}>
                   <Icon className="w-4 h-4" />
                 </div>
-                <div>
-                  <h4 className="font-display font-bold text-xs text-slate-100 uppercase">{b.title}</h4>
-                  <p className="text-[10px] text-slate-400">{b.desc}</p>
+                <div className="min-w-0">
+                  <h4 className="font-display font-bold text-xs text-slate-100 uppercase truncate">{b.title}</h4>
+                  <p className="text-[10px] text-slate-400 truncate">{b.desc}</p>
                 </div>
               </div>
             );
@@ -391,13 +463,13 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Pinned Polaroid Discoveries */}
+      {/* ================= PINNED REEL DISCOVERIES ================= */}
       {topMovieIds.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
             Pinned Reel Discoveries
           </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-5 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5 sm:gap-5 pt-1">
             {topMovieIds.map((mId, idx) => (
               <PolaroidCard key={mId} movieId={mId} angle={rotations[idx % rotations.length]} />
             ))}
@@ -405,19 +477,19 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Sliding Pill Tabs Bar */}
-      <div className="flex border-b border-white/10 select-none overflow-x-auto gap-2 p-1 bg-white/5 rounded-xl w-fit">
+      {/* ================= SLIDING PILL TABS BAR ================= */}
+      <div className="flex border-b border-white/10 select-none overflow-x-auto gap-1.5 p-1 bg-white/5 rounded-2xl w-full sm:w-fit scrollbar-none">
         <button
           onClick={() => setActiveTab('diary')}
-          className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-lg transition-all ${
+          className={`px-3.5 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === 'diary' ? 'bg-amber-500 text-[#08090d] shadow-md' : 'text-slate-400 hover:text-white'
           }`}
         >
-          Diary timeline ({uniqueDiary.length})
+          Diary ({uniqueDiary.length})
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-lg transition-all ${
+          className={`px-3.5 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === 'reviews' ? 'bg-amber-500 text-[#08090d] shadow-md' : 'text-slate-400 hover:text-white'
           }`}
         >
@@ -425,16 +497,16 @@ export default function Profile() {
         </button>
         <button
           onClick={() => setActiveTab('lists')}
-          className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-lg transition-all ${
+          className={`px-3.5 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === 'lists' ? 'bg-amber-500 text-[#08090d] shadow-md' : 'text-slate-400 hover:text-white'
           }`}
         >
-          Custom Lists ({userLists.length})
+          Lists ({userLists.length})
         </button>
         {isOwnProfile && (
           <button
             onClick={() => setActiveTab('watchlist')}
-            className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-lg transition-all ${
+            className={`px-3.5 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all shrink-0 cursor-pointer ${
               activeTab === 'watchlist' ? 'bg-amber-500 text-[#08090d] shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -443,50 +515,62 @@ export default function Profile() {
         )}
       </div>
 
-      {/* Tab Contents */}
+      {/* ================= TAB CONTENTS ================= */}
       <div>
+        {/* Diary Tab: Mobile cards on phones, full table on desktop */}
         {activeTab === 'diary' && (
           <div>
             {diaryLoading ? (
               <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING DIARY TIMELINE...</div>
             ) : uniqueDiary.length === 0 ? (
               <div className="border border-white/10 bg-white/5 p-8 rounded-2xl text-center text-slate-400 text-xs font-mono">
-                Timeline is currently empty.
+                Diary timeline is currently empty.
               </div>
             ) : (
-              <div className="border border-white/10 rounded-2xl overflow-hidden shadow-xl bg-[#0e111a]">
-                <table className="w-full text-xs text-left border-collapse font-sans">
-                  <thead>
-                    <tr className="bg-white/5 text-slate-300 font-mono uppercase text-[11px] border-b border-white/10">
-                      <th className="px-6 py-3.5">Watched Date</th>
-                      <th className="px-6 py-3.5">Movie</th>
-                      <th className="px-6 py-3.5">Rating</th>
-                      <th className="px-6 py-3.5">Review Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {uniqueDiary.map((entry) => (
-                      <tr key={entry.id} className="hover:bg-white/5 transition-colors">
-                        <td className="px-6 py-4 font-mono text-slate-400 flex items-center gap-2">
-                          <Calendar className="w-3.5 h-3.5 text-amber-400" />
-                          <span>{entry.watched_date}</span>
-                        </td>
-                        <td className="px-6 py-4 font-display font-bold text-slate-100">
-                          <MovieNameLink movieId={entry.tmdb_movie_id} className="hover:text-amber-400 transition-colors" />
-                        </td>
-                        <td className="px-6 py-4">
-                          <RatingBadge rating={entry.rating} size="xs" />
-                        </td>
-                        <td className="px-6 py-4 text-slate-400 max-w-xs truncate">{entry.review_text || '—'}</td>
+              <>
+                {/* Mobile Screen (< md): Rich Responsive Cards */}
+                <div className="block md:hidden space-y-3">
+                  {uniqueDiary.map((entry) => (
+                    <DiaryMobileCard key={entry.id} entry={entry} />
+                  ))}
+                </div>
+
+                {/* Desktop Screen (>= md): Full Data Table */}
+                <div className="hidden md:block border border-white/10 rounded-2xl overflow-hidden shadow-xl bg-[#0e111a]">
+                  <table className="w-full text-xs text-left border-collapse font-sans">
+                    <thead>
+                      <tr className="bg-white/5 text-slate-300 font-mono uppercase text-[11px] border-b border-white/10">
+                        <th className="px-6 py-3.5">Watched Date</th>
+                        <th className="px-6 py-3.5">Movie</th>
+                        <th className="px-6 py-3.5">Rating</th>
+                        <th className="px-6 py-3.5">Review Notes</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {uniqueDiary.map((entry) => (
+                        <tr key={entry.id} className="hover:bg-white/5 transition-colors">
+                          <td className="px-6 py-4 font-mono text-slate-400 flex items-center gap-2">
+                            <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                            <span>{entry.watched_date}</span>
+                          </td>
+                          <td className="px-6 py-4 font-display font-bold text-slate-100">
+                            <MovieNameLink movieId={entry.tmdb_movie_id} className="hover:text-amber-400 transition-colors" />
+                          </td>
+                          <td className="px-6 py-4">
+                            <RatingBadge rating={entry.rating} size="xs" />
+                          </td>
+                          <td className="px-6 py-4 text-slate-400 max-w-xs truncate">{entry.review_text || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         )}
 
+        {/* Reviews Tab */}
         {activeTab === 'reviews' && (
           <div>
             {reviewsLoading ? (
@@ -498,19 +582,21 @@ export default function Profile() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reviews.map((rev) => (
-                  <div key={rev.id} className="border border-white/10 bg-white/5 p-6 rounded-2xl space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                      <div>
-                        <span className="text-slate-400 text-xs font-mono">Reviewed Film: </span>
-                        <MovieNameLink movieId={rev.tmdb_movie_id} className="font-display font-bold text-slate-100 hover:text-amber-400 transition-colors block text-sm" />
+                  <div key={rev.id} className="border border-white/10 bg-[#0e121e] p-5 rounded-2xl space-y-3 shadow-md">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3 gap-2">
+                      <div className="min-w-0">
+                        <span className="text-slate-400 text-[10px] font-mono uppercase block">Reviewed Film</span>
+                        <MovieNameLink movieId={rev.tmdb_movie_id} className="font-display font-bold text-slate-100 hover:text-amber-400 transition-colors block text-sm truncate" />
                       </div>
                       <RatingBadge rating={rev.rating} size="xs" />
                     </div>
-                    <p className="text-xs md:text-sm text-slate-200 leading-relaxed font-sans bg-black/40 border border-white/5 p-3.5 rounded-xl italic">
-                      "{rev.review_text}"
-                    </p>
+                    {rev.review_text && (
+                      <p className="text-xs md:text-sm text-slate-200 leading-relaxed font-sans bg-black/40 border border-white/5 p-3 rounded-xl italic">
+                        "{rev.review_text}"
+                      </p>
+                    )}
                     <span className="block text-[10px] font-mono text-slate-500">
-                      Logged: {new Date(rev.created_at).toLocaleDateString()}
+                      Reviewed: {new Date(rev.created_at).toLocaleDateString()}
                     </span>
                   </div>
                 ))}
@@ -519,6 +605,7 @@ export default function Profile() {
           </div>
         )}
 
+        {/* Custom Lists Tab */}
         {activeTab === 'lists' && (
           <div>
             {listsLoading ? (
@@ -528,12 +615,12 @@ export default function Profile() {
                 No custom lists created yet.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {userLists.map((lst) => (
-                  <div key={lst.id} className="border border-white/10 p-5 bg-white/5 hover:border-amber-400/40 rounded-2xl flex flex-col justify-between transition-all">
+                  <div key={lst.id} className="border border-white/10 p-5 bg-[#0e121e] hover:border-amber-400/40 rounded-2xl flex flex-col justify-between transition-all shadow-md">
                     <div>
                       <Link to={`/lists/${lst.id}`}>
-                        <h3 className="font-display font-bold text-lg text-slate-100 hover:text-amber-400 transition-colors">
+                        <h3 className="font-display font-bold text-base md:text-lg text-slate-100 hover:text-amber-400 transition-colors">
                           {lst.title}
                         </h3>
                       </Link>
@@ -544,8 +631,8 @@ export default function Profile() {
                       )}
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-white/10 font-mono text-xs mt-4">
-                      <span className="text-slate-400">{lst.item_count || 0} Titles</span>
-                      <Link to={`/lists/${lst.id}`} className="text-amber-400 hover:underline font-bold uppercase">
+                      <span className="text-slate-400 text-[11px]">{lst.item_count || 0} Titles</span>
+                      <Link to={`/lists/${lst.id}`} className="text-amber-400 hover:underline font-bold uppercase text-[11px]">
                         View List →
                       </Link>
                     </div>
@@ -556,6 +643,7 @@ export default function Profile() {
           </div>
         )}
 
+        {/* Watchlist Tab */}
         {activeTab === 'watchlist' && isOwnProfile && (
           <div>
             {watchlistLoading ? (
@@ -565,7 +653,7 @@ export default function Profile() {
                 Your watchlist is currently empty.
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
                 {watchlist.map((item) => (
                   <WatchlistCard key={item.tmdb_movie_id} movieId={item.tmdb_movie_id} />
                 ))}
@@ -643,13 +731,13 @@ function MovieNameLink({ movieId, className = '' }) {
     queryKey: ['movieDetailsSimple', movieId],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/movies/${movieId}`);
-      if (!res.ok) throw new Error('Not found');
+      if (!res.ok) return null;
       return res.json();
     },
     staleTime: 1000 * 60 * 10
   });
 
-  const title = movie?.title || movie?.name || 'Film';
+  const title = movie?.title || movie?.name || `Film #${movieId}`;
   const mediaType = movie?.media_type || 'movie';
 
   return (

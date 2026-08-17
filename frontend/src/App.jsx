@@ -42,7 +42,7 @@ function MainLayout() {
       <div className="min-h-screen bg-[#08090d] text-slate-100 flex flex-col selection:bg-amber-400 selection:text-black">
         <Navbar />
 
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col pb-16 md:pb-0">
           <Routes>
             <Route path="/" element={<Home onOpenPerson={(id) => setSelectedPersonId(id)} />} />
             <Route path="/movies/:id" element={<NavigateToMedia />} />

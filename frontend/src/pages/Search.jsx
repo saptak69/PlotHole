@@ -8,26 +8,26 @@ import Avatar from '../components/Avatar';
 
 function UserCard({ user }) {
   return (
-    <div className="border border-white/10 bg-white/5 hover:border-amber-400/40 p-5 flex flex-col items-center justify-between text-center rounded-2xl shadow-lg hover:-translate-y-1 transition-all aspect-[2/3]">
+    <div className="border border-white/10 bg-[#0e121e] hover:border-amber-400/40 p-4 sm:p-5 flex flex-col items-center justify-between text-center rounded-2xl shadow-lg hover:-translate-y-1 transition-all aspect-[2/3]">
       <div className="flex flex-col items-center w-full min-w-0">
         <span className="bg-amber-400/20 text-amber-300 font-mono text-[10px] font-bold px-2.5 py-0.5 border border-amber-400/30 rounded-full mb-3 uppercase">
           Critic
         </span>
         
-        <Avatar username={user.username} url={user.avatar_url} className="w-16 h-16 border border-white/20 rounded-2xl mb-3 shadow-md" />
+        <Avatar username={user.username} url={user.avatar_url} className="w-14 h-14 sm:w-16 sm:h-16 border border-white/20 rounded-2xl mb-2.5 shadow-md" />
         
-        <span className="font-display font-bold text-slate-100 text-sm truncate w-full block">
+        <span className="font-display font-bold text-slate-100 text-xs sm:text-sm truncate w-full block">
           @{user.username}
         </span>
         
-        <p className="text-[11px] text-slate-400 mt-2 font-sans line-clamp-3 leading-relaxed">
+        <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1.5 font-sans line-clamp-3 leading-relaxed">
           {user.bio || "Cinephile with no bio details yet."}
         </p>
       </div>
 
       <Link
         to={`/profile/${user.username}`}
-        className="btn-secondary w-full py-2 mt-4 text-xs font-mono"
+        className="btn-secondary w-full py-2 mt-3 text-xs font-mono font-semibold"
       >
         View Profile
       </Link>
@@ -64,22 +64,22 @@ export default function Search() {
   });
 
   return (
-    <div className="flex-1 max-w-7xl mx-auto px-6 md:px-12 py-10 text-left font-sans space-y-8">
+    <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-6 md:space-y-8">
       <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-        <SearchIcon className="w-7 h-7 text-amber-400" />
+        <SearchIcon className="w-6 h-6 sm:w-7 sm:h-7 text-amber-400" />
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-extrabold text-white">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-extrabold text-white">
             Search Vault: <span className="text-amber-400">"{queryStr}"</span>
           </h1>
           <p className="text-xs font-mono text-slate-400 mt-0.5">Found {movies.length} cinephile records</p>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-2 p-1 bg-white/5 border border-white/10 rounded-xl w-fit select-none">
+      {/* Filter Tabs (Horizontal Scroll on Mobile) */}
+      <div className="flex gap-1.5 p-1 bg-white/5 border border-white/10 rounded-2xl w-full sm:w-fit overflow-x-auto whitespace-nowrap scrollbar-none select-none">
         <button
           onClick={() => setActiveTab('all')}
-          className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-lg transition-all ${
+          className={`px-3.5 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === 'all'
               ? 'bg-amber-500 text-[#08090d] shadow-md'
               : 'text-slate-400 hover:text-white'
@@ -89,7 +89,7 @@ export default function Search() {
         </button>
         <button
           onClick={() => setActiveTab('movies')}
-          className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-lg transition-all ${
+          className={`px-3.5 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === 'movies'
               ? 'bg-amber-500 text-[#08090d] shadow-md'
               : 'text-slate-400 hover:text-white'
@@ -99,7 +99,7 @@ export default function Search() {
         </button>
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-lg transition-all ${
+          className={`px-3.5 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === 'users'
               ? 'bg-amber-500 text-[#08090d] shadow-md'
               : 'text-slate-400 hover:text-white'
@@ -110,9 +110,9 @@ export default function Search() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 sm:gap-4 md:gap-5">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="aspect-[2/3] rounded-xl bg-white/5 border border-white/10 skeleton-shimmer" />
+            <div key={i} className="aspect-[2/3] rounded-2xl bg-white/5 border border-white/10 skeleton-shimmer" />
           ))}
         </div>
       ) : error ? (
@@ -124,12 +124,12 @@ export default function Search() {
           </div>
         </div>
       ) : filteredResults.length === 0 ? (
-        <div className="border border-white/10 bg-white/5 p-12 text-center text-slate-400 rounded-2xl space-y-2">
+        <div className="border border-white/10 bg-[#0e121e] p-8 sm:p-12 text-center text-slate-400 rounded-2xl space-y-2 shadow-lg">
           <p className="text-base font-display font-bold text-slate-200">No results found for "{queryStr}".</p>
-          <p className="text-xs font-sans">Check spelling or search for alternative film titles, web series, or member handles.</p>
+          <p className="text-xs font-sans text-slate-400">Check spelling or search for alternative film titles, web series, or member handles.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 sm:gap-4 md:gap-5">
           {filteredResults.map((item, idx) => (
             item.media_type === 'user' ? (
               <UserCard key={`user-${item.id || idx}`} user={item} />
