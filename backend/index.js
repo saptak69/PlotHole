@@ -1528,11 +1528,8 @@ const handleCheckWatched = async (req, res) => {
   }
 };
 
-app.get('/api/diary/check/:movieId', authenticateToken, handleCheckWatched);
-app.get('/api/diary/check-watched/:movieId', authenticateToken, handleCheckWatched);
-
-// Toggle watched status
-app.post('/api/diary/toggle-watched', authenticateToken, async (req, res) => {
+// Toggle watched status handler
+const handleToggleWatched = async (req, res) => {
   const { tmdb_movie_id, media_type = 'movie', is_upcoming } = req.body;
   if (!tmdb_movie_id) return res.status(400).json({ error: 'Movie ID required' });
 
@@ -1581,7 +1578,13 @@ app.post('/api/diary/toggle-watched', authenticateToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+};
+
+app.post('/api/diary/toggle-watched', authenticateToken, handleToggleWatched);
+app.post('/api/watched/toggle', authenticateToken, handleToggleWatched);
+app.get('/api/diary/check/:movieId', authenticateToken, handleCheckWatched);
+app.get('/api/diary/check-watched/:movieId', authenticateToken, handleCheckWatched);
+app.get('/api/watched/check/:movieId', authenticateToken, handleCheckWatched);
 
 // Get excited stats for an upcoming movie
 app.get('/api/movies/:id/excited', async (req, res) => {

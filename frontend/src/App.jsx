@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams, Link } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
-import { Film } from 'lucide-react';
 
 import Navbar from './components/Navbar';
+import Logo, { BrandMark } from './components/Logo';
 import Home from './pages/Home';
 import MovieDetails from './pages/MovieDetails';
 import SearchPage from './pages/Search';
@@ -39,7 +39,10 @@ function MainLayout() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#08090d] text-slate-100 flex flex-col selection:bg-amber-400 selection:text-black">
+      <div className="min-h-screen bg-[#030508] text-slate-100 flex flex-col selection:bg-[#00f5a0] selection:text-black relative">
+        {/* Subtle Ambient Film Grain */}
+        <div className="film-grain" />
+
         <Navbar />
 
         <main className="flex-1 flex flex-col pb-16 md:pb-0">
@@ -57,22 +60,36 @@ function MainLayout() {
           </Routes>
         </main>
 
-        <footer className="py-12 border-t border-white/8 text-center text-xs text-slate-400 font-sans bg-[#08090d]">
-          <div className="max-w-7xl mx-auto px-6 space-y-3">
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-400 font-bold">
-                <Film className="w-3.5 h-3.5" />
+        {/* Luxury Cinema Footer */}
+        <footer className="py-14 border-t border-white/8 bg-[#020407] text-slate-400 font-sans relative overflow-hidden">
+          {/* Ambient Bottom Glow */}
+          <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#00f5a0]/5 via-transparent to-transparent pointer-events-none" />
+
+          <div className="max-w-7xl mx-auto px-6 space-y-8 relative z-10">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-white/8 text-center md:text-left">
+              <div className="space-y-2">
+                <Logo size="md" showTagline={true} />
+                <p className="text-xs text-slate-400 max-w-md leading-relaxed pt-1">
+                  The social chronicle & review vault for discerning cinephiles. Discover masterworks, log honest verdicts, and mind the gap in cinema.
+                </p>
               </div>
-              <span className="font-display font-bold text-base text-slate-100">
-                Plot<span className="text-amber-400">Hole</span>
-              </span>
+
+              <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-mono">
+                <Link to="/" className="hover:text-[#00f5a0] transition-colors">Discover</Link>
+                <Link to="/social" className="hover:text-[#00f5a0] transition-colors">Community Feed</Link>
+                <Link to="/lists" className="hover:text-[#00f5a0] transition-colors">Curated Lists</Link>
+                <Link to="/search" className="hover:text-[#00f5a0] transition-colors">Search Vault</Link>
+              </div>
             </div>
-            <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-              The social network & diary for cinephiles. Discover masterpieces, log honest ratings, and follow film lovers.
-            </p>
-            <p className="font-mono text-[11px] text-slate-500 pt-1">
-              © {new Date().getFullYear()} PlotHole. Powered by TMDB API.
-            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-500">
+              <p>© {new Date().getFullYear()} PlotHole Chronicles. All rights reserved.</p>
+              <p className="flex items-center gap-2">
+                <span>Curated with craft</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00f5a0] inline-block shadow-[0_0_8px_#00f5a0]" />
+                <span>Powered by TMDB API</span>
+              </p>
+            </div>
           </div>
         </footer>
       </div>

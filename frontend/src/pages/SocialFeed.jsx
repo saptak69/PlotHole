@@ -5,6 +5,7 @@ import { Users, UserPlus, MessageSquare, Flame, Sparkles, Star, Clock } from 'lu
 import { API_URL, getAuthHeaders, getPosterUrl } from '../config';
 import RatingBadge from '../components/RatingBadge';
 import Avatar from '../components/Avatar';
+import GlassSurface from '../components/GlassSurface';
 import { useAuth } from '../context/AuthContext';
 
 export default function SocialFeed() {
@@ -83,43 +84,53 @@ export default function SocialFeed() {
   return (
     <div className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-6 md:space-y-8">
       {/* Page Header & Feed Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/8 pb-4">
         <div>
-          <h1 className="font-display font-bold text-xl sm:text-2xl md:text-3xl text-slate-100 flex items-center gap-2.5">
-            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
+          <h1 className="font-display font-black text-xl sm:text-2xl md:text-3xl text-slate-100 flex items-center gap-2.5">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-[#00f5a0]" />
             <span>Community Feed</span>
           </h1>
-          <p className="text-xs font-mono text-slate-400 mt-0.5">Live reviews and ratings from fellow cinephiles</p>
+          <p className="text-xs font-mono text-slate-400 mt-0.5">Live reviews and verdicts from fellow cinephiles</p>
         </div>
 
-        <div className="flex gap-1.5 p-1 bg-white/5 border border-white/10 rounded-2xl self-start sm:self-auto">
-          <button
-            onClick={() => setFeedMode('following')}
-            className={`px-3.5 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer ${
-              feedMode === 'following'
-                ? 'bg-amber-500 text-[#08090d] shadow-md'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Following ({followingCount})
-          </button>
-          <button
-            onClick={() => setFeedMode('global')}
-            className={`px-3.5 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer ${
-              feedMode === 'global'
-                ? 'bg-amber-500 text-[#08090d] shadow-md'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Global Stream
-          </button>
-        </div>
+        <GlassSurface
+          width="auto"
+          height="auto"
+          borderRadius={20}
+          backgroundOpacity={0.82}
+          blur={24}
+          borderOpacity={0.16}
+          className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.65),0_0_15px_rgba(0,245,160,0.05)] self-start sm:self-auto"
+        >
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => setFeedMode('following')}
+              className={`px-3.5 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer ${
+                feedMode === 'following'
+                  ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_12px_rgba(0,245,160,0.4)]'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Following ({followingCount})
+            </button>
+            <button
+              onClick={() => setFeedMode('global')}
+              className={`px-3.5 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer ${
+                feedMode === 'global'
+                  ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_12px_rgba(0,245,160,0.4)]'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Global Stream
+            </button>
+          </div>
+        </GlassSurface>
       </div>
 
       {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-32 rounded-2xl bg-white/5 border border-white/10 skeleton-shimmer" />
+            <div key={i} className="h-32 rounded-2xl bg-white/5 border border-white/8 skeleton-shimmer" />
           ))}
         </div>
       ) : error ? (
@@ -128,8 +139,8 @@ export default function SocialFeed() {
         </div>
       ) : feedMode === 'following' && followingCount === 0 ? (
         <div className="space-y-6">
-          <div className="border border-white/10 bg-[#0e121e] p-6 sm:p-8 text-center text-slate-400 space-y-3 rounded-2xl shadow-xl">
-            <Users className="w-9 h-9 text-amber-400 mx-auto" />
+          <div className="border border-white/8 bg-[#080c14] p-6 sm:p-8 text-center text-slate-400 space-y-3 rounded-3xl shadow-xl">
+            <Users className="w-9 h-9 text-[#00f5a0] mx-auto" />
             <h3 className="font-display font-bold text-lg sm:text-xl text-slate-100">Your Following Feed is Quiet</h3>
             <p className="text-xs max-w-md mx-auto font-sans leading-relaxed text-slate-300">
               You aren't following any critics yet! Discover fellow cinephiles below or switch to Global Stream to explore recent community critiques.
@@ -138,7 +149,7 @@ export default function SocialFeed() {
 
           <div className="space-y-3.5 pt-2">
             <h3 className="text-xs font-mono font-bold text-slate-300 uppercase flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-amber-400" />
+              <UserPlus className="w-4 h-4 text-[#00f5a0]" />
               <span>Suggested Cinephiles to Follow</span>
             </h3>
             <div className="grid grid-cols-1 gap-3">
@@ -156,7 +167,7 @@ export default function SocialFeed() {
       ) : (
         <div className="space-y-6">
           {activeFeed.length === 0 ? (
-            <div className="border border-white/10 bg-white/5 p-10 text-center text-slate-400 text-xs font-mono rounded-2xl">
+            <div className="border border-white/8 bg-[#080c14] p-10 text-center text-slate-400 text-xs font-mono rounded-3xl">
               No activity recorded yet in this stream.
             </div>
           ) : (
@@ -168,9 +179,9 @@ export default function SocialFeed() {
           )}
 
           {suggestions.length > 0 && feedMode === 'following' && (
-            <div className="mt-8 border-t border-white/10 pt-6 space-y-3.5">
+            <div className="mt-8 border-t border-white/8 pt-6 space-y-3.5">
               <h3 className="text-xs font-mono font-bold text-slate-300 uppercase flex items-center gap-2">
-                <UserPlus className="w-4 h-4 text-amber-400" />
+                <UserPlus className="w-4 h-4 text-[#00f5a0]" />
                 <span>Critics with Shared Movie Taste</span>
               </h3>
               <div className="grid grid-cols-1 gap-3">
@@ -193,16 +204,16 @@ export default function SocialFeed() {
 
 function SuggestionCard({ sug, onFollow, isPending }) {
   return (
-    <div className="border border-white/10 bg-[#0e121e] hover:bg-[#131726] hover:border-amber-400/30 p-4 flex items-center gap-3.5 transition-all rounded-2xl shadow-md">
-      <Avatar username={sug.username} url={sug.avatar_url} className="w-10 h-10 border border-white/15 shrink-0" />
+    <div className="border border-white/8 bg-[#080c14] hover:bg-[#0e1422] hover:border-[#00f5a0]/35 p-4 flex items-center gap-3.5 transition-all rounded-2xl shadow-md">
+      <Avatar username={sug.username} url={sug.avatar_url} className="w-10 h-10 border border-[#00f5a0]/30 shrink-0" />
       <div className="text-left flex-1 min-w-0 font-sans">
-        <Link to={`/profile/${sug.username}`} className="font-mono font-bold text-slate-200 hover:text-amber-400 text-xs transition-colors block truncate">
+        <Link to={`/profile/${sug.username}`} className="font-mono font-bold text-slate-200 hover:text-[#00f5a0] text-xs transition-colors block truncate">
           @{sug.username}
         </Link>
         <p className="text-[11px] text-slate-400 truncate mt-0.5">
           {sug.mutual_count > 0 && (
-            <span className="text-amber-400 font-mono font-semibold mr-1.5 inline-flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-400" /> Shares {sug.mutual_count} films •
+            <span className="text-[#00f5a0] font-mono font-semibold mr-1.5 inline-flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-[#00f5a0]" /> Shares {sug.mutual_count} films •
             </span>
           )}
           {sug.bio || 'Cinephile exploring film archives.'}
@@ -234,17 +245,17 @@ function SocialFeedItem({ act }) {
   const mediaType = movie?.media_type || 'movie';
 
   return (
-    <div className="border border-white/10 bg-[#0e121e] hover:bg-[#131726] hover:border-amber-400/30 p-4 rounded-2xl flex gap-3.5 sm:gap-4 transition-all shadow-md">
-      <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="w-14 h-20 shrink-0 overflow-hidden rounded-xl border border-white/10 block bg-slate-900">
+    <div className="border border-white/8 bg-[#080c14] hover:bg-[#0e1422] hover:border-[#00f5a0]/35 p-4 rounded-2xl flex gap-3.5 sm:gap-4 transition-all shadow-md">
+      <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="w-14 h-20 shrink-0 overflow-hidden rounded-xl border border-white/10 block bg-slate-900 shadow">
         <img src={getPosterUrl(movie?.poster_path, 'w185')} alt={movieName} className="w-full h-full object-cover" />
       </Link>
 
       <div className="text-left flex-1 min-w-0 font-sans flex flex-col justify-between">
         <div>
-          <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5 pb-1.5 border-b border-white/10">
+          <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5 pb-1.5 border-b border-white/8">
             <div className="flex flex-wrap items-center gap-1.5 truncate">
               <Avatar username={act.username} url={act.avatar_url} className="w-5 h-5 border border-white/15" />
-              <Link to={`/profile/${act.username}`} className="font-mono font-bold text-slate-200 hover:text-amber-400 transition-colors text-xs truncate">
+              <Link to={`/profile/${act.username}`} className="font-mono font-bold text-slate-200 hover:text-[#00f5a0] transition-colors text-xs truncate">
                 @{act.username}
               </Link>
               <span className="text-[10px] text-slate-500 font-mono">
@@ -259,7 +270,7 @@ function SocialFeedItem({ act }) {
             )}
           </div>
 
-          <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="font-display font-bold text-xs sm:text-sm text-slate-100 hover:text-amber-300 transition-colors line-clamp-1">
+          <Link to={`/media/${mediaType}/${act.tmdb_movie_id}`} className="font-display font-bold text-xs sm:text-sm text-slate-100 hover:text-[#00f5a0] transition-colors line-clamp-1">
             {movieName}
           </Link>
 

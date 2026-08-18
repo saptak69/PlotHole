@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Flame, Trophy, Film, Tv, ArrowRight, Star, Clock, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Flame, Trophy, Film, Tv, ArrowRight, Star, Clock, Sparkles } from 'lucide-react';
 import { API_URL, getPosterUrl } from '../config';
 import MovieCard from '../components/MovieCard';
 import RatingBadge from '../components/RatingBadge';
 import Avatar from '../components/Avatar';
 import TrailerHero from '../components/TrailerHero';
 import MovieStack from '../components/MovieStack';
+import GlassSurface from '../components/GlassSurface';
+import FaultyTerminal from '../components/FaultyTerminal';
 
-export default function Home() {
+export default function Home({ onOpenPerson }) {
   const { data: homeBundle, isLoading: bundleLoading } = useQuery({
     queryKey: ['homeBundle'],
     queryFn: async () => {
@@ -34,32 +36,72 @@ export default function Home() {
 
   // Automatic slideshow cycle every 6 seconds (paused if trailer is playing)
   useEffect(() => {
-    if (featuredList.length === 0 || isTrailerActive) return;
+    if (featuredList.length <= 1 || isTrailerActive) return;
 
     const timer = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % featuredList.length);
     }, 6000);
 
     return () => clearInterval(timer);
+  }, [featuredList.length, isTrailerActive, heroIndex]);
+
+  // Keyboard navigation for slideshow
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (isTrailerActive) return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') {
+        handlePrevSlide();
+      } else if (e.key === 'ArrowRight') {
+        handleNextSlide();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [featuredList.length, isTrailerActive]);
 
   const handlePrevSlide = () => {
+    if (featuredList.length <= 1) return;
     setHeroIndex((prev) => (prev - 1 + featuredList.length) % featuredList.length);
   };
 
   const handleNextSlide = () => {
+    if (featuredList.length <= 1) return;
     setHeroIndex((prev) => (prev + 1) % featuredList.length);
   };
 
   return (
-    <div className="flex-1 pb-24 font-sans text-slate-100 relative">
-      {/* Symmetrical Hero Slideshow Showcase (Bigger & Mobile Touch Ready) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-6 pb-8 md:pb-10 space-y-4">
+    <div className="flex-1 pb-24 font-sans text-slate-100 relative overflow-hidden">
+      {/* Ambient FaultyTerminal Matrix/Grid Layer in the Background */}
+      <div className="absolute top-0 inset-x-0 h-[750px] opacity-60 pointer-events-auto -z-0">
+        <FaultyTerminal
+          scale={1.8}
+          gridMul={[3, 1.5]}
+          digitSize={1.3}
+          timeScale={0.7}
+          pause={false}
+          scanlineIntensity={0.85}
+          glitchAmount={1.2}
+          flickerAmount={0.8}
+          noiseAmp={1.0}
+          chromaticAberration={2.0}
+          dither={0.2}
+          curvature={0.06}
+          tint="#00f5a0"
+          mouseReact={true}
+          mouseStrength={0.5}
+          pageLoadAnimation={false}
+          brightness={1.2}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#030508]/70 to-[#030508] pointer-events-none" />
+      </div>
+
+      {/* Symmetrical Hero Slideshow Showcase */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-6 pb-8 md:pb-10 space-y-4 relative z-10">
         {heroMovie ? (
           <div className="space-y-3.5">
             {/* Direct Trailer Hero with Transparent Play Button & Touch Swipe Support */}
             <TrailerHero
-              key={`hero-${heroMovie.id}`}
               movie={heroMovie}
               mediaType={heroMovie.name ? 'tv' : 'movie'}
               onPrev={featuredList.length > 1 ? handlePrevSlide : null}
@@ -67,219 +109,200 @@ export default function Home() {
               onTrailerStateChange={(active) => setIsTrailerActive(active)}
             />
 
-            {/* Symmetrical Slideshow Indicator Dots */}
+            {/* Symmetrical Slideshow Indicator Dots with Progress Animation */}
             <div className="flex items-center justify-center gap-2 pt-2">
-              {featuredList.map((_, idx) => (
+              {featuredList.map((movieItem, idx) => (
                 <button
-                  key={idx}
+                  key={`dot-${movieItem.id || idx}`}
                   onClick={() => setHeroIndex(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  className={`relative h-2 rounded-full transition-all duration-500 cursor-pointer overflow-hidden ${
                     heroIndex === idx
-                      ? 'w-7 sm:w-8 bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.6)]'
-                      : 'w-2 bg-white/20 hover:bg-white/40'
+                      ? 'w-10 bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] shadow-[0_0_12px_rgba(0,245,160,0.5)]'
+                      : 'w-2.5 bg-white/20 hover:bg-white/40'
                   }`}
-                  aria-label={`Go to slide ${idx + 1}`}
+                  title={`Go to ${movieItem.title || movieItem.name || `slide ${idx + 1}`}`}
                 />
               ))}
             </div>
           </div>
-        ) : bundleLoading ? (
-          <div className="aspect-[4/3] sm:aspect-[16/8] md:aspect-[21/9] min-h-[360px] w-full rounded-3xl bg-white/5 border border-white/10 skeleton-shimmer" />
-        ) : null}
+        ) : (
+          <div className="aspect-[21/9] w-full rounded-3xl bg-white/5 border border-white/8 skeleton-shimmer" />
+        )}
       </div>
 
-      {/* Main Content Vault */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 space-y-12 md:space-y-16">
-        {/* Category Rails Header (Smooth Horizontal Scroll on Mobile) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-4 gap-3.5">
-          <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 p-1 rounded-2xl overflow-x-auto whitespace-nowrap scrollbar-none w-full sm:w-auto">
-            {[
-              { id: 'trending', label: 'Trending', icon: Flame },
-              { id: 'toprated', label: 'Hall of Fame', icon: Trophy },
-              { id: 'upcoming', label: 'In Theaters', icon: Film },
-              { id: 'series', label: 'TV Shows', icon: Tv }
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const active = selectedCategory === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setSelectedCategory(tab.id)}
-                  className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 select-none cursor-pointer shrink-0 ${
-                    active
-                      ? 'bg-amber-500 text-black font-bold shadow-md'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
+      {/* Symmetrical Category Navigation Rail with GlassSurface */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 mb-8 relative z-10">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <GlassSurface
+            width="auto"
+            height="auto"
+            borderRadius={20}
+            backgroundOpacity={0.82}
+            blur={24}
+            borderOpacity={0.16}
+            className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.65),0_0_15px_rgba(0,245,160,0.05)]"
+          >
+            <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none select-none">
+              <button
+                onClick={() => setSelectedCategory('trending')}
+                className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                  selectedCategory === 'trending'
+                    ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Flame className="w-3.5 h-3.5" />
+                <span>Trending Cinema</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedCategory('topRated')}
+                className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                  selectedCategory === 'topRated'
+                    ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Trophy className="w-3.5 h-3.5" />
+                <span>Hall of Fame</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedCategory('upcoming')}
+                className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                  selectedCategory === 'upcoming'
+                    ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Film className="w-3.5 h-3.5" />
+                <span>In Theaters</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedCategory('tv')}
+                className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                  selectedCategory === 'tv'
+                    ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Tv className="w-3.5 h-3.5" />
+                <span>Acclaimed Series</span>
+              </button>
+            </div>
+          </GlassSurface>
 
           <Link
-            to="/search"
-            className="text-xs font-mono text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1.5 uppercase self-end sm:self-auto"
+            to="/search?q="
+            className="hidden sm:flex items-center gap-1.5 font-mono text-xs font-bold text-slate-400 hover:text-[#00f5a0] transition-colors uppercase tracking-wider"
           >
-            <span>Explore All Titles</span>
+            <span>Explore Vault</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
+      </div>
 
-        {/* Selected Movie Grid */}
-        <section>
-          {selectedCategory === 'trending' && (
-            <MovieGrid movies={popularMovies} loading={bundleLoading} title="Trending Cinema Today" />
-          )}
-          {selectedCategory === 'toprated' && (
-            <MovieGrid movies={topRatedMovies} loading={bundleLoading} title="All-Time Masterpieces" />
-          )}
-          {selectedCategory === 'upcoming' && (
-            <MovieGrid movies={upcomingMovies} loading={bundleLoading} title="Upcoming in Theaters" />
-          )}
-          {selectedCategory === 'series' && (
-            <MovieGrid
-              movies={popularTv.map((s) => ({ ...s, media_type: 'tv' }))}
-              loading={bundleLoading}
-              title="Acclaimed Series"
-            />
-          )}
-        </section>
-
-        {/* Interactive Blind Pick Mystery Deck */}
-        {topRatedMovies.length > 0 && (
-          <section>
-            <MovieStack movies={topRatedMovies} />
-          </section>
-        )}
-
-        {/* Community Reviews Stream */}
-        <section className="space-y-6 text-left">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-3 gap-2">
-            <div>
-              <h3 className="font-display font-bold text-lg sm:text-xl text-white">
-                Recent Member Reviews
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5 font-sans">
-                Unfiltered ratings and critiques from fellow film lovers
-              </p>
+      {/* Main Content Sections */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 space-y-12 md:space-y-16 relative z-10">
+        {/* Dynamic Category Grid */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between border-b border-white/8 pb-3">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#00f5a0] shadow-[0_0_8px_#00f5a0]" />
+              <h2 className="font-display font-black text-xl sm:text-2xl text-white">
+                {selectedCategory === 'trending' && 'Trending Films Right Now'}
+                {selectedCategory === 'topRated' && 'All-Time Pure Cinema Classics'}
+                {selectedCategory === 'upcoming' && 'Anticipated Theatrical Releases'}
+                {selectedCategory === 'tv' && 'Prestige Television & Miniseries'}
+              </h2>
             </div>
-            <Link
-              to="/social"
-              className="text-xs font-mono text-amber-400 hover:text-amber-300 font-semibold uppercase"
-            >
-              View Community Stream →
-            </Link>
+            <span className="text-xs font-mono text-slate-500">Curated TMDB Feed</span>
           </div>
 
           {bundleLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-28 rounded-2xl bg-white/5 border border-white/10 skeleton-shimmer" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4 md:gap-5">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="aspect-[2/3] rounded-2xl bg-white/5 border border-white/8 skeleton-shimmer" />
               ))}
             </div>
-          ) : recentReviews.length === 0 ? (
-            <div className="p-8 rounded-2xl border border-white/10 bg-white/5 text-center text-slate-400 text-xs font-mono">
-              No reviews logged yet. Be the first cinephile to share your thoughts!
-            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
-              {recentReviews.slice(0, 6).map((rev) => (
-                <ReviewCard key={rev.id} rev={rev} />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4 md:gap-5">
+              {(selectedCategory === 'trending'
+                ? popularMovies.slice(0, 12)
+                : selectedCategory === 'topRated'
+                ? topRatedMovies.slice(0, 12)
+                : selectedCategory === 'upcoming'
+                ? upcomingMovies.slice(0, 12)
+                : popularTv.slice(0, 12)
+              ).map((movie) => (
+                <MovieCard key={`${movie.media_type || 'm'}-${movie.id}`} movie={movie} />
               ))}
             </div>
           )}
         </section>
-      </div>
-    </div>
-  );
-}
 
-function MovieGrid({ movies, loading, title }) {
-  if (loading) {
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 sm:gap-4 md:gap-5">
-        {[...Array(10)].map((_, i) => (
-          <div key={i} className="aspect-[2/3] rounded-2xl bg-white/5 border border-white/10 skeleton-shimmer" />
-        ))}
-      </div>
-    );
-  }
+        {/* Interactive Blind Pick Mystery Stack */}
+        {popularMovies.length > 0 && (
+          <section className="pt-2">
+            <MovieStack movies={topRatedMovies.length > 0 ? topRatedMovies : popularMovies} />
+          </section>
+        )}
 
-  return (
-    <div className="space-y-4 text-left">
-      <h3 className="font-display font-bold text-base sm:text-lg text-slate-200">{title}</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5 sm:gap-4 md:gap-5">
-        {movies.slice(0, 10).map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ReviewCard({ rev }) {
-  const { data: movie } = useQuery({
-    queryKey: ['movieDetailsSimple', rev.tmdb_movie_id],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/movies/${rev.tmdb_movie_id}`);
-      if (!res.ok) throw new Error('Not found');
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 10
-  });
-
-  const movieName = movie?.title || movie?.name || 'Film';
-  const mediaType = movie?.media_type || 'movie';
-
-  return (
-    <div className="rounded-2xl border border-white/8 bg-[#0e121e] hover:bg-[#131726] hover:border-amber-400/30 p-3.5 sm:p-4 flex gap-3.5 transition-all shadow-md">
-      <Link
-        to={`/media/${mediaType}/${rev.tmdb_movie_id}`}
-        className="w-14 h-20 shrink-0 overflow-hidden rounded-xl border border-white/10 block bg-slate-900"
-      >
-        <img
-          src={getPosterUrl(movie?.poster_path, 'w185')}
-          alt={movieName}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-      </Link>
-
-      <div className="text-left flex-1 min-w-0 flex flex-col justify-between">
-        <div>
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <div className="flex items-center gap-1.5 truncate">
-              <Avatar username={rev.username} url={rev.avatar_url} className="w-5 h-5 border border-white/15" />
-              <Link
-                to={`/profile/${rev.username}`}
-                className="font-mono text-xs font-bold text-slate-200 hover:text-amber-400 transition-colors truncate"
-              >
-                @{rev.username}
+        {/* Member Reviews & Verdicts Feed */}
+        {recentReviews.length > 0 && (
+          <section className="space-y-4 pt-2">
+            <div className="flex items-center justify-between border-b border-white/8 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#00d4ff] shadow-[0_0_8px_#00d4ff]" />
+                <h2 className="font-display font-black text-xl sm:text-2xl text-white">
+                  Fresh Member Verdicts
+                </h2>
+              </div>
+              <Link to="/community" className="text-xs font-mono font-bold text-[#00f5a0] hover:underline uppercase">
+                View All Activity →
               </Link>
             </div>
-            <RatingBadge rating={rev.rating} size="xs" />
-          </div>
 
-          <Link
-            to={`/media/${mediaType}/${rev.tmdb_movie_id}`}
-            className="font-display font-bold text-xs text-white hover:text-amber-300 transition-colors line-clamp-1"
-          >
-            {movieName}
-          </Link>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {recentReviews.slice(0, 6).map((rev) => (
+                <div
+                  key={rev.id}
+                  className="p-5 rounded-2xl border border-white/8 bg-[#080c14] hover:border-[#00f5a0]/40 transition-all space-y-3.5 shadow-md flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Avatar username={rev.username} url={rev.avatar_url} className="w-7 h-7 border border-white/15" />
+                        <Link to={`/profile/${rev.username}`} className="font-mono text-xs font-bold text-slate-200 hover:text-[#00f5a0] truncate block">
+                          @{rev.username}
+                        </Link>
+                      </div>
+                      <RatingBadge rating={rev.rating} size="sm" />
+                    </div>
 
-          {rev.review_text && (
-            <p className="text-xs text-slate-300 mt-1 line-clamp-2 italic font-sans">
-              "{rev.review_text}"
-            </p>
-          )}
-        </div>
+                    <Link
+                      to={`/media/${rev.media_type || 'movie'}/${rev.tmdb_movie_id}`}
+                      className="font-display font-bold text-sm text-slate-100 hover:text-[#00f5a0] transition-colors block line-clamp-1"
+                    >
+                      {rev.title || `Film #${rev.tmdb_movie_id}`}
+                    </Link>
 
-        <div className="flex items-center gap-1 text-[10px] font-mono text-slate-500 mt-1.5">
-          <Clock className="w-3 h-3 text-slate-500" />
-          <span>{new Date(rev.created_at).toLocaleDateString()}</span>
-        </div>
+                    {rev.review_text && (
+                      <p className="text-xs text-slate-300 italic line-clamp-3 leading-relaxed bg-black/40 p-3 rounded-xl border border-white/5">
+                        "{rev.review_text}"
+                      </p>
+                    )}
+                  </div>
+
+                  <span className="text-[10px] font-mono text-slate-500 block pt-1 border-t border-white/5">
+                    Logged: {new Date(rev.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

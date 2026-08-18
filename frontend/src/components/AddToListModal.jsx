@@ -80,24 +80,24 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
     <>
       <div className="fixed inset-0 z-[1000] bg-black/85 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
         <div 
-          className="w-full max-w-md rounded-2xl overflow-hidden border border-white/15 bg-[#0e111a] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9)]"
+          className="w-full max-w-md rounded-3xl overflow-hidden border border-white/12 bg-[#080c14] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(0,245,160,0.15)]"
           style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
         >
-          <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10">
+          <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400">
-                <FolderPlus className="w-3.5 h-3.5" />
+              <div className="w-8 h-8 rounded-xl bg-[#00f5a0]/15 border border-[#00f5a0]/30 flex items-center justify-center text-[#00f5a0] shadow-[0_0_10px_rgba(0,245,160,0.2)]">
+                <FolderPlus className="w-4 h-4" />
               </div>
               <div>
-                <span className="font-display font-bold text-sm text-slate-100 uppercase tracking-wide block">
+                <span className="font-display font-bold text-sm text-slate-100 uppercase tracking-wide block text-left">
                   Add to List
                 </span>
-                <span className="font-mono text-[10px] text-slate-400 uppercase">Manage custom collection</span>
+                <span className="font-mono text-[10px] text-slate-400 uppercase text-left block">Manage custom collection</span>
               </div>
             </div>
             <button 
               onClick={onClose} 
-              className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+              className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -105,15 +105,15 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
 
           <div className="p-6 space-y-4 text-xs">
             {/* Film snapshot */}
-            <div className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3">
+            <div className="p-3 bg-white/5 border border-white/8 rounded-2xl flex items-center gap-3">
               {movie?.poster_path && (
                 <img
                   src={getPosterUrl(movie.poster_path, 'w92')}
                   alt={movie.title || movie.name}
-                  className="w-10 h-14 object-cover rounded-lg border border-white/10"
+                  className="w-10 h-14 object-cover rounded-xl border border-white/10 shadow"
                 />
               )}
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 text-left">
                 <p className="font-display font-bold text-sm text-slate-100 truncate">
                   {movie?.title || movie?.name}
                 </p>
@@ -123,11 +123,11 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-1 border-t border-white/10">
-              <span className="font-mono font-bold uppercase text-slate-400 text-[11px]">Your Lists</span>
+            <div className="flex justify-between items-center pt-1 border-t border-white/8">
+              <span className="font-mono font-bold uppercase text-slate-400 text-[11px]">Your Collections</span>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="text-amber-400 hover:text-amber-300 flex items-center gap-1 font-mono font-bold text-[11px] uppercase transition-colors"
+                className="text-[#00f5a0] hover:text-[#7affd4] flex items-center gap-1 font-mono font-bold text-[11px] uppercase transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New List</span>
@@ -137,14 +137,14 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
             <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
               {loading ? (
                 <div className="p-6 text-center text-slate-400">
-                  <Loader2 className="w-5 h-5 animate-spin mx-auto text-amber-400" />
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto text-[#00f5a0]" />
                 </div>
               ) : lists.length === 0 ? (
                 <div className="text-center p-6 text-slate-400 space-y-2">
                   <p>You haven't created any custom lists yet.</p>
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="btn-primary py-1.5 px-3 text-[11px]"
+                    className="btn-primary py-1.5 px-3.5 text-[11px] font-bold"
                   >
                     Create Your First List
                   </button>
@@ -157,7 +157,7 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
                   return (
                     <div
                       key={lst.id}
-                      className="p-3 bg-white/5 border border-white/10 hover:border-amber-400/30 rounded-xl flex items-center justify-between transition-colors"
+                      className="p-3 bg-white/5 border border-white/8 hover:border-[#00f5a0]/30 rounded-2xl flex items-center justify-between transition-colors text-left"
                     >
                       <div>
                         <p className="font-display font-bold text-slate-100">{lst.title}</p>
@@ -166,10 +166,10 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
                       <button
                         onClick={() => handleAddToList(lst.id)}
                         disabled={isAdded || isAdding}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold uppercase transition-all flex items-center gap-1 ${
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold uppercase transition-all flex items-center gap-1 cursor-pointer ${
                           isAdded
-                            ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40'
-                            : 'bg-white/5 text-slate-200 border border-white/10 hover:border-amber-400/50 hover:text-amber-300'
+                            ? 'bg-[#00f5a0]/20 text-[#00f5a0] border border-[#00f5a0]/40'
+                            : 'bg-white/5 text-slate-200 border border-white/10 hover:border-[#00f5a0]/50 hover:text-[#00f5a0]'
                         }`}
                       >
                         {isAdding ? (
@@ -193,7 +193,7 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
             </div>
 
             <div className="flex justify-end pt-2">
-              <button onClick={onClose} className="btn-secondary px-4 py-1.5 text-xs">
+              <button onClick={onClose} className="btn-secondary px-5 py-2 text-xs cursor-pointer">
                 Done
               </button>
             </div>

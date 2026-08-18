@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Play, Loader2, Film } from 'lucide-react';
+import { X, Play, Loader2, Film, ExternalLink } from 'lucide-react';
 import { API_URL } from '../config';
 
 export default function TrailerModal({ isOpen, onClose, movieId, mediaType = 'movie', title, preloadedVideos }) {
@@ -59,25 +59,25 @@ export default function TrailerModal({ isOpen, onClose, movieId, mediaType = 'mo
   return (
     <div className="fixed inset-0 z-[1000] bg-black/85 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
       <div 
-        className="w-full max-w-4xl rounded-2xl overflow-hidden border border-white/15 bg-[#0e111a] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9)]"
+        className="w-full max-w-4xl rounded-3xl overflow-hidden border border-white/12 bg-[#080c14] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(0,245,160,0.15)]"
         style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
       >
         {/* Title bar */}
-        <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/10">
+        <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-400">
-              <Play className="w-3.5 h-3.5 fill-amber-400" />
+            <div className="w-8 h-8 rounded-xl bg-[#00f5a0]/15 border border-[#00f5a0]/30 flex items-center justify-center text-[#00f5a0] shadow-[0_0_10px_rgba(0,245,160,0.2)]">
+              <Play className="w-4 h-4 fill-[#00f5a0] ml-0.5" />
             </div>
             <div>
-              <span className="font-display font-bold text-sm text-slate-100 uppercase tracking-wide block truncate max-w-lg">
+              <span className="font-display font-bold text-sm text-slate-100 uppercase tracking-wide block truncate max-w-lg text-left">
                 {title || 'Cinema Preview'}
               </span>
-              <span className="font-mono text-[10px] text-slate-400 uppercase">Official Trailer</span>
+              <span className="font-mono text-[10px] text-slate-400 uppercase text-left block">Official Trailer</span>
             </div>
           </div>
           <button 
             onClick={onClose} 
-            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -87,28 +87,29 @@ export default function TrailerModal({ isOpen, onClose, movieId, mediaType = 'mo
         <div className="relative aspect-video bg-black flex items-center justify-center">
           {loading ? (
             <div className="flex flex-col items-center gap-3 text-slate-400 font-mono text-xs">
-              <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#00f5a0]" />
               <span>STREAMING TRAILER FROM TMDB ARCHIVE...</span>
             </div>
           ) : error || !videoKey ? (
             <div className="text-center p-8 space-y-3 font-sans">
               <Film className="w-10 h-10 text-slate-600 mx-auto mb-2" />
               <p className="text-rose-400 font-bold text-sm font-display">NO DIRECT TRAILER STREAM AVAILABLE</p>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
+              <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
                 No YouTube trailer embed was found for this specific title. You can search directly on YouTube.
               </p>
               <a
                 href={`https://www.youtube.com/results?search_query=${encodeURIComponent((title || '') + ' official trailer')}`}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-primary inline-flex items-center gap-2 text-xs py-2 px-5 mt-2"
+                className="btn-primary inline-flex items-center gap-2 text-xs py-2 px-5 mt-2 font-bold shadow-md"
               >
-                Search on YouTube
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Search on YouTube</span>
               </a>
             </div>
           ) : (
             <iframe
-              src={`https://www.youtube.com/embed/${videoKey}?autoplay=1`}
+              src={`https://www.youtube.com/embed/${videoKey}?autoplay=1&rel=0&modestbranding=1`}
               title={`${title} Trailer`}
               className="w-full h-full border-none"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

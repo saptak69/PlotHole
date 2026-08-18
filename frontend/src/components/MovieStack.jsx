@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, ChevronRight, Sparkles, RefreshCw, Eye } from 'lucide-react';
+import { Star, Sparkles, RefreshCw, Eye } from 'lucide-react';
 import { getPosterUrl } from '../config';
-import ShinyText from './ShinyText';
+import GlassSurface from './GlassSurface';
 
 /**
- * MovieStack Component (inspired by Stack from React Bits)
- * Interactive card deck with rotational depth and swipeable film cards.
+ * MovieStack Component
+ * Interactive cinema mystery deck with rotational depth and tactile fanning.
  */
 export default function MovieStack({ movies = [], title = 'Cinephile Mystery Deck' }) {
   const [cards, setCards] = useState(movies.slice(0, 5));
@@ -32,29 +32,34 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
   const mediaType = activeMovie.media_type || 'movie';
 
   return (
-    <div className="relative border border-white/15 bg-gradient-to-br from-[#111420] via-[#0d101a] to-[#08090d] p-6 md:p-8 rounded-3xl overflow-hidden shadow-2xl">
-      {/* Ambient Top Glow */}
-      <div className="absolute top-0 right-0 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10">
+    <GlassSurface
+      width="100%"
+      height="auto"
+      borderRadius={28}
+      backgroundOpacity={0.82}
+      blur={24}
+      borderOpacity={0.18}
+      className="shadow-[0_16px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(0,245,160,0.06)] overflow-hidden"
+    >
+      <div className="p-6 md:p-8 flex flex-col lg:flex-row items-center justify-between gap-8 w-full text-left">
         {/* Left info column */}
         <div className="text-left space-y-4 max-w-md">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/25 text-amber-300 font-mono text-[11px] font-bold uppercase">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <ShinyText text="Cinephile Deck // Blind Pick" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00f5a0]/15 border border-[#00f5a0]/30 text-[#00f5a0] font-mono text-[11px] font-bold uppercase shadow-[0_0_10px_rgba(0,245,160,0.2)]">
+            <Sparkles className="w-3.5 h-3.5 text-[#00f5a0]" />
+            <span>Cinephile Deck // Blind Pick</span>
           </div>
 
-          <h3 className="font-display font-extrabold text-2xl md:text-3xl text-white">
+          <h3 className="font-display font-black text-2xl md:text-3xl text-white">
             {movieTitle}
           </h3>
 
-          <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed">
+          <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed font-sans">
             {activeMovie.overview || "A compelling cinematic journey through timeless storytelling and visual mastery."}
           </p>
 
-          <div className="flex items-center gap-4 pt-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 font-mono text-xs text-amber-400 font-bold">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+          <div className="flex items-center gap-4 pt-1">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-black/40 border border-white/10 font-mono text-xs text-[#00f5a0] font-bold">
+              <Star className="w-3.5 h-3.5 fill-[#00f5a0] text-[#00f5a0]" />
               <span>{rating} TMDB</span>
             </div>
 
@@ -66,7 +71,7 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
           <div className="flex items-center gap-3 pt-3">
             <Link
               to={`/media/${mediaType}/${activeMovie.id}`}
-              className="btn-primary px-5 py-2.5 text-xs font-mono font-bold uppercase flex items-center gap-2"
+              className="btn-primary px-5 py-2.5 text-xs font-mono font-bold uppercase flex items-center gap-2 shadow-md"
             >
               <Eye className="w-4 h-4" />
               <span>Explore Film</span>
@@ -74,7 +79,7 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
 
             <button
               onClick={handleNext}
-              className="btn-secondary px-4 py-2.5 text-xs font-mono font-bold flex items-center gap-1.5"
+              className="btn-secondary px-4 py-2.5 text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Next Card</span>
@@ -97,7 +102,7 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
             return (
               <div
                 key={movie.id}
-                className="absolute inset-0 rounded-2xl overflow-hidden border border-white/20 shadow-2xl transition-all duration-400 ease-out bg-slate-900"
+                className="absolute inset-0 rounded-2xl overflow-hidden border border-white/15 shadow-2xl transition-all duration-400 ease-out bg-slate-900"
                 style={{
                   transform: `translate3d(0, ${translateYs[offset]}px, 0) rotate(${rotations[offset]}deg) scale(${scales[offset]})`,
                   zIndex: 10 - offset,
@@ -123,6 +128,6 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
           })}
         </div>
       </div>
-    </div>
+    </GlassSurface>
   );
 }
