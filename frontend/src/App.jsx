@@ -6,6 +6,7 @@ import { ToastProvider } from './context/ToastContext';
 
 import Navbar from './components/Navbar';
 import Logo, { BrandMark } from './components/Logo';
+import FaultyTerminal from './components/FaultyTerminal';
 import Home from './pages/Home';
 import MovieDetails from './pages/MovieDetails';
 import SearchPage from './pages/Search';
@@ -40,6 +41,29 @@ function MainLayout() {
   return (
     <>
       <div className="min-h-screen bg-[#08080a] text-slate-100 flex flex-col selection:bg-[#e50914] selection:text-white relative">
+        {/* Global Full-Screen Ambient Cinema Grid/Shader Pattern */}
+        <div className="fixed inset-0 pointer-events-none z-0 opacity-75 overflow-hidden">
+          <FaultyTerminal
+            scale={1.8}
+            gridMul={[3, 1.5]}
+            digitSize={1.3}
+            timeScale={0.65}
+            pause={false}
+            scanlineIntensity={0.8}
+            glitchAmount={1.0}
+            flickerAmount={0.7}
+            noiseAmp={0.9}
+            chromaticAberration={2.0}
+            dither={0.2}
+            curvature={0.06}
+            tint="#e50914"
+            mouseReact={true}
+            mouseStrength={0.4}
+            pageLoadAnimation={false}
+            brightness={1.45}
+          />
+        </div>
+
         {/* Vibrant Cinema Ambient Background Lighting Layer (GPU Native) */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 will-change-transform transform-gpu" style={{ contain: 'strict' }}>
           {/* Top Radiant Spotlight (Netflix Red & Cinema Gold) */}

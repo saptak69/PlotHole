@@ -76,12 +76,14 @@ export default function Navbar() {
             : 'bg-transparent border-b border-transparent shadow-none'
         }`}
       >
-        <div className="max-w-7xl mx-auto relative flex items-center justify-between gap-4 md:gap-6">
-          {/* Brand Logo */}
-          <Logo size="sm" onClick={handleLinkClick} />
+        <div className="max-w-7xl mx-auto flex md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-between gap-3 sm:gap-4 md:gap-6 w-full">
+          {/* Column 1: Left Brand Logo */}
+          <div className="flex items-center justify-start shrink-0">
+            <Logo size="sm" onClick={handleLinkClick} />
+          </div>
 
-          {/* Desktop Navigation Links - Centered in navbar with GlassSurface */}
-          <div className="hidden md:block absolute left-1/2 -translate-x-1/2">
+          {/* Column 2: Exact Dead-Center Navigation Links (100% True Symmetry) */}
+          <div className="hidden md:flex items-center justify-center">
             <GlassSurface
               width="auto"
               height="auto"
@@ -91,10 +93,10 @@ export default function Navbar() {
               borderOpacity={0.12}
               className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)]"
             >
-              <nav className="flex items-center gap-1.5 px-1 py-0.5">
+              <nav className="flex items-center gap-1 sm:gap-1.5 px-1 py-0.5">
                 <Link
                   to="/"
-                  className={`px-4 py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
+                  className={`px-3.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 lg:gap-2 shrink-0 ${
                     isActive('/')
                       ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -105,7 +107,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/social"
-                  className={`px-4 py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
+                  className={`px-3.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 lg:gap-2 shrink-0 ${
                     isActive('/social')
                       ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -116,7 +118,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/lists"
-                  className={`px-4 py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
+                  className={`px-3.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 lg:gap-2 shrink-0 ${
                     isActive('/lists')
                       ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -129,19 +131,19 @@ export default function Navbar() {
             </GlassSurface>
           </div>
 
-          {/* Search & User Profile */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Column 3: Right Search & Actions (Right-Aligned in its Column) */}
+          <div className="flex items-center justify-end gap-2 sm:gap-2.5">
             {/* Universal Search Bar (Desktop & Tablet) */}
             <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search films, series, critics..."
+                placeholder="Search films, critics..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-48 md:w-64 lg:w-72 bg-white/5 hover:bg-white/8 focus:bg-black/60 focus:w-80 text-white placeholder-slate-400 text-xs font-mono font-medium rounded-full pl-9 pr-4 py-2 border border-white/10 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all outline-none"
+                className="w-32 sm:w-36 md:w-36 lg:w-48 xl:w-56 bg-white/5 hover:bg-white/8 focus:bg-black/80 focus:w-44 lg:focus:w-64 text-white placeholder-slate-400 text-xs font-mono font-medium rounded-full pl-8 pr-3 py-1.5 border border-white/10 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all outline-none"
               />
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </form>
 
             {/* Auth Dropdown & User Avatar */}
@@ -193,16 +195,16 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
                   to="/login"
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-display font-black uppercase tracking-wider text-slate-300 hover:text-white transition-colors"
+                  className="px-3 py-1.5 rounded-xl text-xs font-display font-black uppercase tracking-wider text-slate-300 hover:text-white transition-colors whitespace-nowrap"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/signup"
-                  className="btn-primary py-1.5 px-4 text-xs font-black uppercase tracking-wider shadow-md"
+                  className="btn-primary py-1.5 px-3.5 text-xs font-black uppercase tracking-wider shadow-md whitespace-nowrap"
                 >
                   Sign Up
                 </Link>

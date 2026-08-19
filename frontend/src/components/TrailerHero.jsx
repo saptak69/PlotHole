@@ -213,14 +213,14 @@ export default function TrailerHero({
           <div className="absolute inset-0 bg-gradient-to-t from-[#08080a] via-[#08080a]/60 to-transparent pointer-events-none" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#08080a]/90 via-[#08080a]/40 to-transparent pointer-events-none" />
 
-          {/* Navigation Controls: Touch indicators on mobile & Desktop arrows */}
+          {/* Navigation Controls: Desktop Hover Arrows only (Mobile screens navigate cleanly via touch swipe) */}
           {onPrev && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onPrev();
               }}
-              className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 cursor-pointer shadow-xl hover:border-[#e50914]/70"
+              className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-md items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 cursor-pointer shadow-xl hover:border-[#e50914]/70"
               title="Previous Movie"
               aria-label="Previous Slide"
             >
@@ -234,7 +234,7 @@ export default function TrailerHero({
                 e.stopPropagation();
                 onNext();
               }}
-              className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 cursor-pointer shadow-xl hover:border-[#e50914]/70"
+              className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-md items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 cursor-pointer shadow-xl hover:border-[#e50914]/70"
               title="Next Movie"
               aria-label="Next Slide"
             >

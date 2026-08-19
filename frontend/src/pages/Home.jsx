@@ -9,7 +9,6 @@ import Avatar from '../components/Avatar';
 import TrailerHero from '../components/TrailerHero';
 import MovieStack from '../components/MovieStack';
 import GlassSurface from '../components/GlassSurface';
-import FaultyTerminal from '../components/FaultyTerminal';
 
 export default function Home({ onOpenPerson }) {
   const { data: homeBundle, isLoading: bundleLoading } = useQuery({
@@ -72,29 +71,6 @@ export default function Home({ onOpenPerson }) {
 
   return (
     <div className="flex-1 pb-24 font-sans text-slate-100 relative overflow-hidden">
-      {/* Ambient FaultyTerminal Matrix/Grid Layer in the Background */}
-      <div className="absolute top-0 inset-x-0 h-[800px] opacity-85 pointer-events-auto -z-0">
-        <FaultyTerminal
-          scale={1.8}
-          gridMul={[3, 1.5]}
-          digitSize={1.3}
-          timeScale={0.7}
-          pause={false}
-          scanlineIntensity={0.85}
-          glitchAmount={1.2}
-          flickerAmount={0.8}
-          noiseAmp={1.0}
-          chromaticAberration={2.0}
-          dither={0.2}
-          curvature={0.06}
-          tint="#e50914"
-          mouseReact={true}
-          mouseStrength={0.5}
-          pageLoadAnimation={false}
-          brightness={1.5}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#08080a]/45 to-[#08080a] pointer-events-none" />
-      </div>
 
       {/* Symmetrical Hero Slideshow Showcase */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-6 pb-8 md:pb-10 space-y-4 relative z-10">

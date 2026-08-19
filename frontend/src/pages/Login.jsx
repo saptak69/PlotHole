@@ -4,7 +4,6 @@ import { AlertCircle, Lock, Mail, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BrandMark } from '../components/Logo';
 import GlassSurface from '../components/GlassSurface';
-import FaultyTerminal from '../components/FaultyTerminal';
 
 export default function Login() {
   const { login } = useAuth();
@@ -31,30 +30,6 @@ export default function Login() {
 
   return (
     <div className="flex-1 flex items-center justify-center py-16 sm:py-24 px-4 sm:px-6 font-sans text-slate-100 relative min-h-[85vh] overflow-hidden">
-      {/* Interactive FaultyTerminal Matrix Background Layer */}
-      <div className="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-60">
-        <FaultyTerminal
-          scale={1.8}
-          gridMul={[3, 1.5]}
-          digitSize={1.3}
-          timeScale={0.8}
-          pause={false}
-          scanlineIntensity={0.85}
-          glitchAmount={1.2}
-          flickerAmount={0.8}
-          noiseAmp={1.0}
-          chromaticAberration={2.5}
-          dither={0.25}
-          curvature={0.08}
-          tint="#e50914"
-          mouseReact={true}
-          mouseStrength={0.55}
-          pageLoadAnimation={false}
-          brightness={1.5}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#08080a] via-transparent to-[#08080a]/35 pointer-events-none" />
-      </div>
-
       <div className="relative z-10 w-full max-w-md">
         <GlassSurface
           width="100%"
