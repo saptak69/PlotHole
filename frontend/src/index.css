@@ -1,35 +1,39 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-bg: #030508;
-  --color-brand-card: #080c14;
-  --color-brand-card-hover: #0e1422;
-  --color-brand-surface: rgba(8, 12, 20, 0.8);
+  --color-brand-bg: #08080a;
+  --color-brand-card: #121216;
+  --color-brand-card-hover: #1a1a22;
+  --color-brand-surface: rgba(18, 18, 22, 0.85);
   --color-brand-border: rgba(255, 255, 255, 0.08);
-  --color-brand-border-glow: rgba(0, 245, 160, 0.35);
-  --color-brand-text: #f8fafc;
-  --color-brand-text-muted: #94a3b8;
+  --color-brand-border-glow: rgba(229, 9, 20, 0.4);
+  --color-brand-text: #f5f5f7;
+  --color-brand-text-muted: #a1a1aa;
   --color-brand-heading: #ffffff;
 
-  /* Avant-Garde Prismatic Chromium & Electric Mint Palette */
-  --color-mint-300: #7affd4;
-  --color-mint-400: #00f5a0;
-  --color-mint-500: #00d98b;
-  --color-mint-600: #00ad6f;
-  --color-mint-glow: rgba(0, 245, 160, 0.25);
+  /* Netflix Red & Cinema Scarlet Palette */
+  --color-brand-red-light: #ff2e3b;
+  --color-brand-red: #e50914;
+  --color-brand-red-dark: #b80710;
+  --color-brand-red-glow: rgba(229, 9, 20, 0.4);
 
-  /* Prismatic Liquid Caustics */
-  --color-cyan-glow: #00d4ff;
-  --color-violet-glow: #7928ca;
+  /* Cinema Gold & Amber Accents */
+  --color-amber-300: #fde047;
+  --color-amber-400: #ffb800;
+  --color-amber-500: #f59e0b;
+  --color-amber-glow: rgba(255, 184, 0, 0.3);
+
+  /* Prismatic Liquid Caustics & Glows */
   --color-crimson-glow: #ff3b5c;
+  --color-gold-glow: #ffb800;
   --color-platinum: #ffffff;
 
   /* Rating Tier Specific Colors */
-  --color-tier-1: #ff3b5c; /* Bullshit - Hot Crimson */
+  --color-tier-1: #ff3b5c; /* Bullshit - Crimson Flame */
   --color-tier-2: #94a3b8; /* Meh - Titanium Slate */
-  --color-tier-3: #00d4ff; /* One-Time - Liquid Cyan */
-  --color-tier-4: #00f5a0; /* Good - Electric Mint */
-  --color-tier-5: #ffffff; /* Pure Cinema - Luminous Platinum */
+  --color-tier-3: #f59e0b; /* One-Time - Cinema Amber */
+  --color-tier-4: #e50914; /* Good - Netflix Red */
+  --color-tier-5: #ffffff; /* Pure Cinema - Luminous Gold & Platinum Trophy */
 
   /* Typography */
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -60,8 +64,8 @@ html {
 }
 
 body {
-  background-color: #030508;
-  color: #f8fafc;
+  background-color: #08080a;
+  color: #f5f5f7;
   font-family: 'Plus Jakarta Sans', sans-serif;
   margin: 0;
   padding: 0;
@@ -77,19 +81,19 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #030508;
+  background: #08080a;
 }
 ::-webkit-scrollbar-thumb {
-  background: #111827;
+  background: #1e1e24;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #00f5a0;
+  background: #e50914;
 }
 
 *:focus-visible {
-  outline: 2px solid #00f5a0 !important;
+  outline: 2px solid #e50914 !important;
   outline-offset: 2px !important;
 }
 
@@ -108,57 +112,72 @@ body {
 }
 
 /* ============================================================
-   GLASSMORPHISM & SURFACE ELEVATION
+   GLASSMORPHISM & SURFACE ELEVATION (TRANSPARENT OBSIDIAN)
    ============================================================ */
 .glass-panel {
-  background: rgba(8, 12, 20, 0.7);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.7), 0 0 20px -5px rgba(0, 245, 160, 0.08);
+  background: rgba(14, 14, 18, 0.35);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.65), 0 0 15px -3px rgba(229, 9, 20, 0.08);
 }
 
 .glass-card {
-  background: rgba(8, 12, 20, 0.6);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(16, 16, 22, 0.32);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all var(--duration-fast) var(--ease-smooth-out);
 }
 
 .glass-card:hover {
-  background: rgba(14, 20, 34, 0.85);
-  border-color: rgba(0, 245, 160, 0.4);
+  background: rgba(22, 22, 30, 0.65);
+  border-color: rgba(229, 9, 20, 0.45);
   transform: translateY(-2px);
-  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.8), 0 0 24px -4px rgba(0, 245, 160, 0.2);
+  box-shadow: 0 14px 32px -6px rgba(0, 0, 0, 0.8), 0 0 20px -4px rgba(229, 9, 20, 0.25);
 }
 
 .glass-input {
-  background: rgba(6, 9, 15, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(16px);
-  color: #f8fafc;
+  background: rgba(10, 10, 14, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
   transition: all var(--duration-fast) var(--ease-smooth-out);
 }
 
 .glass-input:focus {
-  background: rgba(10, 15, 26, 0.95);
-  border-color: #00f5a0;
-  box-shadow: 0 0 0 3px rgba(0, 245, 160, 0.25);
+  background: rgba(14, 14, 20, 0.85);
+  border-color: #e50914;
+  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.3);
+}
+
+/* Brutalist High-Visibility Typography Helpers */
+.font-brutalist {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.font-brutalist-mono {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 /* ============================================================
    CINEMA LIGHTING & ANIMATIONS
    ============================================================ */
 
-/* Shimmer Chromium Text */
+/* Shimmer Chromium & Red Gold Text */
 @keyframes shimmer-text {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
 .shimmer-text {
-  background: linear-gradient(90deg, #94a3b8 0%, #f8fafc 40%, #00f5a0 50%, #f8fafc 60%, #94a3b8 100%);
+  background: linear-gradient(90deg, #a1a1aa 0%, #ffffff 40%, #e50914 50%, #ffffff 60%, #a1a1aa 100%);
   background-size: 200% auto;
   color: transparent;
   -webkit-background-clip: text;
@@ -166,8 +185,8 @@ body {
   animation: shimmer-text 4s linear infinite;
 }
 
-.mint-shimmer-text {
-  background: linear-gradient(90deg, #00d98b 0%, #7affd4 50%, #00d4ff 100%);
+.red-shimmer-text {
+  background: linear-gradient(90deg, #e50914 0%, #ff2e3b 50%, #ffb800 100%);
   background-size: 200% auto;
   color: transparent;
   -webkit-background-clip: text;
@@ -175,15 +194,15 @@ body {
   animation: shimmer-text 3s linear infinite;
 }
 
-/* Aurora Backdrop Mesh */
+/* Aurora Backdrop Mesh with Red & Amber Glow (GPU Optimized) */
 @keyframes aurora-pulse {
   0%, 100% {
-    transform: scale(1) translate(-50%, -50%);
-    opacity: 0.7;
+    transform: translate3d(-50%, -50%, 0) scale(1);
+    opacity: 0.8;
   }
   50% {
-    transform: scale(1.06) translate(-49%, -51%);
-    opacity: 0.5;
+    transform: translate3d(-49%, -51%, 0) scale(1.05);
+    opacity: 0.6;
   }
 }
 
@@ -191,17 +210,18 @@ body {
   position: absolute;
   top: 25%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate3d(-50%, -50%, 0);
   width: 95vw;
   max-width: 1200px;
   height: 550px;
-  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 245, 160, 0.12) 0%, rgba(0, 212, 255, 0.08) 45%, rgba(121, 40, 202, 0.05) 75%, transparent 100%);
-  filter: blur(70px);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(229, 9, 20, 0.2) 0%, rgba(255, 184, 0, 0.1) 45%, rgba(184, 7, 16, 0.06) 75%, transparent 100%);
   pointer-events: none;
-  animation: aurora-pulse 10s ease-in-out infinite;
+  animation: aurora-pulse 12s ease-in-out infinite;
+  will-change: transform, opacity;
+  contain: paint;
 }
 
-/* Subtle Film Grain Texture Overlay */
+/* Subtle Film Texture (Optimized without SVG filter recalculation) */
 .film-grain {
   position: fixed;
   inset: 0;
@@ -209,12 +229,13 @@ body {
   height: 100vh;
   pointer-events: none;
   z-index: 999;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.015;
+  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.25) 100%);
+  contain: strict;
 }
 
 /* ============================================================
-   BUTTON DESIGNS (AVANT-GARDE CHROMIUM & MINT)
+   BUTTON DESIGNS (NETFLIX RED & CINEMA OBSIDIAN)
    ============================================================ */
 
 .btn-primary {
@@ -222,14 +243,14 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #00f5a0 0%, #00d98b 60%, #00d4ff 100%);
-  color: #030508;
+  background: linear-gradient(135deg, #e50914 0%, #ff2e3b 50%, #b80710 100%);
+  color: #ffffff;
   font-weight: 800;
   font-family: var(--font-display);
   letter-spacing: 0.02em;
   border-radius: var(--radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 20px -2px rgba(0, 245, 160, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 20px -2px rgba(229, 9, 20, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -238,8 +259,9 @@ body {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px -4px rgba(0, 245, 160, 0.6), inset 0 1px 0 #ffffff;
-  filter: brightness(1.06);
+  background: linear-gradient(135deg, #ff2e3b 0%, #e50914 50%, #b80710 100%);
+  box-shadow: 0 8px 30px -4px rgba(229, 9, 20, 0.7), inset 0 1px 0 #ffffff;
+  filter: brightness(1.08);
 }
 
 .btn-primary:active {
@@ -252,30 +274,30 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: rgba(14, 20, 34, 0.7);
+  background: rgba(22, 22, 28, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  color: #e2e8f0;
+  color: #f5f5f7;
   font-weight: 700;
   font-family: var(--font-sans);
   border-radius: var(--radius-xl);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.6);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-smooth-out);
 }
 
 .btn-secondary:hover {
-  background: rgba(20, 28, 48, 0.9);
-  color: #00f5a0;
-  border-color: rgba(0, 245, 160, 0.4);
+  background: rgba(30, 30, 38, 0.95);
+  color: #ff2e3b;
+  border-color: rgba(229, 9, 20, 0.45);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 245, 160, 0.15);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.75), 0 0 15px rgba(229, 9, 20, 0.2);
 }
 
 /* Skeleton Loading Shimmer */
 .skeleton-shimmer {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 25%, rgba(0, 245, 160, 0.06) 50%, rgba(255, 255, 255, 0.02) 75%);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 25%, rgba(229, 9, 20, 0.08) 50%, rgba(255, 255, 255, 0.02) 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.8s infinite;
 }
@@ -295,10 +317,25 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 250ms var(--ease-smooth-out) both;
 }
 
 .animate-fade-up {
   animation: fade-up 350ms var(--ease-smooth-out) both;
+}
+
+.animate-toast-slick {
+  animation: toast-slide-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

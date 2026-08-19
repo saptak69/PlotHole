@@ -1071,9 +1071,17 @@ app.get('/api/reviews', async (req, res) => {
   }
 });
 
-// Get user specific reviews (fast, indexed query)
-app.get('/api/reviews/user/:userId', async (req, res) => {
+// Get user specific reviews (by username or userId)
+app.get(['/api/reviews/user/:username', '/api/reviews/user/:userId'], async (req, res) => {
+  const rawIdentifier = (req.params.username || req.params.userId || '').trim();
+  const normalizedUsername = rawIdentifier.toLowerCase();
   try {
+    const user = await queryOne(
+      'SELECT id, username FROM users WHERE LOWER(username) = $1 OR id = $2',
+      [normalizedUsername, rawIdentifier]
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
     const reviews = await query(
       `SELECT r.*, u.username, u.avatar_url 
        FROM reviews r 
@@ -1081,7 +1089,7 @@ app.get('/api/reviews/user/:userId', async (req, res) => {
        JOIN diary d ON r.diary_id = d.id
        WHERE r.user_id = $1 AND r.review_text != '' AND d.status = 'watched'
        ORDER BY r.created_at DESC`,
-      [req.params.userId]
+      [user.id]
     );
     res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
     res.json(reviews);
@@ -1392,10 +1400,31 @@ app.get('/api/watchlist/check/:movieId', authenticateToken, async (req, res) => 
   }
 });
 
-// Get user's watchlist
+// Get current authenticated user's watchlist
 app.get('/api/watchlist', authenticateToken, async (req, res) => {
   try {
     const items = await query('SELECT tmdb_movie_id, created_at FROM watchlist WHERE user_id = $1 ORDER BY created_at DESC', [req.user.id]);
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get a user's public watchlist by username or userId
+app.get(['/api/watchlist/user/:username', '/api/watchlist/user/:identifier'], async (req, res) => {
+  const rawIdentifier = (req.params.username || req.params.identifier || '').trim();
+  const normalizedUsername = rawIdentifier.toLowerCase();
+  try {
+    const user = await queryOne(
+      'SELECT id, username FROM users WHERE LOWER(username) = $1 OR id = $2',
+      [normalizedUsername, rawIdentifier]
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const items = await query(
+      'SELECT tmdb_movie_id, created_at FROM watchlist WHERE user_id = $1 ORDER BY created_at DESC',
+      [user.id]
+    );
     res.json(items);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1502,12 +1531,25 @@ app.post('/api/diary', authenticateToken, async (req, res) => {
   }
 });
 
-// Get user's diary
-app.get('/api/diary/user/:userId', async (req, res) => {
+// Get user's diary / watched history (by username or userId)
+app.get(['/api/watched/user/:username', '/api/diary/user/:username', '/api/diary/user/:userId'], async (req, res) => {
+  const rawIdentifier = (req.params.username || req.params.userId || '').trim();
+  const normalizedUsername = rawIdentifier.toLowerCase();
   try {
+    const user = await queryOne(
+      'SELECT id, username FROM users WHERE LOWER(username) = $1 OR id = $2',
+      [normalizedUsername, rawIdentifier]
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
     const diary = await query(
-      "SELECT * FROM diary WHERE user_id = $1 AND status = 'watched' ORDER BY watched_date DESC, created_at DESC",
-      [req.params.userId]
+      `SELECT d.*, r.review_text, r.rating as review_rating, u.username, u.avatar_url
+       FROM diary d
+       LEFT JOIN reviews r ON d.review_id = r.id
+       JOIN users u ON d.user_id = u.id
+       WHERE d.user_id = $1 AND d.status = 'watched'
+       ORDER BY d.watched_date DESC, d.created_at DESC`,
+      [user.id]
     );
     res.json(diary);
   } catch (error) {

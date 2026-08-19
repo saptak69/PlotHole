@@ -5,7 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { Sparkles, Film, Compass } from 'lucide-react';
+import { Film, Compass } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -47,7 +47,7 @@ export default function HorizonHeroSection({ onExplore }) {
     
     // Scene setup with deep obsidian fog
     refs.scene = new THREE.Scene();
-    refs.scene.fog = new THREE.FogExp2(0x08090d, 0.0003);
+    refs.scene.fog = new THREE.FogExp2(0x08080a, 0.0003);
 
     // Camera
     refs.camera = new THREE.PerspectiveCamera(
@@ -67,7 +67,8 @@ export default function HorizonHeroSection({ onExplore }) {
       powerPreference: 'high-performance'
     });
     refs.renderer.setSize(window.innerWidth, window.innerHeight);
-    refs.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Performance: Cap DPR to 1.25 to maintain ultra-smooth 60fps on high-density displays
+    refs.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
     refs.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     refs.renderer.toneMappingExposure = 0.6;
 
@@ -78,9 +79,9 @@ export default function HorizonHeroSection({ onExplore }) {
 
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.9, // strength
-      0.4, // radius
-      0.8  // threshold
+      1.35, // strength (brighter bloom)
+      0.5,  // radius
+      0.65  // threshold
     );
     refs.composer.addPass(bloomPass);
 
@@ -92,6 +93,17 @@ export default function HorizonHeroSection({ onExplore }) {
 
     // Cache initial mountain positions
     refs.locations = refs.mountains.map((m) => m.position.z);
+
+    let isSectionVisible = true;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        isSectionVisible = entry.isIntersecting;
+      });
+    }, { threshold: 0.05 });
+
+    if (canvasRef.current?.parentElement) {
+      io.observe(canvasRef.current.parentElement);
+    }
 
     // Start render loop
     animate();
@@ -115,22 +127,22 @@ export default function HorizonHeroSection({ onExplore }) {
           positions[j * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
           positions[j * 3 + 2] = radius * Math.cos(phi);
 
-          // Cinephile Color Palette (Amber, Cyan, White)
+          // Cinephile Color Palette (Amber, Gold, Netflix Red, White)
           const color = new THREE.Color();
           const colorChoice = Math.random();
-          if (colorChoice < 0.6) {
-            color.setHSL(0, 0, 0.85 + Math.random() * 0.15); // White stars
-          } else if (colorChoice < 0.85) {
-            color.setHSL(0.1, 0.9, 0.65); // Warm Amber stars
+          if (colorChoice < 0.55) {
+            color.setHSL(0, 0, 0.95 + Math.random() * 0.05); // Bright white stars
+          } else if (colorChoice < 0.82) {
+            color.setHSL(0.12, 1.0, 0.75); // Radiant Cinema Gold stars
           } else {
-            color.setHSL(0.55, 0.9, 0.7); // Cyan stars
+            color.setHSL(0.98, 1.0, 0.65); // Radiant Scarlet Red stars
           }
           
           colors[j * 3] = color.r;
           colors[j * 3 + 1] = color.g;
           colors[j * 3 + 2] = color.b;
 
-          sizes[j] = Math.random() * 2.2 + 0.6;
+          sizes[j] = Math.random() * 2.8 + 0.8;
         }
 
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -189,9 +201,9 @@ export default function HorizonHeroSection({ onExplore }) {
       const material = new THREE.ShaderMaterial({
         uniforms: {
           time: { value: 0 },
-          color1: { value: new THREE.Color(0xf59e0b) }, // Amber
-          color2: { value: new THREE.Color(0x38bdf8) }, // Cyan
-          opacity: { value: 0.25 }
+          color1: { value: new THREE.Color(0xff2e3b) }, // Vivid Scarlet Red
+          color2: { value: new THREE.Color(0xffb800) }, // Radiant Cinema Gold
+          opacity: { value: 0.48 } // Brighter Nebula
         },
         vertexShader: `
           varying vec2 vUv;
@@ -241,10 +253,10 @@ export default function HorizonHeroSection({ onExplore }) {
 
     function createMountains() {
       const layers = [
-        { distance: -50, height: 60, color: 0x0e111a, opacity: 1 },
-        { distance: -100, height: 80, color: 0x111625, opacity: 0.8 },
-        { distance: -150, height: 100, color: 0x182035, opacity: 0.6 },
-        { distance: -200, height: 120, color: 0x1f2942, opacity: 0.4 }
+        { distance: -50, height: 60, color: 0x0a0a0d, opacity: 1 },
+        { distance: -100, height: 80, color: 0x121216, opacity: 0.85 },
+        { distance: -150, height: 100, color: 0x16161c, opacity: 0.65 },
+        { distance: -200, height: 120, color: 0x1a1a22, opacity: 0.45 }
       ];
 
       layers.forEach((layer, index) => {
@@ -303,12 +315,12 @@ export default function HorizonHeroSection({ onExplore }) {
           
           void main() {
             float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
-            vec3 atmosphere = vec3(0.96, 0.62, 0.04) * intensity; // Amber glow
+            vec3 atmosphere = vec3(1.0, 0.08, 0.12) * intensity; // Radiant Scarlet Atmosphere
             
-            float pulse = sin(time * 2.0) * 0.1 + 0.9;
+            float pulse = sin(time * 2.0) * 0.12 + 0.95;
             atmosphere *= pulse;
             
-            gl_FragColor = vec4(atmosphere, intensity * 0.25);
+            gl_FragColor = vec4(atmosphere, intensity * 0.45);
           }
         `,
         side: THREE.BackSide,
@@ -322,6 +334,10 @@ export default function HorizonHeroSection({ onExplore }) {
 
     function animate() {
       refs.animationId = requestAnimationFrame(animate);
+
+      // Skip render passes when off-screen or tab is hidden to save 100% GPU
+      if (!isSectionVisible || document.hidden) return;
+
       const time = Date.now() * 0.001;
 
       // Update stars
@@ -373,11 +389,12 @@ export default function HorizonHeroSection({ onExplore }) {
       }
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
 
     return () => {
       if (refs.animationId) cancelAnimationFrame(refs.animationId);
       window.removeEventListener('resize', handleResize);
+      io.disconnect();
 
       refs.stars.forEach((s) => {
         s.geometry.dispose();
@@ -498,17 +515,17 @@ export default function HorizonHeroSection({ onExplore }) {
   ];
 
   return (
-    <div ref={containerRef} className="relative w-full min-h-[180vh] bg-[#08090d] text-slate-100 overflow-hidden select-none">
+    <div ref={containerRef} className="relative w-full min-h-[180vh] bg-[#08080a] text-slate-100 overflow-hidden select-none">
       {/* 3D WebGL Canvas Layer */}
       <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none z-0" />
       
       {/* Ambient Vignette Masks */}
-      <div className="fixed inset-0 bg-gradient-to-t from-[#08090d] via-transparent to-[#08090d]/60 pointer-events-none z-0" />
+      <div className="fixed inset-0 bg-gradient-to-t from-[#08080a] via-transparent to-[#08080a]/60 pointer-events-none z-0" />
       <div className="fixed inset-0 bg-radial-vignette pointer-events-none z-0" />
 
       {/* Floating Side Brand Stamp */}
       <div ref={menuRef} className="fixed left-6 top-1/2 -translate-y-1/2 hidden md:flex flex-col items-center gap-4 z-20 pointer-events-none opacity-60">
-        <div className="w-8 h-8 rounded-full border border-amber-400/40 flex items-center justify-center text-amber-400">
+        <div className="w-8 h-8 rounded-full border border-[#e50914]/40 flex items-center justify-center text-[#e50914]">
           <Film className="w-4 h-4" />
         </div>
         <div className="text-[10px] font-mono tracking-widest uppercase text-slate-400 [writing-mode:vertical-lr] rotate-180">
@@ -520,14 +537,14 @@ export default function HorizonHeroSection({ onExplore }) {
       <div className="relative z-10 space-y-[40vh] pt-32 pb-48 max-w-5xl mx-auto px-6 text-center">
         {sectionsContent.map((sec, idx) => (
           <section key={idx} className="min-h-[60vh] flex flex-col items-center justify-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 font-mono text-[11px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e50914]/15 border border-[#e50914]/30 text-[#ff4d5a] font-mono text-[11px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-md">
+              <Film className="w-3.5 h-3.5" />
               <span>{sec.badge}</span>
             </div>
 
             <h1 
               ref={idx === 0 ? titleRef : null} 
-              className="font-display font-black text-5xl md:text-7xl lg:text-8xl tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-amber-200/80 drop-shadow-[0_10px_35px_rgba(245,158,11,0.25)]"
+              className="font-display font-black text-5xl md:text-7xl lg:text-8xl tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-amber-200/80 drop-shadow-[0_10px_35px_rgba(229,9,20,0.25)]"
             >
               {sec.title}
             </h1>
@@ -543,7 +560,7 @@ export default function HorizonHeroSection({ onExplore }) {
             {idx === 0 && onExplore && (
               <button
                 onClick={onExplore}
-                className="btn-primary px-8 py-3.5 text-xs font-mono font-bold uppercase tracking-wider rounded-xl shadow-[0_0_25px_rgba(245,158,11,0.4)] mt-4"
+                className="btn-primary px-8 py-3.5 text-xs font-mono font-bold uppercase tracking-wider rounded-xl shadow-[0_0_25px_rgba(229,9,20,0.4)] mt-4"
               >
                 Enter Cinema Vault
               </button>
@@ -557,10 +574,10 @@ export default function HorizonHeroSection({ onExplore }) {
         ref={scrollProgressRef} 
         className="fixed bottom-8 right-8 z-20 flex items-center gap-3 bg-black/60 backdrop-blur-xl border border-white/15 px-4 py-2 rounded-full shadow-2xl"
       >
-        <Compass className="w-4 h-4 text-amber-400 animate-spin [animation-duration:10s]" />
+        <Compass className="w-4 h-4 text-[#ffb800] animate-spin [animation-duration:10s]" />
         <div className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full transition-all duration-150" 
+            className="h-full bg-gradient-to-r from-[#e50914] to-[#ffb800] rounded-full transition-all duration-150" 
             style={{ width: `${scrollProgress * 100}%` }}
           />
         </div>

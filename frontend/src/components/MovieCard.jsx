@@ -47,20 +47,20 @@ export default function MovieCard({ movie, featured = false }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`group relative block rounded-2xl overflow-hidden bg-[#080c14] border border-white/8 transition-all duration-300 select-none focus-visible:outline-none ${
-        featured ? 'ring-1 ring-[#00f5a0]/40 shadow-[0_0_25px_rgba(0,245,160,0.25)]' : 'hover:border-[#00f5a0]/40'
+      className={`group relative block rounded-2xl overflow-hidden bg-[#121216] border border-white/8 transition-all duration-300 select-none focus-visible:outline-none ${
+        featured ? 'ring-1 ring-[#e50914]/50 shadow-[0_0_25px_rgba(229,9,20,0.3)]' : 'hover:border-[#e50914]/50'
       }`}
       style={{
         transform: isHovered
           ? `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) translateY(-4px)`
           : 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)',
         boxShadow: isHovered
-          ? '0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px -5px rgba(0, 245, 160, 0.25)'
+          ? '0 20px 40px -10px rgba(0, 0, 0, 0.85), 0 0 25px -5px rgba(229, 9, 20, 0.3)'
           : '0 8px 24px -6px rgba(0, 0, 0, 0.6)'
       }}
     >
       {/* Poster Image Area */}
-      <div className="aspect-[2/3] w-full overflow-hidden relative bg-[#04060a]">
+      <div className="aspect-[2/3] w-full overflow-hidden relative bg-[#08080a]">
         {movie.poster_path ? (
           <img
             src={getPosterUrl(movie.poster_path, 'w500')}
@@ -70,34 +70,34 @@ export default function MovieCard({ movie, featured = false }) {
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center text-xs font-mono font-medium text-slate-500 bg-slate-900/50">
-            <Film className="w-8 h-8 mb-2 opacity-40 text-[#00f5a0]" />
+            <Film className="w-8 h-8 mb-2 opacity-40 text-[#e50914]" />
             <span className="line-clamp-2">{title}</span>
           </div>
         )}
 
         {/* Ambient Vignette & Glare */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#080c14] via-transparent to-black/30 opacity-80 group-hover:opacity-60 transition-opacity" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#121216] via-transparent to-black/30 opacity-80 group-hover:opacity-60 transition-opacity" />
 
         {/* Media type badge with glassmorphism */}
         <div className="absolute top-2.5 left-2.5 z-10">
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[9px] font-mono font-bold text-slate-200 uppercase shadow">
-            {mediaType === 'tv' ? <Tv className="w-2.5 h-2.5 text-[#00d4ff]" /> : <Film className="w-2.5 h-2.5 text-[#00f5a0]" />}
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[9px] font-mono font-bold text-slate-200 uppercase shadow">
+            {mediaType === 'tv' ? <Tv className="w-2.5 h-2.5 text-[#ffb800]" /> : <Film className="w-2.5 h-2.5 text-[#e50914]" />}
             <span>{mediaType === 'tv' ? 'Series' : 'Film'}</span>
           </span>
         </div>
 
         {/* TMDB Rating floating badge */}
         {movie.vote_average ? (
-          <div className="absolute bottom-2.5 right-2.5 z-10 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-black/70 backdrop-blur-md border border-[#00f5a0]/40 text-[#00f5a0] font-mono text-[10px] font-bold shadow-lg">
-            <Star className="w-2.5 h-2.5 fill-[#00f5a0] text-[#00f5a0]" />
+          <div className="absolute bottom-2.5 right-2.5 z-10 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-black/75 backdrop-blur-md border border-[#ffb800]/40 text-[#ffb800] font-mono text-[10px] font-bold shadow-lg">
+            <Star className="w-2.5 h-2.5 fill-[#ffb800] text-[#ffb800]" />
             <span>{movie.vote_average.toFixed(1)}</span>
           </div>
         ) : null}
       </div>
 
       {/* Card Info Area */}
-      <div className="p-3 text-left bg-gradient-to-b from-[#080c14] to-[#04070e]">
-        <h3 className="font-display font-bold text-[13px] text-slate-100 group-hover:text-[#00f5a0] transition-colors leading-snug truncate">
+      <div className="p-3 text-left bg-gradient-to-b from-[#121216] to-[#0a0a0d]">
+        <h3 className="font-display font-bold text-[13px] text-slate-100 group-hover:text-[#ff2e3b] transition-colors leading-snug truncate">
           {title}
         </h3>
         <div className="flex items-center justify-between mt-1 text-[10px] font-mono text-slate-400">

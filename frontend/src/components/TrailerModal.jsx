@@ -59,14 +59,14 @@ export default function TrailerModal({ isOpen, onClose, movieId, mediaType = 'mo
   return (
     <div className="fixed inset-0 z-[1000] bg-black/85 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
       <div 
-        className="w-full max-w-4xl rounded-3xl overflow-hidden border border-white/12 bg-[#080c14] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(0,245,160,0.15)]"
+        className="w-full max-w-4xl rounded-3xl overflow-hidden border border-white/12 bg-[#121216] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(229,9,20,0.15)]"
         style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
       >
         {/* Title bar */}
         <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#00f5a0]/15 border border-[#00f5a0]/30 flex items-center justify-center text-[#00f5a0] shadow-[0_0_10px_rgba(0,245,160,0.2)]">
-              <Play className="w-4 h-4 fill-[#00f5a0] ml-0.5" />
+            <div className="w-8 h-8 rounded-xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff2e3b] shadow-[0_0_10px_rgba(229,9,20,0.2)]">
+              <Play className="w-4 h-4 fill-[#e50914] ml-0.5" />
             </div>
             <div>
               <span className="font-display font-bold text-sm text-slate-100 uppercase tracking-wide block truncate max-w-lg text-left">
@@ -87,7 +87,7 @@ export default function TrailerModal({ isOpen, onClose, movieId, mediaType = 'mo
         <div className="relative aspect-video bg-black flex items-center justify-center">
           {loading ? (
             <div className="flex flex-col items-center gap-3 text-slate-400 font-mono text-xs">
-              <Loader2 className="w-8 h-8 animate-spin text-[#00f5a0]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#e50914]" />
               <span>STREAMING TRAILER FROM TMDB ARCHIVE...</span>
             </div>
           ) : error || !videoKey ? (

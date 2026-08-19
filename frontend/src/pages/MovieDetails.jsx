@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Bookmark, Check, AlertCircle, Eye,
-  Film, Trophy, Flame, Play, FolderPlus, MessageSquare, Heart, Share2, Tv, Star, Sparkles, Clock, User, Calendar, ExternalLink,
+  Film, Trophy, Flame, Play, FolderPlus, MessageSquare, Heart, Share2, Tv, Star, Clock, User, Calendar, ExternalLink,
   AlertOctagon, MinusCircle, Ticket, ThumbsUp, Send, CheckCircle2, MessageCircle
 } from 'lucide-react';
 import { API_URL, getPosterUrl, getBackdropUrl, getAuthHeaders } from '../config';
@@ -19,13 +19,13 @@ import TrailerHero from '../components/TrailerHero';
 import MovieCard from '../components/MovieCard';
 import GlassSurface from '../components/GlassSurface';
 
-// Clean rating tiers using Lucide icons
+// Clean rating tiers using Lucide icons (Netflix Red & Gold Aesthetic)
 const RATING_TIERS = [
   { value: 1, label: 'Bullshit', icon: AlertOctagon, color: 'rose', activeBg: 'bg-rose-500/25 text-rose-300 border-rose-400/60 shadow-[0_0_12px_rgba(255,59,92,0.3)]' },
   { value: 2, label: 'Meh', icon: MinusCircle, color: 'slate', activeBg: 'bg-slate-500/25 text-slate-200 border-slate-400/60' },
-  { value: 3, label: 'One-Time', icon: Ticket, color: 'cyan', activeBg: 'bg-[#00d4ff]/20 text-[#00d4ff] border-[#00d4ff]/60 shadow-[0_0_14px_rgba(0,212,255,0.3)]' },
-  { value: 4, label: 'Good', icon: ThumbsUp, color: 'mint', activeBg: 'bg-[#00f5a0]/20 text-[#00f5a0] border-[#00f5a0]/60 shadow-[0_0_16px_rgba(0,245,160,0.35)]' },
-  { value: 5, label: 'Pure Cinema', icon: Trophy, color: 'platinum', activeBg: 'bg-gradient-to-r from-[#00f5a0]/30 via-[#00d4ff]/25 to-white/30 text-white border-white/70 shadow-[0_0_20px_rgba(0,245,160,0.45)]' }
+  { value: 3, label: 'One-Time', icon: Ticket, color: 'amber', activeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/60 shadow-[0_0_14px_rgba(245,158,11,0.3)]' },
+  { value: 4, label: 'Good Watch', icon: ThumbsUp, color: 'red', activeBg: 'bg-[#e50914]/20 text-[#ff4d5a] border-[#e50914]/60 shadow-[0_0_16px_rgba(229,9,20,0.35)]' },
+  { value: 5, label: 'Pure Cinema', icon: Trophy, color: 'gold', activeBg: 'bg-gradient-to-r from-[#e50914]/35 via-[#ffb800]/30 to-white/30 text-white border-[#ffb800]/70 shadow-[0_0_20px_rgba(229,9,20,0.45)]' }
 ];
 
 export default function MovieDetails({ onOpenPerson }) {
@@ -267,7 +267,7 @@ export default function MovieDetails({ onOpenPerson }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 space-y-10 relative z-10">
         
         {/* ================= FLOATING CINEMA ACTION BAR (WITH GLASSSURFACE) ================= */}
-        <div className="p-4 sm:p-5 rounded-2xl border border-white/10 bg-[#080c14]/90 backdrop-blur-xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 rounded-2xl border border-white/10 bg-[#121216]/90 backdrop-blur-xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3 w-full sm:w-auto justify-start">
             <span className="font-display font-black text-lg sm:text-xl text-white">
               {displayTitle}
@@ -294,13 +294,13 @@ export default function MovieDetails({ onOpenPerson }) {
                   disabled={watchedMutation.isPending}
                   className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     watchedState?.watched
-                      ? 'bg-[#00f5a0]/20 text-[#00f5a0] border border-[#00f5a0]/50 shadow-[0_0_14px_rgba(0,245,160,0.3)]'
-                      : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 hover:border-[#00f5a0]/30'
+                      ? 'bg-[#e50914]/20 text-[#ff4d5a] border border-[#e50914]/50 shadow-[0_0_14px_rgba(229,9,20,0.3)]'
+                      : 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 hover:border-[#e50914]/30'
                   }`}
                 >
                   {watchedState?.watched ? (
                     <>
-                      <Check className="w-3.5 h-3.5 stroke-[2.5] text-[#00f5a0]" />
+                      <Check className="w-3.5 h-3.5 stroke-[2.5] text-[#ff4d5a]" />
                       <span>Watched</span>
                     </>
                   ) : (
@@ -327,9 +327,9 @@ export default function MovieDetails({ onOpenPerson }) {
                 {/* Add to List Button */}
                 <button
                   onClick={() => setIsAddToListOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 hover:border-[#00d4ff]/30 text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 hover:border-[#ffb800]/30 text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <FolderPlus className="w-3.5 h-3.5 text-[#00d4ff]" />
+                  <FolderPlus className="w-3.5 h-3.5 text-[#ffb800]" />
                   <span>Add to List</span>
                 </button>
               </>
@@ -356,7 +356,7 @@ export default function MovieDetails({ onOpenPerson }) {
               }}
               className="col-span-2 sm:col-span-1 btn-primary text-xs py-2.5 px-4 flex items-center justify-center gap-1.5 font-bold shadow-md cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <MessageSquare className="w-3.5 h-3.5" />
               <span>Write Review</span>
             </button>
           </div>
@@ -378,8 +378,8 @@ export default function MovieDetails({ onOpenPerson }) {
 
             {/* Where to Stream (Streaming Services) */}
             {flatrateProviders.length > 0 && (
-              <div className="p-5 rounded-2xl border border-[#00d4ff]/20 bg-[#080e1a] space-y-3 shadow-lg">
-                <span className="text-xs font-mono font-bold uppercase text-[#00d4ff] flex items-center gap-1.5">
+              <div className="p-5 rounded-2xl border border-[#ffb800]/20 bg-[#121216] space-y-3 shadow-lg">
+                <span className="text-xs font-mono font-bold uppercase text-[#ffb800] flex items-center gap-1.5">
                   <Tv className="w-4 h-4" /> Available to Stream
                 </span>
                 <div className="flex flex-wrap gap-2.5 pt-1">
@@ -401,12 +401,12 @@ export default function MovieDetails({ onOpenPerson }) {
             )}
 
             {/* Technical Production Dossier */}
-            <div className="p-5 md:p-6 rounded-2xl border border-white/8 bg-[#080c14] space-y-4 shadow-lg text-xs font-sans">
+            <div className="p-5 md:p-6 rounded-2xl border border-white/8 bg-[#121216] space-y-4 shadow-lg text-xs font-sans">
               <div className="flex items-center justify-between border-b border-white/8 pb-2.5">
                 <span className="text-xs font-mono font-bold uppercase text-slate-300 tracking-wider">
                   Production Dossier
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-[#00f5a0] border border-white/10 uppercase">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-[#ff2e3b] border border-white/10 uppercase">
                   {detectedMediaType}
                 </span>
               </div>
@@ -426,7 +426,7 @@ export default function MovieDetails({ onOpenPerson }) {
                 </div>
                 <div className="flex justify-between py-1 border-b border-white/5">
                   <span className="text-slate-400 font-mono text-[11px]">Global Score</span>
-                  <span className="text-[#00f5a0] font-bold font-mono">
+                  <span className="text-[#ffb800] font-bold font-mono">
                     {movie.vote_average ? `${movie.vote_average.toFixed(1)} / 10` : 'N/A'}
                   </span>
                 </div>
@@ -450,28 +450,28 @@ export default function MovieDetails({ onOpenPerson }) {
           {/* ================= RIGHT COLUMN: SYNOPSIS, CAST, REVIEWS & SIMILAR ================= */}
           <div className="lg:col-span-2 space-y-8 md:space-y-10">
             
-            {/* Synopsis Section with Apple Frosted GlassSurface */}
+            {/* Synopsis Section with Transparent Liquid GlassSurface */}
             <GlassSurface
               width="100%"
               height="auto"
               borderRadius={24}
-              backgroundOpacity={0.82}
-              blur={24}
-              borderOpacity={0.2}
-              className="shadow-[0_16px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(0,245,160,0.06)]"
+              backgroundOpacity={0.35}
+              blur={12}
+              borderOpacity={0.12}
+              className="shadow-[0_12px_36px_rgba(0,0,0,0.7),0_0_20px_rgba(229,9,20,0.04)]"
             >
               <div className="p-6 md:p-8 space-y-3 text-left w-full">
-                <span className="text-xs font-mono font-bold uppercase text-[#00f5a0] tracking-wider block">
+                <span className="text-xs font-mono font-black uppercase text-[#ff2e3b] tracking-widest block">
                   Storyline & Narrative
                 </span>
-                <h3 className="font-display font-bold text-xl md:text-2xl text-white">
+                <h3 className="font-display font-black text-2xl md:text-3xl uppercase tracking-tight text-white">
                   Synopsis
                 </h3>
-                <p className="text-sm md:text-base text-slate-300 leading-relaxed font-sans pt-1">
+                <p className="text-sm md:text-base text-slate-100 font-medium leading-relaxed font-sans pt-1">
                   {movie.overview || "No synopsis recorded for this title in the archive."}
                 </p>
                 {movie.tagline && (
-                  <p className="text-xs md:text-sm text-[#7affd4]/90 italic font-serif pt-3 border-t border-white/8">
+                  <p className="text-xs md:text-sm text-[#ffb800] font-bold italic font-sans pt-3 border-t border-white/10">
                     "{movie.tagline}"
                   </p>
                 )}
@@ -483,7 +483,7 @@ export default function MovieDetails({ onOpenPerson }) {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display font-bold text-lg md:text-xl text-white flex items-center gap-2">
-                    <User className="w-4 h-4 text-[#00f5a0]" />
+                    <User className="w-4 h-4 text-[#e50914]" />
                     Top Billed Cast
                   </h3>
                   <span className="text-xs font-mono text-slate-500">Tap actor for filmography</span>
@@ -495,7 +495,7 @@ export default function MovieDetails({ onOpenPerson }) {
                     <div
                       key={actor.id}
                       onClick={() => onOpenPerson?.(actor.id)}
-                      className="min-w-[170px] sm:min-w-0 p-3 rounded-xl border border-white/8 bg-[#080c14] hover:border-[#00f5a0]/40 hover:bg-[#0e1422] transition-all flex items-center gap-3 cursor-pointer shadow-md shrink-0"
+                      className="min-w-[170px] sm:min-w-0 p-3 rounded-xl border border-white/8 bg-[#121216] hover:border-[#e50914]/40 hover:bg-[#1a1a22] transition-all flex items-center gap-3 cursor-pointer shadow-md shrink-0"
                     >
                       <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 border border-white/15 bg-slate-900">
                         {actor.profile_path ? (
@@ -526,10 +526,10 @@ export default function MovieDetails({ onOpenPerson }) {
             <div id="review-section" className="space-y-6 pt-4">
               
               {/* Review Hub Header with Stats */}
-              <div className="p-6 md:p-8 rounded-3xl border border-[#00f5a0]/25 bg-gradient-to-b from-[#080c14] via-[#040810] to-[#020408] shadow-2xl space-y-6">
+              <div className="p-6 md:p-8 rounded-3xl border border-[#e50914]/25 bg-gradient-to-b from-[#121216] via-[#0d0d12] to-[#08080a] shadow-2xl space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/8 pb-5">
                   <div>
-                    <span className="text-xs font-mono font-bold uppercase text-[#00f5a0] tracking-wider block">
+                    <span className="text-xs font-mono font-bold uppercase text-[#ff2e3b] tracking-wider block">
                       Critical Verdicts
                     </span>
                     <h3 className="font-display font-bold text-xl md:text-2xl text-white mt-1">
@@ -541,7 +541,7 @@ export default function MovieDetails({ onOpenPerson }) {
                   <div className="flex items-center gap-4 bg-white/5 border border-white/10 px-4 py-2 rounded-2xl self-start sm:self-auto">
                     <div className="text-center">
                       <div className="text-xs font-mono text-slate-400 uppercase">Community</div>
-                      <div className="font-display font-extrabold text-lg text-[#00f5a0]">
+                      <div className="font-display font-extrabold text-lg text-[#ffb800]">
                         {reviewsData.length > 0
                           ? (reviewsData.reduce((acc, r) => acc + (r.rating || 0), 0) / reviewsData.length).toFixed(1)
                           : '—'} <span className="text-xs font-mono text-slate-400">/ 5</span>
@@ -573,7 +573,7 @@ export default function MovieDetails({ onOpenPerson }) {
                             </span>
                             <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
                               <div
-                                className="h-full bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] rounded-full transition-all duration-500"
+                                className="h-full bg-gradient-to-r from-[#e50914] to-[#ffb800] rounded-full transition-all duration-500"
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
@@ -586,15 +586,15 @@ export default function MovieDetails({ onOpenPerson }) {
                 )}
 
                 {/* ================= INLINE REVIEW COMPOSER ================= */}
-                <div className="p-5 md:p-6 rounded-2xl border border-white/10 bg-[#060910] space-y-4">
+                <div className="p-5 md:p-6 rounded-2xl border border-white/10 bg-[#08080a] space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-display font-bold text-sm md:text-base text-white flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#00f5a0]" />
+                      <MessageSquare className="w-4 h-4 text-[#e50914]" />
                       {user ? 'Write Your Review' : 'Sign In to Review'}
                     </h4>
                     {user && (
                       <span className="text-[11px] font-mono text-slate-400">
-                        Posting as <span className="text-[#00f5a0] font-bold">@{user.username}</span>
+                        Posting as <span className="text-[#ff2e3b] font-bold">@{user.username}</span>
                       </span>
                     )}
                   </div>
@@ -645,7 +645,7 @@ export default function MovieDetails({ onOpenPerson }) {
                           value={reviewText}
                           onChange={(e) => setReviewText(e.target.value)}
                           placeholder="Share your verdict on the direction, screenplay, pacing, performance..."
-                          className="w-full bg-black/50 border border-white/10 p-3.5 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-[#00f5a0]/70 transition-colors"
+                          className="w-full bg-black/50 border border-white/10 p-3.5 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-[#e50914]/70 transition-colors"
                         />
                       </div>
 
@@ -657,7 +657,7 @@ export default function MovieDetails({ onOpenPerson }) {
                             type="date"
                             value={watchedDate}
                             onChange={(e) => setWatchedDate(e.target.value)}
-                            className="bg-black/50 border border-white/10 px-3 py-1.5 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-[#00f5a0]/70"
+                            className="bg-black/50 border border-white/10 px-3 py-1.5 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-[#e50914]/70"
                           />
                         </div>
 
@@ -705,13 +705,13 @@ export default function MovieDetails({ onOpenPerson }) {
                       {reviewsData.map((rev) => (
                         <div
                           key={rev.id}
-                          className="p-5 rounded-2xl border border-white/8 bg-[#080c14] hover:border-[#00f5a0]/40 transition-all space-y-3 shadow-md"
+                          className="p-5 rounded-2xl border border-white/8 bg-[#121216] hover:border-[#e50914]/40 transition-all space-y-3 shadow-md"
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2.5">
                               <Avatar username={rev.username} url={rev.avatar_url} className="w-7 h-7 border border-white/15" />
                               <div>
-                                <Link to={`/profile/${rev.username}`} className="font-mono text-xs font-bold text-slate-200 hover:text-[#00f5a0] block">
+                                <Link to={`/profile/${rev.username}`} className="font-mono text-xs font-bold text-slate-200 hover:text-[#ff2e3b] block">
                                   @{rev.username}
                                 </Link>
                                 <span className="text-[10px] font-mono text-slate-500">
@@ -732,7 +732,7 @@ export default function MovieDetails({ onOpenPerson }) {
                             <span className="text-slate-500">Reviewed {displayTitle}</span>
                             <button
                               onClick={() => setSelectedReviewForComments(rev)}
-                              className="hover:text-[#00f5a0] transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer"
+                              className="hover:text-[#ff2e3b] transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 cursor-pointer"
                             >
                               <MessageCircle className="w-3.5 h-3.5" />
                               <span>Comments</span>
@@ -751,7 +751,7 @@ export default function MovieDetails({ onOpenPerson }) {
               <div className="space-y-4 pt-4">
                 <div className="flex items-center justify-between border-b border-white/8 pb-2">
                   <h3 className="font-display font-bold text-lg md:text-xl text-white flex items-center gap-2">
-                    <Film className="w-4 h-4 text-[#00f5a0]" />
+                    <Film className="w-4 h-4 text-[#e50914]" />
                     Recommended Titles
                   </h3>
                   <span className="text-xs font-mono text-slate-500">Based on genres & themes</span>

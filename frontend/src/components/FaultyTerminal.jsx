@@ -90,13 +90,9 @@ float fbm(vec2 p, float t)
 
 float pattern(vec2 p, float t) {
   vec2 offset1 = vec2(1.0);
-  vec2 offset0 = vec2(0.0);
-  mat2 rot01 = rotate(0.1 * t);
-  mat2 rot1 = rotate(0.1);
-  
-  vec2 q = vec2(fbm(p + offset1, t), fbm(rot01 * p + offset1, t));
-  vec2 r = vec2(fbm(rot1 * q + offset0, t), fbm(q + offset0, t));
-  return fbm(p + r, t);
+  mat2 rot01 = rotate(0.08 * t);
+  float f1 = fbm(p + offset1, t);
+  return fbm(rot01 * p + f1, t);
 }
 
 float digit(vec2 p, float t){
@@ -110,18 +106,13 @@ float digit(vec2 p, float t){
         float distToMouse = distance(s, mouseWorld);
         float mouseInfluence = exp(-distToMouse * 8.0) * uMouseStrength * 10.0;
         intensity += mouseInfluence;
-        
-        float ripple = sin(distToMouse * 20.0 - iTime * 5.0) * 0.1 * mouseInfluence;
-        intensity += ripple;
     }
     
     if(uUsePageLoadAnimation > 0.5){
         float cellRandom = fract(sin(dot(s, vec2(12.9898, 78.233))) * 43758.5453);
         float cellDelay = cellRandom * 0.8;
         float cellProgress = clamp((uPageLoadProgress - cellDelay) / 0.2, 0.0, 1.0);
-        
-        float fadeAlpha = smoothstep(0.0, 1.0, cellProgress);
-        intensity *= fadeAlpha;
+        intensity *= smoothstep(0.0, 1.0, cellProgress);
     }
     
     p = fract(p);
@@ -129,8 +120,6 @@ float digit(vec2 p, float t){
     
     float px5 = p.x * 5.0;
     float py5 = (1.0 - p.y) * 5.0;
-    float x = fract(px5);
-    float y = fract(py5);
     
     float i = floor(py5) - 2.0;
     float j = floor(px5) - 2.0;
@@ -138,123 +127,85 @@ float digit(vec2 p, float t){
     float f = n * 0.0625;
     
     float isOn = step(0.1, intensity - f);
-    float brightnessVal = isOn * (0.2 + y * 0.8) * (0.75 + x * 0.25);
-    
-    return step(0.0, p.x) * step(p.x, 1.0) * step(0.0, p.y) * step(p.y, 1.0) * brightnessVal;
-}
-
-float onOff(float a, float b, float c)
-{
-  return step(c, sin(iTime + a * cos(iTime * b))) * uFlickerAmount;
-}
-
-float displace(vec2 look)
-{
-    float y = look.y - mod(iTime * 0.25, 1.0);
-    float window = 1.0 / (1.0 + 50.0 * y * y);
-    return sin(look.y * 20.0 + iTime) * 0.0125 * onOff(4.0, 2.0, 0.8) * (1.0 + cos(iTime * 60.0)) * window;
-}
-
-vec3 getColor(vec2 p, float t){
-    float bar = step(mod(p.y + t * 20.0, 1.0), 0.2) * 0.4 + 1.0;
-    bar *= uScanlineIntensity;
-    
-    float displacement = displace(p);
-    p.x += displacement;
-
-    if (uGlitchAmount != 1.0) {
-      float extra = displacement * (uGlitchAmount - 1.0);
-      p.x += extra;
-    }
-
-    float middle = digit(p, t);
-    
-    const float off = 0.002;
-    float sum = digit(p + vec2(-off, -off), t) + digit(p + vec2(0.0, -off), t) + digit(p + vec2(off, -off), t) +
-                digit(p + vec2(-off, 0.0), t) + digit(p + vec2(0.0, 0.0), t) + digit(p + vec2(off, 0.0), t) +
-                digit(p + vec2(-off, off), t) + digit(p + vec2(0.0, off), t) + digit(p + vec2(off, off), t);
-    
-    vec3 baseColor = vec3(0.9) * middle + sum * 0.1 * vec3(1.0) * bar;
-    return baseColor;
-}
-
-vec2 barrel(vec2 uv){
-  vec2 c = uv * 2.0 - 1.0;
-  float r2 = dot(c, c);
-  c *= 1.0 + uCurvature * r2;
-  return c * 0.5 + 0.5;
+    return isOn;
 }
 
 void main() {
-    float t = iTime * 0.333333;
     vec2 uv = vUv;
-
-    if(uCurvature != 0.0){
-      uv = barrel(uv);
+    
+    if(uCurvature > 0.0){
+        vec2 centered = uv - 0.5;
+        float dist = dot(centered, centered);
+        uv = uv + centered * dist * uCurvature;
+        if(uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0){
+            fragColor = vec4(0.0);
+            return;
+        }
     }
     
-    vec2 p = uv * uScale;
-    vec3 col = getColor(p, t);
-
-    if(uChromaticAberration != 0.0){
-      vec2 ca = vec2(uChromaticAberration) / iResolution.xy;
-      col.r = getColor(p + ca, t).r;
-      col.b = getColor(p - ca, t).b;
+    vec2 p = (gl_FragCoord.xy / iResolution.xy) * uScale;
+    
+    float r = digit(p + vec2(uChromaticAberration * 0.005, 0.0), iTime);
+    float g = digit(p, iTime);
+    float b = digit(p - vec2(uChromaticAberration * 0.005, 0.0), iTime);
+    
+    vec3 col = vec3(r, g, b) * uTint * uBrightness;
+    
+    if(uScanlineIntensity > 0.0){
+        float scanline = sin(gl_FragCoord.y * 0.5) * 0.5 + 0.5;
+        col *= 1.0 - scanline * uScanlineIntensity * 0.3;
     }
-
-    col *= uTint;
-    col *= uBrightness;
-
-    if(uDither > 0.0){
-      float rnd = hash21(gl_FragCoord.xy);
-      col += (rnd - 0.5) * (uDither * 0.003922);
+    
+    if(uFlickerAmount > 0.0){
+        float flicker = sin(iTime * 40.0) * 0.05 + 0.95;
+        col *= mix(1.0, flicker, uFlickerAmount);
     }
-
-    float alpha = clamp(length(col) * 1.5, 0.0, 1.0);
-    fragColor = vec4(col, alpha);
+    
+    fragColor = vec4(col, 1.0);
 }
 `;
 
 export default function FaultyTerminal({
-  scale = 1.5,
+  scale = 1.0,
   gridMul = [2, 1],
   digitSize = 1.2,
-  timeScale = 1,
+  timeScale = 0.8,
   pause = false,
-  scanlineIntensity = 1,
-  glitchAmount = 1,
-  flickerAmount = 1,
-  noiseAmp = 1,
-  chromaticAberration = 0,
-  dither = 0,
-  curvature = 0,
-  tint = '#00f5a0',
+  scanlineIntensity = 0.5,
+  glitchAmount = 0.5,
+  flickerAmount = 0.5,
+  noiseAmp = 0.5,
+  chromaticAberration = 0.5,
+  dither = 0.2,
+  curvature = 0.05,
+  tint = '#e50914',
   mouseReact = true,
   mouseStrength = 0.5,
-  dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1,
   pageLoadAnimation = false,
-  brightness = 1,
+  brightness = 1.35,
   className = '',
   style = {},
   ...rest
 }) {
   const containerRef = useRef(null);
-  const mouseRef = useRef({ x: 0.5, y: 0.5 });
-  const smoothMouseRef = useRef({ x: 0.5, y: 0.5 });
+  const rafRef = useRef(null);
+  const isVisibleRef = useRef(true);
+  const mouseRef = useRef({ x: 0, y: 0 });
+  const smoothMouseRef = useRef({ x: 0, y: 0 });
   const frozenTimeRef = useRef(0);
-  const rafRef = useRef(0);
-  const loadAnimationStartRef = useRef(0);
   const timeOffsetRef = useRef(Math.random() * 100);
+  const loadAnimationStartRef = useRef(0);
+
+  const dpr = Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 1.0);
 
   const tintVec = useMemo(() => hexToRgb(tint), [tint]);
   const ditherValue = useMemo(() => (typeof dither === 'boolean' ? (dither ? 1 : 0) : dither), [dither]);
 
   const handleMouseMove = useCallback((e) => {
-    const ctn = containerRef.current;
-    if (!ctn) return;
-    const rect = ctn.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = 1 - (e.clientY - rect.top) / rect.height;
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
     mouseRef.current = { x, y };
   }, []);
 
@@ -263,73 +214,44 @@ export default function FaultyTerminal({
     if (!container) return;
 
     const canvas = document.createElement('canvas');
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.display = 'block';
+    canvas.className = 'faulty-terminal-canvas';
     container.appendChild(canvas);
 
     const gl = canvas.getContext('webgl2', {
       alpha: true,
-      premultipliedAlpha: true,
-      antialias: false
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: 'high-performance',
+      preserveDrawingBuffer: false
     });
 
-    if (!gl) {
-      console.warn('WebGL2 not supported');
-      return () => {
-        try {
-          container.removeChild(canvas);
-        } catch {}
-      };
-    }
+    if (!gl) return;
 
-    const compileShader = (type, source) => {
-      const shader = gl.createShader(type);
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error('Shader compilation error:', gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
-      }
-      return shader;
-    };
+    const vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, vertexShaderSource);
+    gl.compileShader(vs);
 
-    const vs = compileShader(gl.VERTEX_SHADER, vertexShaderSource);
-    const fs = compileShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
-    if (!vs || !fs) return;
+    const fs = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fs, fragmentShaderSource);
+    gl.compileShader(fs);
 
     const program = gl.createProgram();
     gl.attachShader(program, vs);
     gl.attachShader(program, fs);
     gl.linkProgram(program);
 
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error('Program linking error:', gl.getProgramInfoLog(program));
-      return;
-    }
-
-    gl.useProgram(program);
-
-    // Fullscreen single triangle covering viewport
-    const triangleData = new Float32Array([
-      -1.0, -1.0,
-       3.0, -1.0,
-      -1.0,  3.0
-    ]);
+    const vertices = new Float32Array([-1, -1, 3, -1, -1, 3]);
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
     const vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
-
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, triangleData, gl.STATIC_DRAW);
-
     const posLoc = gl.getAttribLocation(program, 'position');
     gl.enableVertexAttribArray(posLoc);
     gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
 
-    // Cache Uniform Locations
     const uLocs = {
       iTime: gl.getUniformLocation(program, 'iTime'),
       iResolution: gl.getUniformLocation(program, 'iResolution'),
@@ -359,18 +281,24 @@ export default function FaultyTerminal({
       canvas.width = Math.max(1, Math.floor(width * dpr));
       canvas.height = Math.max(1, Math.floor(height * dpr));
       gl.viewport(0, 0, canvas.width, canvas.height);
-      if (uLocs.iResolution) {
-        gl.useProgram(program);
-        gl.uniform3f(uLocs.iResolution, canvas.width, canvas.height, canvas.width / canvas.height);
-      }
+      gl.useProgram(program);
+      gl.uniform3f(uLocs.iResolution, canvas.width, canvas.height, canvas.width / canvas.height);
     }
 
     const resizeObserver = new ResizeObserver(() => resize());
     resizeObserver.observe(container);
     resize();
 
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        isVisibleRef.current = entry.isIntersecting;
+      });
+    }, { threshold: 0.05 });
+    io.observe(container);
+
     const update = (t) => {
       rafRef.current = requestAnimationFrame(update);
+      if (!isVisibleRef.current || document.hidden) return;
 
       if (pageLoadAnimation && loadAnimationStartRef.current === 0) {
         loadAnimationStartRef.current = t;
@@ -384,51 +312,45 @@ export default function FaultyTerminal({
 
       let progress = pageLoadAnimation ? 0 : 1;
       if (pageLoadAnimation && loadAnimationStartRef.current > 0) {
-        const animationDuration = 2000;
-        const animationElapsed = t - loadAnimationStartRef.current;
-        progress = Math.min(animationElapsed / animationDuration, 1);
+        progress = Math.min((t - loadAnimationStartRef.current) / 2000, 1);
       }
 
       if (mouseReact) {
-        const dampingFactor = 0.08;
-        const smoothMouse = smoothMouseRef.current;
-        const mouse = mouseRef.current;
-        smoothMouse.x += (mouse.x - smoothMouse.x) * dampingFactor;
-        smoothMouse.y += (mouse.y - smoothMouse.y) * dampingFactor;
+        smoothMouseRef.current.x += (mouseRef.current.x - smoothMouseRef.current.x) * 0.08;
+        smoothMouseRef.current.y += (mouseRef.current.y - smoothMouseRef.current.y) * 0.08;
       }
 
       gl.useProgram(program);
-
-      if (uLocs.iTime) gl.uniform1f(uLocs.iTime, elapsed);
-      if (uLocs.uScale) gl.uniform1f(uLocs.uScale, scale);
-      if (uLocs.uGridMul) gl.uniform2f(uLocs.uGridMul, gridMul[0], gridMul[1]);
-      if (uLocs.uDigitSize) gl.uniform1f(uLocs.uDigitSize, digitSize);
-      if (uLocs.uScanlineIntensity) gl.uniform1f(uLocs.uScanlineIntensity, scanlineIntensity);
-      if (uLocs.uGlitchAmount) gl.uniform1f(uLocs.uGlitchAmount, glitchAmount);
-      if (uLocs.uFlickerAmount) gl.uniform1f(uLocs.uFlickerAmount, flickerAmount);
-      if (uLocs.uNoiseAmp) gl.uniform1f(uLocs.uNoiseAmp, noiseAmp);
-      if (uLocs.uChromaticAberration) gl.uniform1f(uLocs.uChromaticAberration, chromaticAberration);
-      if (uLocs.uDither) gl.uniform1f(uLocs.uDither, ditherValue);
-      if (uLocs.uCurvature) gl.uniform1f(uLocs.uCurvature, curvature);
-      if (uLocs.uTint) gl.uniform3f(uLocs.uTint, tintVec[0], tintVec[1], tintVec[2]);
-      if (uLocs.uMouse) gl.uniform2f(uLocs.uMouse, smoothMouseRef.current.x, smoothMouseRef.current.y);
-      if (uLocs.uMouseStrength) gl.uniform1f(uLocs.uMouseStrength, mouseStrength);
-      if (uLocs.uUseMouse) gl.uniform1f(uLocs.uUseMouse, mouseReact ? 1.0 : 0.0);
-      if (uLocs.uPageLoadProgress) gl.uniform1f(uLocs.uPageLoadProgress, progress);
-      if (uLocs.uUsePageLoadAnimation) gl.uniform1f(uLocs.uUsePageLoadAnimation, pageLoadAnimation ? 1.0 : 0.0);
-      if (uLocs.uBrightness) gl.uniform1f(uLocs.uBrightness, brightness);
+      gl.uniform1f(uLocs.iTime, elapsed);
+      gl.uniform1f(uLocs.uScale, scale);
+      gl.uniform2f(uLocs.uGridMul, gridMul[0], gridMul[1]);
+      gl.uniform1f(uLocs.uDigitSize, digitSize);
+      gl.uniform1f(uLocs.uScanlineIntensity, scanlineIntensity);
+      gl.uniform1f(uLocs.uGlitchAmount, glitchAmount);
+      gl.uniform1f(uLocs.uFlickerAmount, flickerAmount);
+      gl.uniform1f(uLocs.uNoiseAmp, noiseAmp);
+      gl.uniform1f(uLocs.uChromaticAberration, chromaticAberration);
+      gl.uniform1f(uLocs.uDither, ditherValue);
+      gl.uniform1f(uLocs.uCurvature, curvature);
+      gl.uniform3f(uLocs.uTint, tintVec[0], tintVec[1], tintVec[2]);
+      gl.uniform2f(uLocs.uMouse, smoothMouseRef.current.x, smoothMouseRef.current.y);
+      gl.uniform1f(uLocs.uMouseStrength, mouseStrength);
+      gl.uniform1f(uLocs.uUseMouse, mouseReact ? 1.0 : 0.0);
+      gl.uniform1f(uLocs.uPageLoadProgress, progress);
+      gl.uniform1f(uLocs.uUsePageLoadAnimation, pageLoadAnimation ? 1.0 : 0.0);
+      gl.uniform1f(uLocs.uBrightness, brightness);
 
       gl.bindVertexArray(vao);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
 
     rafRef.current = requestAnimationFrame(update);
-
-    if (mouseReact) container.addEventListener('mousemove', handleMouseMove);
+    if (mouseReact) container.addEventListener('mousemove', handleMouseMove, { passive: true });
 
     return () => {
       cancelAnimationFrame(rafRef.current);
       resizeObserver.disconnect();
+      io.disconnect();
       if (mouseReact) container.removeEventListener('mousemove', handleMouseMove);
       gl.deleteBuffer(buffer);
       gl.deleteVertexArray(vao);

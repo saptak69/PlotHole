@@ -26,11 +26,11 @@ export function getAuthHeaders() {
 
 // Custom PlotHole Rating System
 export const RATINGS = {
-  1: { label: 'Bullshit', icon: 'Trash2', color: 'rate-bullshit', hex: '#ef4444' },
+  1: { label: 'Bullshit', icon: 'Trash2', color: 'rate-bullshit', hex: '#ff3b5c' },
   2: { label: 'Meh', icon: 'Meh', color: 'rate-meh', hex: '#94a3b8' },
   3: { label: 'One Time Watch', icon: 'Film', color: 'rate-otw', hex: '#f59e0b' },
-  4: { label: 'Good Watch', icon: 'ThumbsUp', color: 'rate-good', hex: '#10b981' },
-  5: { label: 'Pure Cinema', icon: 'Trophy', color: 'rate-pure', hex: '#ec4899' }
+  4: { label: 'Good Watch', icon: 'ThumbsUp', color: 'rate-good', hex: '#e50914' },
+  5: { label: 'Pure Cinema', icon: 'Trophy', color: 'rate-pure', hex: '#ffb800' }
 };
 
 export function getRatingInfo(value) {

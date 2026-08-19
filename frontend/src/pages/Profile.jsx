@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, AlertCircle, Camera, Edit3, X, Download, Award, Star, Film, Clock, Heart, FolderPlus, Bookmark, Eye, MessageSquare, Sparkles } from 'lucide-react';
+import { Calendar, AlertCircle, Camera, Edit3, X, Download, Award, Star, Film, Clock, Heart, FolderPlus, Bookmark, Eye, MessageSquare } from 'lucide-react';
 import { API_URL, getAuthHeaders, getPosterUrl } from '../config';
 import { useAuth } from '../context/AuthContext';
 import RatingBadge from '../components/RatingBadge';
@@ -61,7 +61,7 @@ function WatchlistCard({ movieId, initialMovie }) {
   return (
     <Link 
       to={`/media/${movie.media_type || 'movie'}/${movie.id}`} 
-      className="group relative block rounded-2xl overflow-hidden bg-[#080c14] border border-white/8 hover:border-[#00f5a0]/40 transition-all hover:-translate-y-1 shadow-lg"
+      className="group relative block rounded-2xl overflow-hidden bg-[#121216] border border-white/8 hover:border-[#e50914]/50 transition-all hover:-translate-y-1 shadow-lg"
     >
       <div className="aspect-[2/3] w-full">
         <img
@@ -93,7 +93,7 @@ function DiaryMobileCard({ entry }) {
   const mediaType = movie?.media_type || entry.media_type || 'movie';
 
   return (
-    <div className="p-4 rounded-2xl border border-white/8 bg-[#080c14] shadow-md space-y-3">
+    <div className="p-4 rounded-2xl border border-white/8 bg-[#121216] shadow-md space-y-3">
       <div className="flex items-center gap-3">
         <Link to={`/media/${mediaType}/${entry.tmdb_movie_id}`} className="shrink-0 w-14 h-20 rounded-xl overflow-hidden border border-white/10 bg-black shadow">
           <img
@@ -104,13 +104,13 @@ function DiaryMobileCard({ entry }) {
           />
         </Link>
         <div className="flex-1 min-w-0 space-y-1.5">
-          <Link to={`/media/${mediaType}/${entry.tmdb_movie_id}`} className="font-display font-bold text-sm text-slate-100 hover:text-[#00f5a0] block truncate">
+          <Link to={`/media/${mediaType}/${entry.tmdb_movie_id}`} className="font-display font-bold text-sm text-slate-100 hover:text-[#ff2e3b] block truncate">
             {title}
           </Link>
           <div className="flex items-center gap-2 flex-wrap">
             <RatingBadge rating={entry.rating} size="xs" />
             <span className="font-mono text-[10px] text-slate-400 flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-[#00f5a0]" />
+              <Calendar className="w-3 h-3 text-[#ffb800]" />
               {entry.watched_date}
             </span>
           </div>
@@ -291,8 +291,8 @@ export default function Profile() {
 
   if (profileLoading) {
     return (
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-20 flex flex-col items-center justify-center text-[#00f5a0] font-mono uppercase space-y-3">
-        <div className="w-10 h-10 border-3 border-[#00f5a0] border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_15px_#00f5a0]" />
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-20 flex flex-col items-center justify-center text-[#e50914] font-mono uppercase space-y-3">
+        <div className="w-10 h-10 border-3 border-[#e50914] border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_15px_#e50914]" />
         <span className="text-xs tracking-widest font-bold">RETRIEVING PROFILE ARCHIVES...</span>
       </div>
     );
@@ -344,11 +344,11 @@ export default function Profile() {
     <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-8 md:space-y-10">
       
       {/* ================= PROFILE HEADER BENTO CARD ================= */}
-      <div className="border border-white/8 bg-gradient-to-br from-[#080c14] via-[#040810] to-[#020408] p-6 md:p-8 flex flex-col lg:flex-row items-center lg:items-start gap-6 md:gap-8 rounded-3xl shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#00f5a0]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="border border-white/8 bg-gradient-to-br from-[#121216] via-[#0d0d12] to-[#08080a] p-6 md:p-8 flex flex-col lg:flex-row items-center lg:items-start gap-6 md:gap-8 rounded-3xl shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#e50914]/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* Avatar */}
-        <div className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 border-2 border-[#00f5a0]/40 rounded-3xl overflow-hidden bg-black shadow-2xl relative z-10">
+        <div className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 border-2 border-[#e50914]/40 rounded-3xl overflow-hidden bg-black shadow-2xl relative z-10">
           <Avatar username={profileUser.username} url={profileUser.avatar_url} className="w-full h-full" />
         </div>
 
@@ -359,7 +359,7 @@ export default function Profile() {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-black text-white">
                 {profileUser.display_name || profileUser.username}
               </h1>
-              <span className="text-xs font-mono font-bold px-3 py-0.5 rounded-full bg-[#00f5a0]/15 text-[#00f5a0] border border-[#00f5a0]/30 shadow-[0_0_10px_rgba(0,245,160,0.2)]">
+              <span className="text-xs font-mono font-bold px-3 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30 shadow-[0_0_10px_rgba(229,9,20,0.2)]">
                 @{profileUser.username}
               </span>
             </div>
@@ -368,19 +368,19 @@ export default function Profile() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-3.5">
               <div className="bg-white/5 border border-white/8 p-3 rounded-2xl text-center">
                 <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">Watch Time</span>
-                <span className="font-mono font-black text-base text-[#00d4ff]">{hoursWasted.toFixed(0)}h</span>
+                <span className="font-mono font-black text-base text-[#ffb800]">{hoursWasted.toFixed(0)}h</span>
               </div>
               <div className="bg-white/5 border border-white/8 p-3 rounded-2xl text-center">
                 <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">Films</span>
-                <span className="font-mono font-black text-base text-[#00f5a0]">{uniqueDiary.length}</span>
+                <span className="font-mono font-black text-base text-[#e50914]">{uniqueDiary.length}</span>
               </div>
               <div className="bg-white/5 border border-white/8 p-3 rounded-2xl text-center">
                 <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">Reviews</span>
-                <span className="font-mono font-black text-base text-[#7affd4]">{stats?.reviews || 0}</span>
+                <span className="font-mono font-black text-base text-[#ff2e3b]">{stats?.reviews || 0}</span>
               </div>
               <div className="bg-white/5 border border-white/8 p-3 rounded-2xl text-center">
                 <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">Followers</span>
-                <span className="font-mono font-black text-base text-purple-400">{stats?.followers || 0}</span>
+                <span className="font-mono font-black text-base text-amber-400">{stats?.followers || 0}</span>
               </div>
             </div>
 
@@ -390,7 +390,7 @@ export default function Profile() {
           </div>
 
           {/* Bio */}
-          <p className="text-xs md:text-sm text-slate-300 max-w-xl leading-relaxed border-l-2 border-[#00f5a0] pl-3.5 italic mx-auto lg:mx-0 text-left">
+          <p className="text-xs md:text-sm text-slate-300 max-w-xl leading-relaxed border-l-2 border-[#e50914] pl-3.5 italic mx-auto lg:mx-0 text-left">
             "{profileUser.bio || 'Cinephile exploring cinema timelines.'}"
           </p>
 
@@ -413,7 +413,7 @@ export default function Profile() {
                   <span>Edit Profile</span>
                 </button>
 
-                <button onClick={handleExportData} className="btn-secondary text-xs px-4 py-2.5 flex items-center justify-center gap-1.5 text-[#00f5a0] border-[#00f5a0]/30 flex-1 sm:flex-none">
+                <button onClick={handleExportData} className="btn-secondary text-xs px-4 py-2.5 flex items-center justify-center gap-1.5 text-[#ff2e3b] border-[#e50914]/30 flex-1 sm:flex-none">
                   <Download className="w-3.5 h-3.5" />
                   <span>Export Archive</span>
                 </button>
@@ -424,7 +424,7 @@ export default function Profile() {
 
         {/* Rating Distribution Histogram Bento Card */}
         <div className="border border-white/8 bg-black/40 p-4.5 rounded-2xl w-full lg:w-64 space-y-3 shrink-0 shadow-lg relative z-10">
-          <span className="text-[11px] font-mono font-bold text-[#00f5a0] uppercase block border-b border-white/8 pb-2 text-center lg:text-left">
+          <span className="text-[11px] font-mono font-bold text-[#e50914] uppercase block border-b border-white/8 pb-2 text-center lg:text-left">
             Rating Distribution
           </span>
 
@@ -435,7 +435,7 @@ export default function Profile() {
               return (
                 <div key={star} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
                   <div
-                    className="w-full bg-gradient-to-t from-[#00d98b] to-[#00f5a0] rounded-t transition-all hover:bg-[#7affd4]"
+                    className="w-full bg-gradient-to-t from-[#b80710] to-[#e50914] rounded-t transition-all hover:bg-[#ff2e3b]"
                     style={{ height: `${heightPct}%` }}
                     title={`${count} films rated ${star} stars`}
                   />
@@ -461,16 +461,16 @@ export default function Profile() {
                 key={b.title}
                 className={`p-3.5 border rounded-2xl flex items-center gap-3 transition-all ${
                   b.unlocked
-                    ? 'bg-[#080c14] border-[#00f5a0]/30 text-slate-100 shadow-[0_0_15px_rgba(0,245,160,0.15)]'
-                    : 'bg-[#04070e] border-white/5 text-slate-500 opacity-40'
+                    ? 'bg-[#121216] border-[#e50914]/30 text-slate-100 shadow-[0_0_15px_rgba(229,9,20,0.15)]'
+                    : 'bg-[#08080a] border-white/5 text-slate-500 opacity-40'
                 }`}
               >
-                <div className={`p-2.5 rounded-xl border shrink-0 ${b.unlocked ? 'bg-[#00f5a0]/15 text-[#00f5a0] border-[#00f5a0]/30' : 'bg-black/30 border-white/5'}`}>
+                <div className={`p-2.5 rounded-xl border shrink-0 ${b.unlocked ? 'bg-[#e50914]/15 text-[#ff4d5a] border-[#e50914]/30' : 'bg-black/30 border-white/5'}`}>
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="font-display font-bold text-xs text-slate-100 uppercase truncate">{b.title}</h4>
-                  <p className="text-[10px] text-slate-400 truncate">{b.desc}</p>
+                  <span className="font-display font-bold text-xs block truncate">{b.title}</span>
+                  <span className="font-mono text-[10px] text-slate-400 block truncate">{b.desc}</span>
                 </div>
               </div>
             );
@@ -492,49 +492,53 @@ export default function Profile() {
         </div>
       )}
 
-      {/* ================= SLIDING PILL TABS BAR WITH GLASSSURFACE ================= */}
+      {/* ================= SLIDING PILL TABS BAR WITH TRANSPARENT GLASSSURFACE ================= */}
       <GlassSurface
         width="auto"
         height="auto"
         borderRadius={20}
-        backgroundOpacity={0.82}
-        blur={24}
-        borderOpacity={0.16}
-        className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.65),0_0_15px_rgba(0,245,160,0.05)] w-full sm:w-fit"
+        backgroundOpacity={0.05}
+        blur={12}
+        borderOpacity={0.12}
+        className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)] w-full sm:w-fit"
       >
         <div className="flex select-none overflow-x-auto gap-1.5 scrollbar-none">
           <button
             onClick={() => setActiveTab('diary')}
-            className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all shrink-0 cursor-pointer ${
-              activeTab === 'diary' ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_12px_rgba(0,245,160,0.4)]' : 'text-slate-400 hover:text-white'
+            className={`px-4 py-2 font-display font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              activeTab === 'diary' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
           >
-            Diary ({uniqueDiary.length})
+            <Film className="w-3.5 h-3.5" />
+            <span>Diary ({uniqueDiary.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('reviews')}
-            className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all shrink-0 cursor-pointer ${
-              activeTab === 'reviews' ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_12px_rgba(0,245,160,0.4)]' : 'text-slate-400 hover:text-white'
+            className={`px-4 py-2 font-display font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              activeTab === 'reviews' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
           >
-            Reviews ({reviews.length})
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Reviews ({reviews.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('lists')}
-            className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all shrink-0 cursor-pointer ${
-              activeTab === 'lists' ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_12px_rgba(0,245,160,0.4)]' : 'text-slate-400 hover:text-white'
+            className={`px-4 py-2 font-display font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              activeTab === 'lists' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
           >
-            Lists ({userLists.length})
+            <FolderPlus className="w-3.5 h-3.5" />
+            <span>Lists ({userLists.length})</span>
           </button>
           {isOwnProfile && (
             <button
               onClick={() => setActiveTab('watchlist')}
-              className={`px-4 py-2 font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all shrink-0 cursor-pointer ${
-                activeTab === 'watchlist' ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_12px_rgba(0,245,160,0.4)]' : 'text-slate-400 hover:text-white'
+              className={`px-4 py-2 font-display font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                activeTab === 'watchlist' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              Watchlist ({watchlist.length})
+              <Bookmark className="w-3.5 h-3.5" />
+              <span>Watchlist ({watchlist.length})</span>
             </button>
           )}
         </div>
@@ -548,7 +552,7 @@ export default function Profile() {
             {diaryLoading ? (
               <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING DIARY TIMELINE...</div>
             ) : uniqueDiary.length === 0 ? (
-              <div className="border border-white/8 bg-[#080c14] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="border border-white/8 bg-[#121216] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
                 Diary timeline is currently empty.
               </div>
             ) : (
@@ -561,7 +565,7 @@ export default function Profile() {
                 </div>
 
                 {/* Desktop Screen (>= md): Full Data Table */}
-                <div className="hidden md:block border border-white/8 rounded-3xl overflow-hidden shadow-2xl bg-[#080c14]">
+                <div className="hidden md:block border border-white/8 rounded-3xl overflow-hidden shadow-2xl bg-[#121216]">
                   <table className="w-full text-xs text-left border-collapse font-sans">
                     <thead>
                       <tr className="bg-white/5 text-slate-300 font-mono uppercase text-[11px] border-b border-white/8">
@@ -575,11 +579,11 @@ export default function Profile() {
                       {uniqueDiary.map((entry) => (
                         <tr key={entry.id} className="hover:bg-white/5 transition-colors">
                           <td className="px-6 py-4 font-mono text-slate-400 flex items-center gap-2">
-                            <Calendar className="w-3.5 h-3.5 text-[#00f5a0]" />
+                            <Calendar className="w-3.5 h-3.5 text-[#ffb800]" />
                             <span>{entry.watched_date}</span>
                           </td>
                           <td className="px-6 py-4 font-display font-bold text-slate-100">
-                            <MovieNameLink movieId={entry.tmdb_movie_id} className="hover:text-[#00f5a0] transition-colors" />
+                            <MovieNameLink movieId={entry.tmdb_movie_id} className="hover:text-[#e50914] transition-colors" />
                           </td>
                           <td className="px-6 py-4">
                             <RatingBadge rating={entry.rating} size="xs" />
@@ -601,17 +605,17 @@ export default function Profile() {
             {reviewsLoading ? (
               <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING USER REVIEWS...</div>
             ) : reviews.length === 0 ? (
-              <div className="border border-white/8 bg-[#080c14] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="border border-white/8 bg-[#121216] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
                 No user reviews written yet.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reviews.map((rev) => (
-                  <div key={rev.id} className="border border-white/8 bg-[#080c14] hover:border-[#00f5a0]/35 p-5 rounded-2xl space-y-3 shadow-md transition-all">
+                  <div key={rev.id} className="border border-white/8 bg-[#121216] hover:border-[#e50914]/40 p-5 rounded-2xl space-y-3 shadow-md transition-all">
                     <div className="flex items-center justify-between border-b border-white/8 pb-3 gap-2">
                       <div className="min-w-0">
                         <span className="text-slate-400 text-[10px] font-mono uppercase block">Reviewed Film</span>
-                        <MovieNameLink movieId={rev.tmdb_movie_id} className="font-display font-bold text-slate-100 hover:text-[#00f5a0] transition-colors block text-sm truncate" />
+                        <MovieNameLink movieId={rev.tmdb_movie_id} className="font-display font-bold text-slate-100 hover:text-[#e50914] transition-colors block text-sm truncate" />
                       </div>
                       <RatingBadge rating={rev.rating} size="xs" />
                     </div>
@@ -636,16 +640,16 @@ export default function Profile() {
             {listsLoading ? (
               <div className="p-12 text-center text-xs animate-pulse font-mono text-slate-400">LOADING CUSTOM LISTS...</div>
             ) : userLists.length === 0 ? (
-              <div className="border border-white/8 bg-[#080c14] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="border border-white/8 bg-[#121216] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
                 No custom lists created yet.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {userLists.map((lst) => (
-                  <div key={lst.id} className="border border-white/8 p-5 bg-[#080c14] hover:border-[#00f5a0]/40 rounded-2xl flex flex-col justify-between transition-all shadow-md">
+                  <div key={lst.id} className="border border-white/8 p-5 bg-[#121216] hover:border-[#e50914]/40 rounded-2xl flex flex-col justify-between transition-all shadow-md">
                     <div>
                       <Link to={`/lists/${lst.id}`}>
-                        <h3 className="font-display font-bold text-base md:text-lg text-slate-100 hover:text-[#00f5a0] transition-colors">
+                        <h3 className="font-display font-bold text-base md:text-lg text-slate-100 hover:text-[#e50914] transition-colors">
                           {lst.title}
                         </h3>
                       </Link>
@@ -657,7 +661,7 @@ export default function Profile() {
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-white/8 font-mono text-xs mt-4">
                       <span className="text-slate-400 text-[11px]">{lst.item_count || 0} Titles</span>
-                      <Link to={`/lists/${lst.id}`} className="text-[#00f5a0] hover:underline font-bold uppercase text-[11px]">
+                      <Link to={`/lists/${lst.id}`} className="text-[#e50914] hover:underline font-bold uppercase text-[11px]">
                         View List →
                       </Link>
                     </div>
@@ -674,7 +678,7 @@ export default function Profile() {
             {watchlistLoading ? (
               <div className="p-12 text-center text-xs animate-pulse font-mono text-slate-400">LOADING WATCHLIST POSTERS...</div>
             ) : watchlist.length === 0 ? (
-              <div className="border border-white/8 bg-[#080c14] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="border border-white/8 bg-[#121216] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
                 Your watchlist is currently empty.
               </div>
             ) : (
@@ -692,7 +696,7 @@ export default function Profile() {
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-2xl">
           <div 
-            className="w-full max-w-md rounded-3xl overflow-hidden border border-white/12 bg-[#080c14] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(0,245,160,0.15)]"
+            className="w-full max-w-md rounded-3xl overflow-hidden border border-white/12 bg-[#121216] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(229,9,20,0.15)]"
             style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
           >
             <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8">
@@ -711,7 +715,7 @@ export default function Profile() {
               {editError && <div className="p-3 bg-rose-500/20 border border-rose-500/40 text-rose-400 rounded-xl">{editError}</div>}
 
               <div className="flex flex-col items-center gap-3">
-                <div className="relative w-20 h-20 rounded-3xl border border-[#00f5a0]/40 bg-black overflow-hidden shadow-lg">
+                <div className="relative w-20 h-20 rounded-3xl border border-[#e50914]/40 bg-black overflow-hidden shadow-lg">
                   <Avatar username={profileUser.username} url={editAvatar} className="w-full h-full" />
                   <label htmlFor="avatar-file-input" className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
                     <Camera className="w-5 h-5 text-white" />
@@ -733,7 +737,7 @@ export default function Profile() {
                   required
                   value={editBio}
                   onChange={(e) => setEditBio(e.target.value)}
-                  className="w-full p-3.5 bg-black/40 border border-white/10 rounded-xl text-slate-100 font-sans text-xs focus:outline-none focus:border-[#00f5a0]/70 leading-relaxed transition-all"
+                  className="w-full p-3.5 bg-black/40 border border-white/10 rounded-xl text-slate-100 font-sans text-xs focus:outline-none focus:border-[#e50914]/70 leading-relaxed transition-all"
                 />
               </div>
 

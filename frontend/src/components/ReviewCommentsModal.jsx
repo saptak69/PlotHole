@@ -124,13 +124,13 @@ export default function ReviewCommentsModal({ isOpen, onClose, review }) {
   return (
     <div className="fixed inset-0 z-[1000] bg-black/85 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
       <div 
-        className="w-full max-w-xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden border border-white/12 bg-[#080c14] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(0,245,160,0.15)]"
+        className="w-full max-w-xl max-h-[85vh] flex flex-col rounded-3xl overflow-hidden border border-white/12 bg-[#121216] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(229,9,20,0.15)]"
         style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
       >
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#00f5a0]/15 border border-[#00f5a0]/30 flex items-center justify-center text-[#00f5a0] shadow-[0_0_10px_rgba(0,245,160,0.2)]">
+            <div className="w-8 h-8 rounded-xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff2e3b] shadow-[0_0_10px_rgba(229,9,20,0.2)]">
               <MessageSquare className="w-4 h-4" />
             </div>
             <div>
@@ -152,7 +152,7 @@ export default function ReviewCommentsModal({ isOpen, onClose, review }) {
         <div className="p-4 bg-white/5 border-b border-white/8 shrink-0 space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Avatar username={review.username} url={review.avatar_url} className="w-6 h-6 border border-[#00f5a0]/30" />
+              <Avatar username={review.username} url={review.avatar_url} className="w-6 h-6 border border-[#e50914]/30" />
               <span className="font-mono text-xs font-bold text-slate-200">@{review.username}</span>
             </div>
             <RatingBadge rating={review.rating} size="xs" />
@@ -177,10 +177,10 @@ export default function ReviewCommentsModal({ isOpen, onClose, review }) {
         </div>
 
         {/* Comments Scroll area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2.5 bg-[#04070e]">
+        <div className="flex-1 overflow-y-auto p-4 space-y-2.5 bg-[#08080a]">
           {loading ? (
             <div className="flex justify-center p-8 text-slate-400">
-              <Loader2 className="w-6 h-6 animate-spin text-[#00f5a0]" />
+              <Loader2 className="w-6 h-6 animate-spin text-[#e50914]" />
             </div>
           ) : comments.length === 0 ? (
             <div className="text-center p-8 text-xs font-mono text-slate-500">
@@ -192,7 +192,7 @@ export default function ReviewCommentsModal({ isOpen, onClose, review }) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Avatar username={c.username} url={c.avatar_url} className="w-5 h-5 border border-white/10" />
-                    <span className="font-mono font-bold text-[#00f5a0]">@{c.username}</span>
+                    <span className="font-mono font-bold text-[#ff4d5a]">@{c.username}</span>
                     <span className="text-[10px] font-mono text-slate-500">
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>
@@ -221,7 +221,7 @@ export default function ReviewCommentsModal({ isOpen, onClose, review }) {
             disabled={!user || submitting}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-sans text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-[#00f5a0]/70"
+            className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-sans text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-[#e50914]/70"
           />
           <button
             type="submit"

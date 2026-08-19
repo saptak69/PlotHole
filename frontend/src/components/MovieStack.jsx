@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Sparkles, RefreshCw, Eye } from 'lucide-react';
+import { Star, Film, RefreshCw, Eye } from 'lucide-react';
 import { getPosterUrl } from '../config';
 import GlassSurface from './GlassSurface';
 
@@ -36,30 +36,30 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
       width="100%"
       height="auto"
       borderRadius={28}
-      backgroundOpacity={0.82}
-      blur={24}
-      borderOpacity={0.18}
-      className="shadow-[0_16px_40px_rgba(0,0,0,0.8),0_0_20px_rgba(0,245,160,0.06)] overflow-hidden"
+      backgroundOpacity={0.35}
+      blur={12}
+      borderOpacity={0.12}
+      className="shadow-[0_12px_36px_rgba(0,0,0,0.7),0_0_20px_rgba(229,9,20,0.04)] overflow-hidden"
     >
       <div className="p-6 md:p-8 flex flex-col lg:flex-row items-center justify-between gap-8 w-full text-left">
         {/* Left info column */}
         <div className="text-left space-y-4 max-w-md">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00f5a0]/15 border border-[#00f5a0]/30 text-[#00f5a0] font-mono text-[11px] font-bold uppercase shadow-[0_0_10px_rgba(0,245,160,0.2)]">
-            <Sparkles className="w-3.5 h-3.5 text-[#00f5a0]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e50914]/15 border border-[#e50914]/30 text-[#ff4d5a] font-mono text-[11px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(229,9,20,0.2)]">
+            <Film className="w-3.5 h-3.5 text-[#ff4d5a]" />
             <span>Cinephile Deck // Blind Pick</span>
           </div>
 
-          <h3 className="font-display font-black text-2xl md:text-3xl text-white">
+          <h3 className="font-display font-black text-2xl md:text-3xl uppercase tracking-tight text-white">
             {movieTitle}
           </h3>
 
-          <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed font-sans">
+          <p className="text-xs sm:text-sm text-slate-100 font-medium line-clamp-3 leading-relaxed font-sans">
             {activeMovie.overview || "A compelling cinematic journey through timeless storytelling and visual mastery."}
           </p>
 
           <div className="flex items-center gap-4 pt-1">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-black/40 border border-white/10 font-mono text-xs text-[#00f5a0] font-bold">
-              <Star className="w-3.5 h-3.5 fill-[#00f5a0] text-[#00f5a0]" />
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-black/40 border border-white/10 font-mono text-xs text-[#ffb800] font-bold">
+              <Star className="w-3.5 h-3.5 fill-[#ffb800] text-[#ffb800]" />
               <span>{rating} TMDB</span>
             </div>
 

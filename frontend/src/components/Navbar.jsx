@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Users, FolderPlus, LogOut, Home, User } from 'lucide-react';
+import { Search, Users, FolderPlus, LogOut, Home, User, Compass } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
 import Logo from './Logo';
@@ -15,12 +15,14 @@ export default function Navbar() {
   const location = useLocation();
 
   const [visible, setVisible] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+      setScrolled(currentScrollY > 15);
+      if (currentScrollY > lastScrollY.current && currentScrollY > 120) {
         setVisible(false);
       } else {
         setVisible(true);
@@ -44,30 +46,34 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const isActive = (path) => {
-    if (path === '/' && location.pathname === '/') return true;
-    if (path !== '/' && location.pathname.startsWith(path)) return true;
-    return false;
-  };
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setIsOpen(false);
-    }
+    if (!searchQuery.trim()) return;
+    navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    setSearchQuery('');
+    setIsOpen(false);
   };
 
   const handleLinkClick = () => {
     setIsOpen(false);
   };
 
+  const isActive = (path) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+
   return (
     <>
-      {/* Top Header */}
+      {/* Top Header - Seamless Transparent Header */}
       <header
-        className={`sticky z-50 transition-all duration-300 select-none py-3.5 px-4 sm:px-6 md:px-12 border-b border-white/8 bg-[#030508]/85 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.8)] ${
+        className={`sticky z-50 transition-all duration-300 select-none py-2.5 sm:py-3 px-4 sm:px-6 md:px-12 ${
           visible ? 'top-0' : '-top-28'
+        } ${
+          scrolled
+            ? 'bg-[#08080a]/65 backdrop-blur-xl border-b border-white/6 shadow-[0_4px_30px_rgba(0,0,0,0.6)]'
+            : 'bg-transparent border-b border-transparent shadow-none'
         }`}
       >
         <div className="max-w-7xl mx-auto relative flex items-center justify-between gap-4 md:gap-6">
@@ -79,42 +85,45 @@ export default function Navbar() {
             <GlassSurface
               width="auto"
               height="auto"
-              borderRadius={18}
-              backgroundOpacity={0.82}
-              blur={24}
-              borderOpacity={0.18}
-              className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.7),0_0_15px_rgba(0,245,160,0.06)]"
+              borderRadius={20}
+              backgroundOpacity={0.05}
+              blur={12}
+              borderOpacity={0.12}
+              className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)]"
             >
               <nav className="flex items-center gap-1.5 px-1 py-0.5">
                 <Link
                   to="/"
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
                     isActive('/')
-                      ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  Discover
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>Discover</span>
                 </Link>
                 <Link
                   to="/social"
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
                     isActive('/social')
-                      ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  Community
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Community</span>
                 </Link>
                 <Link
                   to="/lists"
-                  className={`px-4 py-1.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
                     isActive('/lists')
-                      ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  Lists
+                  <FolderPlus className="w-3.5 h-3.5" />
+                  <span>Lists</span>
                 </Link>
               </nav>
             </GlassSurface>
@@ -130,48 +139,72 @@ export default function Navbar() {
                 placeholder="Search films, series, critics..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-48 md:w-64 lg:w-72 bg-white/5 hover:bg-white/8 text-slate-100 text-xs px-3.5 py-2 pl-9 pr-10 rounded-xl border border-white/10 focus:outline-none focus:border-[#00f5a0]/70 focus:w-80 transition-all placeholder:text-slate-500"
+                className="w-48 md:w-64 lg:w-72 bg-white/5 hover:bg-white/8 focus:bg-black/60 focus:w-80 text-white placeholder-slate-400 text-xs font-mono font-medium rounded-full pl-9 pr-4 py-2 border border-white/10 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all outline-none"
               />
-              <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
-              <kbd className="absolute right-2.5 top-2 px-1.5 py-0.5 rounded bg-white/10 text-[9px] font-mono text-slate-400 border border-white/10 pointer-events-none hidden md:block">
-                ⌘K
-              </kbd>
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </form>
 
-            {/* User Account / Sign In */}
+            {/* Auth Dropdown & User Avatar */}
             {user ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  to={`/profile/${user.username}`}
-                  onClick={handleLinkClick}
-                  className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#00f5a0]/40 transition-all group"
-                >
-                  <Avatar username={user.username} url={user.avatar_url} className="w-6 h-6 border border-white/15" />
-                  <span className="font-mono text-xs font-semibold text-slate-200 group-hover:text-[#00f5a0] hidden md:inline truncate max-w-[90px]">
-                    @{user.username}
-                  </span>
-                </Link>
+              <div className="relative">
                 <button
-                  onClick={logout}
-                  className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer"
-                  title="Sign Out"
+                  onClick={() => setIsOpen(!isOpen)}
+                  className="flex items-center gap-2.5 p-1 rounded-full hover:bg-white/10 transition-colors focus:outline-none"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <Avatar username={user.username} url={user.avatar_url} className="w-8 h-8 ring-2 ring-[#e50914]/50" />
                 </button>
+
+                {isOpen && (
+                  <div
+                    className="absolute right-0 mt-3 w-56 bg-[#121216]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.9)] py-2 text-left z-50 animate-in fade-in zoom-in-95 duration-150"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <div className="px-4 py-3 border-b border-white/8">
+                      <p className="text-xs font-mono text-slate-400">Signed in as</p>
+                      <p className="text-sm font-display font-black text-white truncate mt-0.5">@{user.username}</p>
+                    </div>
+
+                    <Link
+                      to={`/profile/${user.username}`}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-display font-bold text-slate-200 hover:text-white hover:bg-white/5 transition-colors uppercase tracking-wider"
+                    >
+                      <User className="w-4 h-4 text-[#e50914]" />
+                      <span>Vault Profile</span>
+                    </Link>
+
+                    <Link
+                      to="/lists"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-display font-bold text-slate-200 hover:text-white hover:bg-white/5 transition-colors uppercase tracking-wider"
+                    >
+                      <FolderPlus className="w-4 h-4 text-[#e50914]" />
+                      <span>My Collections</span>
+                    </Link>
+
+                    <div className="my-1 border-t border-white/8" />
+
+                    <button
+                      onClick={logout}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-display font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors uppercase tracking-wider cursor-pointer text-left"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="btn-secondary px-3.5 py-1.5 text-xs font-semibold"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-display font-black uppercase tracking-wider text-slate-300 hover:text-white transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/signup"
-                  className="btn-primary px-3.5 py-1.5 text-xs font-bold shadow-md hidden sm:inline-flex"
+                  className="btn-primary py-1.5 px-4 text-xs font-black uppercase tracking-wider shadow-md"
                 >
-                  Join Free
+                  Sign Up
                 </Link>
               </div>
             )}
@@ -179,65 +212,73 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Floating Bottom Dock with Apple Frosted GlassSurface */}
+      {/* Mobile Floating Bottom Dock with Transparent Liquid GlassSurface */}
       <div className="md:hidden fixed bottom-3 inset-x-3 z-50">
         <GlassSurface
           width="100%"
           height="auto"
           borderRadius={24}
-          backgroundOpacity={0.88}
-          blur={32}
-          borderOpacity={0.22}
-          className="glass-surface--dock shadow-[0_12px_45px_rgba(0,0,0,0.98),0_0_25px_rgba(0,245,160,0.12)]"
+          backgroundOpacity={0.05}
+          blur={14}
+          borderOpacity={0.14}
+          className="glass-surface--dock shadow-[0_12px_45px_rgba(0,0,0,0.95),0_0_20px_rgba(229,9,20,0.1)] p-1"
         >
-          <div className="flex items-center justify-around w-full py-2 px-3">
+          <div className="flex items-center justify-around w-full py-1 px-1 gap-1">
             <Link
               to="/"
-              className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                isActive('/') ? 'text-[#00f5a0] bg-white/5 font-bold shadow-[0_0_10px_rgba(0,245,160,0.2)]' : 'text-slate-300 hover:text-white'
+              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
+                isActive('/')
+                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_12px_rgba(229,9,20,0.4)]'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Home className="w-4 h-4" />
-              <span className="text-[10px] font-mono uppercase tracking-wider">Discover</span>
+              <Compass className="w-4 h-4" />
+              <span className="text-[10px] font-display font-black uppercase tracking-wider mt-0.5">Discover</span>
             </Link>
 
             <Link
               to="/social"
-              className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                isActive('/social') ? 'text-[#00f5a0] bg-white/5 font-bold shadow-[0_0_10px_rgba(0,245,160,0.2)]' : 'text-slate-300 hover:text-white'
+              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
+                isActive('/social')
+                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_12px_rgba(229,9,20,0.4)]'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
               <Users className="w-4 h-4" />
-              <span className="text-[10px] font-mono uppercase tracking-wider">Feed</span>
+              <span className="text-[10px] font-display font-black uppercase tracking-wider mt-0.5">Community</span>
             </Link>
 
             <Link
               to="/lists"
-              className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                isActive('/lists') ? 'text-[#00f5a0] bg-white/5 font-bold shadow-[0_0_10px_rgba(0,245,160,0.2)]' : 'text-slate-300 hover:text-white'
+              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
+                isActive('/lists')
+                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_12px_rgba(229,9,20,0.4)]'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
               <FolderPlus className="w-4 h-4" />
-              <span className="text-[10px] font-mono uppercase tracking-wider">Lists</span>
+              <span className="text-[10px] font-display font-black uppercase tracking-wider mt-0.5">Lists</span>
             </Link>
 
             {user ? (
               <Link
                 to={`/profile/${user.username}`}
-                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                  isActive(`/profile/${user.username}`) ? 'text-[#00f5a0] bg-white/5 font-bold shadow-[0_0_10px_rgba(0,245,160,0.2)]' : 'text-slate-300 hover:text-white'
+                className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
+                  isActive(`/profile/${user.username}`)
+                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_12px_rgba(229,9,20,0.4)]'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <User className="w-4 h-4" />
-                <span className="text-[10px] font-mono uppercase tracking-wider">Profile</span>
+                <span className="text-[10px] font-display font-black uppercase tracking-wider mt-0.5">Profile</span>
               </Link>
             ) : (
               <Link
                 to="/login"
-                className="flex flex-col items-center gap-1 p-2 rounded-xl text-[#00f5a0] hover:bg-white/5"
+                className="flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl text-slate-300 hover:text-white hover:bg-white/5"
               >
                 <User className="w-4 h-4" />
-                <span className="text-[10px] font-mono uppercase tracking-wider">Sign In</span>
+                <span className="text-[10px] font-display font-black uppercase tracking-wider mt-0.5">Sign In</span>
               </Link>
             )}
           </div>

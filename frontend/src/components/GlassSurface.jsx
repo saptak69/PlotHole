@@ -1,10 +1,11 @@
-import React, { useId, useRef, useEffect } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState, useRef, useId } from 'react';
 import './GlassSurface.css';
 
 /**
- * Apple-Grade Frosted Liquid Glass Surface
- * Blends heavy multi-pass backdrop blur, saturation amplification, dark obsidian frosted backing,
- * and optional chromatic edge refraction for maximum visual aesthetics and pristine legibility.
+ * React Bits GlassSurface with Chromatic Displacement & 5% Frosted Glass
+ * Features SVG displacement maps, Red/Blue channel refraction, 5% frosted obsidian background,
+ * and high-performance hardware-accelerated fallbacks.
  */
 const GlassSurface = ({
   children,
@@ -12,47 +13,210 @@ const GlassSurface = ({
   height = 'auto',
   borderRadius = 20,
   borderWidth = 0.07,
-  brightness = 60,
-  opacity = 0.95,
-  blur = 24,
+  brightness = 50,
+  opacity = 0.93,
+  blur = 11,
   displace = 0,
-  backgroundOpacity = 0.78,
-  saturation = 1.8,
-  distortionScale = 0,
-  borderOpacity = 0.15,
-  frosted = true,
+  backgroundOpacity = 0.05, // 5% frosted glass
+  saturation = 1.2,
+  distortionScale = -180,
+  redOffset = 0,
+  greenOffset = 10,
+  blueOffset = 20,
+  xChannel = 'R',
+  yChannel = 'G',
+  mixBlendMode = 'difference',
   className = '',
   style = {},
   ...rest
 }) => {
   const uniqueId = useId().replace(/:/g, '-');
   const filterId = `glass-filter-${uniqueId}`;
-  const containerRef = useRef(null);
+  const redGradId = `red-grad-${uniqueId}`;
+  const blueGradId = `blue-grad-${uniqueId}`;
 
-  // Compute CSS custom properties for Apple frosted liquid glass
-  const bgAlpha = Math.min(Math.max(backgroundOpacity, 0.1), 0.98);
-  const blurVal = Math.max(blur, 8);
-  const satVal = Math.max(saturation, 1.0);
-  const borderAlpha = Math.min(Math.max(borderOpacity, 0.05), 0.4);
+  const [svgSupported, setSvgSupported] = useState(false);
+
+  const containerRef = useRef(null);
+  const feImageRef = useRef(null);
+  const redChannelRef = useRef(null);
+  const greenChannelRef = useRef(null);
+  const blueChannelRef = useRef(null);
+  const gaussianBlurRef = useRef(null);
+
+  const generateDisplacementMap = () => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    const actualWidth = Math.max(rect?.width || 400, 10);
+    const actualHeight = Math.max(rect?.height || 200, 10);
+    const edgeSize = Math.min(actualWidth, actualHeight) * (borderWidth * 0.5);
+
+    const svgContent = `
+      <svg viewBox="0 0 ${actualWidth} ${actualHeight}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="${redGradId}" x1="100%" y1="0%" x2="0%" y2="0%">
+            <stop offset="0%" stop-color="#0000"/>
+            <stop offset="100%" stop-color="red"/>
+          </linearGradient>
+          <linearGradient id="${blueGradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#0000"/>
+            <stop offset="100%" stop-color="blue"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" fill="black"></rect>
+        <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" rx="${borderRadius}" fill="url(#${redGradId})" />
+        <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" rx="${borderRadius}" fill="url(#${blueGradId})" style="mix-blend-mode: ${mixBlendMode}" />
+        <rect x="${edgeSize}" y="${edgeSize}" width="${Math.max(actualWidth - edgeSize * 2, 0)}" height="${Math.max(actualHeight - edgeSize * 2, 0)}" rx="${borderRadius}" fill="hsl(0 0% ${brightness}% / ${opacity})" style="filter:blur(${blur}px)" />
+      </svg>
+    `;
+
+    return `data:image/svg+xml,${encodeURIComponent(svgContent)}`;
+  };
+
+  const updateDisplacementMap = () => {
+    feImageRef.current?.setAttribute('href', generateDisplacementMap());
+  };
+
+  useEffect(() => {
+    updateDisplacementMap();
+    [
+      { ref: redChannelRef, offset: redOffset },
+      { ref: greenChannelRef, offset: greenOffset },
+      { ref: blueChannelRef, offset: blueOffset }
+    ].forEach(({ ref, offset }) => {
+      if (ref.current) {
+        ref.current.setAttribute('scale', (distortionScale + offset).toString());
+        ref.current.setAttribute('xChannelSelector', xChannel);
+        ref.current.setAttribute('yChannelSelector', yChannel);
+      }
+    });
+
+    gaussianBlurRef.current?.setAttribute('stdDeviation', displace.toString());
+  }, [
+    width,
+    height,
+    borderRadius,
+    borderWidth,
+    brightness,
+    opacity,
+    blur,
+    displace,
+    distortionScale,
+    redOffset,
+    greenOffset,
+    blueOffset,
+    xChannel,
+    yChannel,
+    mixBlendMode
+  ]);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      setTimeout(updateDisplacementMap, 0);
+    });
+
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    setTimeout(updateDisplacementMap, 0);
+  }, [width, height]);
+
+  useEffect(() => {
+    setSvgSupported(supportsSVGFilters());
+  }, []);
+
+  const supportsSVGFilters = () => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return false;
+    }
+
+    const isWebkit = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    const isFirefox = /Firefox/.test(navigator.userAgent);
+
+    if (isWebkit || isFirefox) {
+      return false;
+    }
+
+    const div = document.createElement('div');
+    div.style.backdropFilter = `url(#${filterId})`;
+
+    return div.style.backdropFilter !== '';
+  };
 
   const containerStyle = {
     ...style,
     width: typeof width === 'number' ? `${width}px` : width,
     height: typeof height === 'number' ? `${height}px` : height,
     borderRadius: `${borderRadius}px`,
-    '--glass-bg-opacity': bgAlpha,
-    '--glass-blur': `${blurVal}px`,
-    '--glass-saturation': satVal,
-    '--glass-border-opacity': borderAlpha
+    '--glass-frost': backgroundOpacity,
+    '--glass-saturation': saturation,
+    '--filter-id': `url(#${filterId})`
   };
 
   return (
     <div
       ref={containerRef}
-      className={`glass-surface ${frosted ? 'glass-surface--frosted' : ''} ${className}`}
+      className={`glass-surface ${svgSupported ? 'glass-surface--svg' : 'glass-surface--fallback'} ${className}`}
       style={containerStyle}
       {...rest}
     >
+      <svg className="glass-surface__filter" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id={filterId} colorInterpolationFilters="sRGB" x="0%" y="0%" width="100%" height="100%">
+            <feImage ref={feImageRef} x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map" />
+
+            <feDisplacementMap ref={redChannelRef} in="SourceGraphic" in2="map" id="redchannel" result="dispRed" />
+            <feColorMatrix
+              in="dispRed"
+              type="matrix"
+              values="1 0 0 0 0
+                      0 0 0 0 0
+                      0 0 0 0 0
+                      0 0 0 1 0"
+              result="red"
+            />
+
+            <feDisplacementMap
+              ref={greenChannelRef}
+              in="SourceGraphic"
+              in2="map"
+              id="greenchannel"
+              result="dispGreen"
+            />
+            <feColorMatrix
+              in="dispGreen"
+              type="matrix"
+              values="0 0 0 0 0
+                      0 1 0 0 0
+                      0 0 0 0 0
+                      0 0 0 1 0"
+              result="green"
+            />
+
+            <feDisplacementMap ref={blueChannelRef} in="SourceGraphic" in2="map" id="bluechannel" result="dispBlue" />
+            <feColorMatrix
+              in="dispBlue"
+              type="matrix"
+              values="0 0 0 0 0
+                      0 0 0 0 0
+                      0 0 1 0 0
+                      0 0 0 1 0"
+              result="blue"
+            />
+
+            <feBlend in="red" in2="green" mode="screen" result="rg" />
+            <feBlend in="rg" in2="blue" mode="screen" result="output" />
+            <feGaussianBlur ref={gaussianBlurRef} in="output" stdDeviation="0.7" />
+          </filter>
+        </defs>
+      </svg>
+
       <div className="glass-surface__content">{children}</div>
     </div>
   );

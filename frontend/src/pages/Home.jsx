@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Flame, Trophy, Film, Tv, ArrowRight, Star, Clock, Sparkles } from 'lucide-react';
+import { Flame, Trophy, Film, Tv, ArrowRight, Star, Clock } from 'lucide-react';
 import { API_URL, getPosterUrl } from '../config';
 import MovieCard from '../components/MovieCard';
 import RatingBadge from '../components/RatingBadge';
@@ -73,7 +73,7 @@ export default function Home({ onOpenPerson }) {
   return (
     <div className="flex-1 pb-24 font-sans text-slate-100 relative overflow-hidden">
       {/* Ambient FaultyTerminal Matrix/Grid Layer in the Background */}
-      <div className="absolute top-0 inset-x-0 h-[750px] opacity-60 pointer-events-auto -z-0">
+      <div className="absolute top-0 inset-x-0 h-[800px] opacity-85 pointer-events-auto -z-0">
         <FaultyTerminal
           scale={1.8}
           gridMul={[3, 1.5]}
@@ -87,13 +87,13 @@ export default function Home({ onOpenPerson }) {
           chromaticAberration={2.0}
           dither={0.2}
           curvature={0.06}
-          tint="#00f5a0"
+          tint="#e50914"
           mouseReact={true}
           mouseStrength={0.5}
           pageLoadAnimation={false}
-          brightness={1.2}
+          brightness={1.5}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#030508]/70 to-[#030508] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#08080a]/45 to-[#08080a] pointer-events-none" />
       </div>
 
       {/* Symmetrical Hero Slideshow Showcase */}
@@ -117,7 +117,7 @@ export default function Home({ onOpenPerson }) {
                   onClick={() => setHeroIndex(idx)}
                   className={`relative h-2 rounded-full transition-all duration-500 cursor-pointer overflow-hidden ${
                     heroIndex === idx
-                      ? 'w-10 bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] shadow-[0_0_12px_rgba(0,245,160,0.5)]'
+                      ? 'w-10 bg-gradient-to-r from-[#e50914] to-[#ff2e3b] shadow-[0_0_12px_rgba(229,9,20,0.5)]'
                       : 'w-2.5 bg-white/20 hover:bg-white/40'
                   }`}
                   title={`Go to ${movieItem.title || movieItem.name || `slide ${idx + 1}`}`}
@@ -137,18 +137,18 @@ export default function Home({ onOpenPerson }) {
             width="auto"
             height="auto"
             borderRadius={20}
-            backgroundOpacity={0.82}
-            blur={24}
-            borderOpacity={0.16}
-            className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.65),0_0_15px_rgba(0,245,160,0.05)]"
+            backgroundOpacity={0.05}
+            blur={12}
+            borderOpacity={0.12}
+            className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)]"
           >
             <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none select-none">
               <button
                 onClick={() => setSelectedCategory('trending')}
-                className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                   selectedCategory === 'trending'
-                    ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Flame className="w-3.5 h-3.5" />
@@ -157,10 +157,10 @@ export default function Home({ onOpenPerson }) {
 
               <button
                 onClick={() => setSelectedCategory('topRated')}
-                className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                   selectedCategory === 'topRated'
-                    ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Trophy className="w-3.5 h-3.5" />
@@ -169,10 +169,10 @@ export default function Home({ onOpenPerson }) {
 
               <button
                 onClick={() => setSelectedCategory('upcoming')}
-                className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                   selectedCategory === 'upcoming'
-                    ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Film className="w-3.5 h-3.5" />
@@ -181,10 +181,10 @@ export default function Home({ onOpenPerson }) {
 
               <button
                 onClick={() => setSelectedCategory('tv')}
-                className={`px-4 py-2 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                   selectedCategory === 'tv'
-                    ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_15px_rgba(0,245,160,0.4)]'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Tv className="w-3.5 h-3.5" />
@@ -195,7 +195,7 @@ export default function Home({ onOpenPerson }) {
 
           <Link
             to="/search?q="
-            className="hidden sm:flex items-center gap-1.5 font-mono text-xs font-bold text-slate-400 hover:text-[#00f5a0] transition-colors uppercase tracking-wider"
+            className="hidden sm:flex items-center gap-1.5 font-mono text-xs font-bold text-slate-400 hover:text-[#e50914] transition-colors uppercase tracking-wider"
           >
             <span>Explore Vault</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -209,7 +209,7 @@ export default function Home({ onOpenPerson }) {
         <section className="space-y-4">
           <div className="flex items-center justify-between border-b border-white/8 pb-3">
             <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#00f5a0] shadow-[0_0_8px_#00f5a0]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e50914] shadow-[0_0_8px_#e50914]" />
               <h2 className="font-display font-black text-xl sm:text-2xl text-white">
                 {selectedCategory === 'trending' && 'Trending Films Right Now'}
                 {selectedCategory === 'topRated' && 'All-Time Pure Cinema Classics'}
@@ -254,12 +254,12 @@ export default function Home({ onOpenPerson }) {
           <section className="space-y-4 pt-2">
             <div className="flex items-center justify-between border-b border-white/8 pb-3">
               <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#00d4ff] shadow-[0_0_8px_#00d4ff]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ffb800] shadow-[0_0_8px_#ffb800]" />
                 <h2 className="font-display font-black text-xl sm:text-2xl text-white">
                   Fresh Member Verdicts
                 </h2>
               </div>
-              <Link to="/community" className="text-xs font-mono font-bold text-[#00f5a0] hover:underline uppercase">
+              <Link to="/social" className="text-xs font-mono font-bold text-[#e50914] hover:underline uppercase">
                 View All Activity →
               </Link>
             </div>
@@ -268,13 +268,13 @@ export default function Home({ onOpenPerson }) {
               {recentReviews.slice(0, 6).map((rev) => (
                 <div
                   key={rev.id}
-                  className="p-5 rounded-2xl border border-white/8 bg-[#080c14] hover:border-[#00f5a0]/40 transition-all space-y-3.5 shadow-md flex flex-col justify-between"
+                  className="p-5 rounded-2xl border border-white/8 bg-[#121216] hover:border-[#e50914]/40 transition-all space-y-3.5 shadow-md flex flex-col justify-between"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <Avatar username={rev.username} url={rev.avatar_url} className="w-7 h-7 border border-white/15" />
-                        <Link to={`/profile/${rev.username}`} className="font-mono text-xs font-bold text-slate-200 hover:text-[#00f5a0] truncate block">
+                        <Link to={`/profile/${rev.username}`} className="font-mono text-xs font-bold text-slate-200 hover:text-[#ff2e3b] truncate block">
                           @{rev.username}
                         </Link>
                       </div>
@@ -283,7 +283,7 @@ export default function Home({ onOpenPerson }) {
 
                     <Link
                       to={`/media/${rev.media_type || 'movie'}/${rev.tmdb_movie_id}`}
-                      className="font-display font-bold text-sm text-slate-100 hover:text-[#00f5a0] transition-colors block line-clamp-1"
+                      className="font-display font-bold text-sm text-slate-100 hover:text-[#ff2e3b] transition-colors block line-clamp-1"
                     >
                       {rev.title || `Film #${rev.tmdb_movie_id}`}
                     </Link>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search as SearchIcon, AlertCircle, Film, Users, Sparkles } from 'lucide-react';
+import { Search as SearchIcon, AlertCircle, Film, Users, Layers } from 'lucide-react';
 import { API_URL } from '../config';
 import MovieCard from '../components/MovieCard';
 import Avatar from '../components/Avatar';
@@ -9,13 +9,13 @@ import GlassSurface from '../components/GlassSurface';
 
 function UserCard({ user }) {
   return (
-    <div className="border border-white/8 bg-[#080c14] hover:border-[#00f5a0]/35 p-5 flex flex-col items-center justify-between text-center rounded-2xl shadow-lg hover:-translate-y-1 transition-all aspect-[2/3]">
+    <div className="border border-white/8 bg-[#121216] hover:border-[#e50914]/40 p-5 flex flex-col items-center justify-between text-center rounded-2xl shadow-lg hover:-translate-y-1 transition-all aspect-[2/3]">
       <div className="flex flex-col items-center w-full min-w-0">
-        <span className="bg-[#00f5a0]/15 text-[#00f5a0] font-mono text-[10px] font-bold px-2.5 py-0.5 border border-[#00f5a0]/30 rounded-full mb-3 uppercase shadow-[0_0_10px_rgba(0,245,160,0.2)]">
+        <span className="bg-[#e50914]/15 text-[#ff4d5a] font-mono text-[10px] font-bold px-2.5 py-0.5 border border-[#e50914]/30 rounded-full mb-3 uppercase shadow-[0_0_10px_rgba(229,9,20,0.2)]">
           Critic
         </span>
         
-        <Avatar username={user.username} url={user.avatar_url} className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[#00f5a0]/30 rounded-2xl mb-2.5 shadow-md" />
+        <Avatar username={user.username} url={user.avatar_url} className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[#e50914]/30 rounded-2xl mb-2.5 shadow-md" />
         
         <span className="font-display font-bold text-slate-100 text-xs sm:text-sm truncate w-full block">
           @{user.username}
@@ -67,10 +67,10 @@ export default function Search() {
   return (
     <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-6 md:space-y-8">
       <div className="flex items-center gap-3 border-b border-white/8 pb-4">
-        <SearchIcon className="w-6 h-6 sm:w-7 sm:h-7 text-[#00f5a0]" />
+        <SearchIcon className="w-6 h-6 sm:w-7 sm:h-7 text-[#e50914]" />
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-black text-white">
-            Search Vault: <span className="text-[#00f5a0]">"{queryStr}"</span>
+            Search Vault: <span className="text-[#ff2e3b]">"{queryStr}"</span>
           </h1>
           <p className="text-xs font-mono text-slate-400 mt-0.5">Found {movies.length} cinephile records</p>
         </div>
@@ -81,41 +81,44 @@ export default function Search() {
         width="auto"
         height="auto"
         borderRadius={20}
-        backgroundOpacity={0.82}
-        blur={24}
-        borderOpacity={0.16}
-        className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.65),0_0_15px_rgba(0,245,160,0.05)] w-full sm:w-fit"
+        backgroundOpacity={0.05}
+        blur={12}
+        borderOpacity={0.12}
+        className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)] w-full sm:w-fit"
       >
         <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none select-none">
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-4 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all shrink-0 cursor-pointer ${
+            className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === 'all'
-                ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_12px_rgba(0,245,160,0.4)]'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
+                : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
           >
-            All ({movies.length})
+            <Layers className="w-3.5 h-3.5" />
+            <span>All ({movies.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('movies')}
-            className={`px-4 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all shrink-0 cursor-pointer ${
+            className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === 'movies'
-                ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_12px_rgba(0,245,160,0.4)]'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
+                : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
           >
-            Films & Series ({movies.filter(m => m.media_type !== 'user').length})
+            <Film className="w-3.5 h-3.5" />
+            <span>Films & Series ({movies.filter(m => m.media_type !== 'user').length})</span>
           </button>
           <button
             onClick={() => setActiveTab('users')}
-            className={`px-4 py-1.5 text-xs font-mono font-bold uppercase rounded-xl transition-all shrink-0 cursor-pointer ${
+            className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === 'users'
-                ? 'bg-gradient-to-r from-[#00f5a0] to-[#00d4ff] text-black shadow-[0_0_12px_rgba(0,245,160,0.4)]'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
+                : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
           >
-            Critics ({movies.filter(m => m.media_type === 'user').length})
+            <Users className="w-3.5 h-3.5" />
+            <span>Critics ({movies.filter(m => m.media_type === 'user').length})</span>
           </button>
         </div>
       </GlassSurface>
@@ -135,7 +138,7 @@ export default function Search() {
           </div>
         </div>
       ) : filteredResults.length === 0 ? (
-        <div className="border border-white/8 bg-[#080c14] p-8 sm:p-12 text-center text-slate-400 rounded-3xl space-y-2 shadow-lg">
+        <div className="border border-white/8 bg-[#121216] p-8 sm:p-12 text-center text-slate-400 rounded-3xl space-y-2 shadow-lg">
           <p className="text-base font-display font-bold text-slate-200">No results found for "{queryStr}".</p>
           <p className="text-xs font-sans text-slate-400">Check spelling or search for alternative film titles, web series, or member handles.</p>
         </div>

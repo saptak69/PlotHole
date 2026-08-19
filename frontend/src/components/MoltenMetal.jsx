@@ -104,9 +104,9 @@ void main() {
  * Real-time liquid metal / fluid caustic GL shader with domain warping and cursor drift.
  */
 export default function MoltenMetal({
-  color1 = '#5227FF',
-  color2 = '#FF9FFC',
-  color3 = '#FFFFFF',
+  color1 = '#e50914',
+  color2 = '#ffb800',
+  color3 = '#ffffff',
   speed = 0.35,
   scale = 4,
   detail = 3,

@@ -14,7 +14,7 @@ export function fireConfetti() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const colors = ['#f4c430', '#ff4757', '#3aa6e0', '#f2e9d8', '#ffffff'];
+  const colors = ['#e50914', '#ff2e3b', '#ffb800', '#f59e0b', '#ffffff'];
   const particles = [];
   const particleCount = 80;
 

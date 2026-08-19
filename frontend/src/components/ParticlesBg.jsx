@@ -8,7 +8,7 @@ export default function ParticlesBg({
   particleCount = 50,
   particleSpread = 10,
   speed = 0.4,
-  particleColors = ['#f59e0b', '#38bdf8', '#ffffff'],
+  particleColors = ['#e50914', '#ffb800', '#ffffff'],
   moveParticlesOnHover = true,
   particleHoverFactor = 1.5,
   alpha = 0.4,
@@ -60,11 +60,22 @@ export default function ParticlesBg({
       mouse.y = -1000;
     };
 
-    window.addEventListener('resize', handleResize);
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseleave', handleMouseLeave);
+    let isVisible = true;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        isVisible = entry.isIntersecting;
+      });
+    }, { threshold: 0.05 });
+    io.observe(canvas);
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    canvas.addEventListener('mousemove', handleMouseMove, { passive: true });
+    canvas.addEventListener('mouseleave', handleMouseLeave, { passive: true });
 
     const render = () => {
+      animationFrameId = requestAnimationFrame(render);
+      if (!isVisible || document.hidden) return;
+
       ctx.clearRect(0, 0, width, height);
 
       particles.forEach((p) => {
@@ -98,14 +109,13 @@ export default function ParticlesBg({
         ctx.fill();
         ctx.restore();
       });
-
-      animationFrameId = requestAnimationFrame(render);
     };
 
     render();
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      io.disconnect();
       if (canvas) {
         canvas.removeEventListener('mousemove', handleMouseMove);
         canvas.removeEventListener('mouseleave', handleMouseLeave);

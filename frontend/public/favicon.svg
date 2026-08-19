@@ -1,19 +1,108 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <linearGradient id="plothole-fav-base" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#08101a" />
-      <stop offset="100%" stop-color="#020408" />
+    {/* Netflix Red & Cinema Scarlet Bucket Strip Gradient */}
+    <linearGradient id="fav-pb-film-red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff4d5a" />
+      <stop offset="35%" stop-color="#e50914" />
+      <stop offset="85%" stop-color="#b80710" />
+      <stop offset="100%" stop-color="#800008" />
     </linearGradient>
-    <linearGradient id="plothole-fav-mint" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#7affd4" />
-      <stop offset="40%" stop-color="#00f5a0" />
-      <stop offset="80%" stop-color="#00d4ff" />
-      <stop offset="100%" stop-color="#0099ff" />
+
+    {/* Deep Obsidian Film Strip Gradient */}
+    <linearGradient id="fav-pb-film-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1e26" />
+      <stop offset="40%" stop-color="#121216" />
+      <stop offset="100%" stop-color="#08080a" />
     </linearGradient>
+
+    {/* Top Film Rim Strip Gradient */}
+    <linearGradient id="fav-pb-rim-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#b80710" />
+      <stop offset="50%" stop-color="#ff2e3b" />
+      <stop offset="100%" stop-color="#b80710" />
+    </linearGradient>
+
+    {/* Golden Butter Popcorn - Crown Kernel Gradient */}
+    <radialGradient id="fav-pb-pop-gold-1" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="25%" stop-color="#fef08a" />
+      <stop offset="60%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#92400e" />
+    </radialGradient>
+
+    {/* Golden Butter Popcorn - Side Kernel Gradient */}
+    <radialGradient id="fav-pb-pop-gold-2" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="30%" stop-color="#fde047" />
+      <stop offset="70%" stop-color="#ffb800" />
+      <stop offset="100%" stop-color="#78350f" />
+    </radialGradient>
+
+    {/* Popcorn Fluffy Cream Highlight */}
+    <radialGradient id="fav-pb-pop-cream" cx="35%" cy="25%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="45%" stop-color="#fef9c3" />
+      <stop offset="85%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </radialGradient>
   </defs>
-  <rect x="4" y="4" width="92" height="92" rx="24" fill="url(#plothole-fav-base)" stroke="url(#plothole-fav-mint)" stroke-width="3" />
-  <path d="M 50 18 A 32 32 0 0 1 82 50" stroke="url(#plothole-fav-mint)" stroke-width="5" stroke-linecap="round" />
-  <path d="M 50 82 A 32 32 0 0 1 18 50" stroke="url(#plothole-fav-mint)" stroke-width="5" stroke-linecap="round" />
-  <circle cx="50" cy="50" r="14" fill="#020408" stroke="#00f5a0" stroke-width="3" />
-  <circle cx="50" cy="50" r="6" fill="#00f5a0" />
+
+  {/* Background Golden Sparkle */}
+  <path d="M 82 16 Q 82 21 87 21 Q 82 21 82 26 Q 82 21 77 21 Q 82 21 82 16 Z" fill="#ffb800" />
+
+  {/* ================= POPCORN CLUSTER ON TOP ================= */}
+  {/* Left Popcorn Bubble */}
+  <path d="M 26 34 C 21 28 32 23 35 29 C 40 26 44 33 39 38 C 33 42 24 41 26 34 Z" fill="url(#fav-pb-pop-gold-2)" />
+  <circle cx="30" cy="32" r="3" fill="#ffffff" opacity="0.9" />
+
+  {/* Right Popcorn Bubble */}
+  <path d="M 74 34 C 79 28 68 23 65 29 C 60 26 56 33 61 38 C 67 42 76 41 74 34 Z" fill="url(#fav-pb-pop-gold-2)" />
+  <circle cx="70" cy="32" r="3" fill="#ffffff" opacity="0.9" />
+
+  {/* Main Center Popcorn Crown */}
+  <path d="M 45 22 C 42 13 58 13 55 22 C 63 16 71 26 65 33 C 70 41 59 47 50 45 C 41 47 30 41 35 33 C 29 26 37 16 45 22 Z" fill="url(#fav-pb-pop-cream)" stroke="#ffffff" stroke-width="0.8" />
+  <ellipse cx="50" cy="23" rx="4.5" ry="3.5" fill="#ffffff" opacity="0.95" />
+  <path d="M 46 27 Q 50 31 54 27" stroke="#b45309" stroke-width="1.2" stroke-linecap="round" />
+
+  {/* Front Overflow Kernels */}
+  <path d="M 44 39 C 42 33 58 33 56 39 C 62 38 64 46 58 48 C 53 51 47 51 42 48 C 36 46 38 38 44 39 Z" fill="url(#fav-pb-pop-gold-1)" stroke="#ffffff" stroke-width="0.7" />
+  <circle cx="50" cy="41" r="3" fill="#ffffff" opacity="0.95" />
+
+  {/* ================= FILM STRIP POPCORN BUCKET BODY ================= */}
+  {/* Dark Bucket Base */}
+  <path d="M 23 46 Q 50 51 77 46 L 68 89 Q 50 94 32 89 Z" fill="#08080a" />
+
+  {/* Film Stripes */}
+  <path d="M 23 46 Q 31 47.5 34 47.2 L 39 89.8 Q 35.5 89.4 32 89 Z" fill="url(#fav-pb-film-red)" />
+  <path d="M 34 47.2 Q 41.5 48.4 44.5 48.4 L 46.8 90.5 Q 43 90.2 39 89.8 Z" fill="url(#fav-pb-film-dark)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
+  <path d="M 44.5 48.4 Q 50 48.7 55.5 48.4 L 53.2 90.5 Q 50 90.8 46.8 90.5 Z" fill="url(#fav-pb-film-red)" />
+  <path d="M 55.5 48.4 Q 58.5 48.4 66 47.2 L 61 89.8 Q 57 90.2 53.2 90.5 Z" fill="url(#fav-pb-film-dark)" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
+  <path d="M 66 47.2 Q 69 47.5 77 46 L 68 89 Q 64.5 89.4 61 89.8 Z" fill="url(#fav-pb-film-red)" />
+
+  {/* 35mm Sprocket Holes */}
+  <rect x="36.5" y="53" width="4.5" height="3" rx="1" fill="#ffffff" fill-opacity="0.9" />
+  <rect x="37.8" y="62" width="4.5" height="3" rx="1" fill="#ffffff" fill-opacity="0.9" />
+  <rect x="39" y="71" width="4.5" height="3" rx="1" fill="#ffffff" fill-opacity="0.9" />
+  <rect x="40.2" y="80" width="4.5" height="3" rx="1" fill="#ffffff" fill-opacity="0.9" />
+
+  <rect x="59" y="53" width="4.5" height="3" rx="1" fill="#ffffff" fill-opacity="0.9" />
+  <rect x="57.7" y="62" width="4.5" height="3" rx="1" fill="#ffffff" fill-opacity="0.9" />
+  <rect x="56.5" y="71" width="4.5" height="3" rx="1" fill="#ffffff" fill-opacity="0.9" />
+  <rect x="55.3" y="80" width="4.5" height="3" rx="1" fill="#ffffff" fill-opacity="0.9" />
+
+  {/* Center Gold Star Emblem */}
+  <circle cx="50" cy="68" r="8" fill="#121216" stroke="#ffb800" stroke-width="1.2" />
+  <path d="M 50 63.8 L 51.2 66.6 L 54.2 66.9 L 51.9 69 L 52.6 71.8 L 50 70.3 L 47.4 71.8 L 48.1 69 L 45.8 66.9 L 48.8 66.6 Z" fill="#ffb800" />
+
+  {/* Top Film Rim */}
+  <path d="M 21.5 44 Q 50 49 78.5 44 L 78 48.5 Q 50 53.5 22 48.5 Z" fill="url(#fav-pb-rim-grad)" stroke="#ffffff" stroke-width="0.6" stroke-opacity="0.4" />
+  <rect x="26" y="45.2" width="2.4" height="1.8" rx="0.5" fill="#ffffff" />
+  <rect x="35" y="46.3" width="2.4" height="1.8" rx="0.5" fill="#ffffff" />
+  <rect x="44" y="47.1" width="2.4" height="1.8" rx="0.5" fill="#ffffff" />
+  <rect x="53.6" y="47.1" width="2.4" height="1.8" rx="0.5" fill="#ffffff" />
+  <rect x="62.6" y="46.3" width="2.4" height="1.8" rx="0.5" fill="#ffffff" />
+  <rect x="71.6" y="45.2" width="2.4" height="1.8" rx="0.5" fill="#ffffff" />
+
+  {/* Bottom Rim */}
+  <path d="M 31 88.5 Q 50 93.5 69 88.5 L 68 91.5 Q 50 95.5 32 91.5 Z" fill="url(#fav-pb-film-red)" stroke="#ffb800" stroke-width="0.6" />
 </svg>

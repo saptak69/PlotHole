@@ -80,12 +80,12 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
     <>
       <div className="fixed inset-0 z-[1000] bg-black/85 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
         <div 
-          className="w-full max-w-md rounded-3xl overflow-hidden border border-white/12 bg-[#080c14] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(0,245,160,0.15)]"
+          className="w-full max-w-md rounded-3xl overflow-hidden border border-white/12 bg-[#121216] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(229,9,20,0.15)]"
           style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
         >
           <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#00f5a0]/15 border border-[#00f5a0]/30 flex items-center justify-center text-[#00f5a0] shadow-[0_0_10px_rgba(0,245,160,0.2)]">
+              <div className="w-8 h-8 rounded-xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff2e3b] shadow-[0_0_10px_rgba(229,9,20,0.2)]">
                 <FolderPlus className="w-4 h-4" />
               </div>
               <div>
@@ -127,7 +127,7 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
               <span className="font-mono font-bold uppercase text-slate-400 text-[11px]">Your Collections</span>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="text-[#00f5a0] hover:text-[#7affd4] flex items-center gap-1 font-mono font-bold text-[11px] uppercase transition-colors cursor-pointer"
+                className="text-[#e50914] hover:text-[#ff2e3b] flex items-center gap-1 font-mono font-bold text-[11px] uppercase transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New List</span>
@@ -137,7 +137,7 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
             <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
               {loading ? (
                 <div className="p-6 text-center text-slate-400">
-                  <Loader2 className="w-5 h-5 animate-spin mx-auto text-[#00f5a0]" />
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto text-[#e50914]" />
                 </div>
               ) : lists.length === 0 ? (
                 <div className="text-center p-6 text-slate-400 space-y-2">
@@ -157,7 +157,7 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
                   return (
                     <div
                       key={lst.id}
-                      className="p-3 bg-white/5 border border-white/8 hover:border-[#00f5a0]/30 rounded-2xl flex items-center justify-between transition-colors text-left"
+                      className="p-3 bg-white/5 border border-white/8 hover:border-[#e50914]/30 rounded-2xl flex items-center justify-between transition-colors text-left"
                     >
                       <div>
                         <p className="font-display font-bold text-slate-100">{lst.title}</p>
@@ -168,8 +168,8 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
                         disabled={isAdded || isAdding}
                         className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold uppercase transition-all flex items-center gap-1 cursor-pointer ${
                           isAdded
-                            ? 'bg-[#00f5a0]/20 text-[#00f5a0] border border-[#00f5a0]/40'
-                            : 'bg-white/5 text-slate-200 border border-white/10 hover:border-[#00f5a0]/50 hover:text-[#00f5a0]'
+                            ? 'bg-[#e50914]/20 text-[#ff4d5a] border border-[#e50914]/40'
+                            : 'bg-white/5 text-slate-200 border border-white/10 hover:border-[#e50914]/50 hover:text-[#e50914]'
                         }`}
                       >
                         {isAdding ? (

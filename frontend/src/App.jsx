@@ -39,13 +39,25 @@ function MainLayout() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#030508] text-slate-100 flex flex-col selection:bg-[#00f5a0] selection:text-black relative">
+      <div className="min-h-screen bg-[#08080a] text-slate-100 flex flex-col selection:bg-[#e50914] selection:text-white relative">
+        {/* Vibrant Cinema Ambient Background Lighting Layer (GPU Native) */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 will-change-transform transform-gpu" style={{ contain: 'strict' }}>
+          {/* Top Radiant Spotlight (Netflix Red & Cinema Gold) */}
+          <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-[950px] h-[550px] bg-[radial-gradient(ellipse_at_top,rgba(229,9,20,0.20)_0%,rgba(255,46,59,0.09)_40%,transparent_75%)] transform-gpu" />
+          
+          {/* Left Radiant Cinema Gold Ambient Glow */}
+          <div className="absolute top-1/4 -left-48 w-[650px] h-[650px] bg-[radial-gradient(circle_at_center,rgba(255,184,0,0.09)_0%,rgba(229,9,20,0.04)_45%,transparent_70%)] transform-gpu" />
+
+          {/* Right Deep Crimson Ambient Glow */}
+          <div className="absolute top-2/3 -right-48 w-[700px] h-[700px] bg-[radial-gradient(circle_at_center,rgba(229,9,20,0.13)_0%,rgba(184,7,16,0.05)_45%,transparent_70%)] transform-gpu" />
+        </div>
+
         {/* Subtle Ambient Film Grain */}
         <div className="film-grain" />
 
         <Navbar />
 
-        <main className="flex-1 flex flex-col pb-16 md:pb-0">
+        <main className="flex-1 flex flex-col pb-16 md:pb-0 relative z-10">
           <Routes>
             <Route path="/" element={<Home onOpenPerson={(id) => setSelectedPersonId(id)} />} />
             <Route path="/movies/:id" element={<NavigateToMedia />} />
@@ -61,9 +73,9 @@ function MainLayout() {
         </main>
 
         {/* Luxury Cinema Footer */}
-        <footer className="py-14 border-t border-white/8 bg-[#020407] text-slate-400 font-sans relative overflow-hidden">
+        <footer className="py-14 border-t border-white/8 bg-[#040406] text-slate-400 font-sans relative overflow-hidden">
           {/* Ambient Bottom Glow */}
-          <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#00f5a0]/5 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#e50914]/8 via-transparent to-transparent pointer-events-none" />
 
           <div className="max-w-7xl mx-auto px-6 space-y-8 relative z-10">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-white/8 text-center md:text-left">
@@ -75,10 +87,10 @@ function MainLayout() {
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-mono">
-                <Link to="/" className="hover:text-[#00f5a0] transition-colors">Discover</Link>
-                <Link to="/social" className="hover:text-[#00f5a0] transition-colors">Community Feed</Link>
-                <Link to="/lists" className="hover:text-[#00f5a0] transition-colors">Curated Lists</Link>
-                <Link to="/search" className="hover:text-[#00f5a0] transition-colors">Search Vault</Link>
+                <Link to="/" className="hover:text-[#e50914] transition-colors">Discover</Link>
+                <Link to="/social" className="hover:text-[#e50914] transition-colors">Community Feed</Link>
+                <Link to="/lists" className="hover:text-[#e50914] transition-colors">Curated Lists</Link>
+                <Link to="/search" className="hover:text-[#e50914] transition-colors">Search Vault</Link>
               </div>
             </div>
 
@@ -86,7 +98,7 @@ function MainLayout() {
               <p>© {new Date().getFullYear()} PlotHole Chronicles. All rights reserved.</p>
               <p className="flex items-center gap-2">
                 <span>Curated with craft</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00f5a0] inline-block shadow-[0_0_8px_#00f5a0]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#e50914] inline-block shadow-[0_0_8px_#e50914]" />
                 <span>Powered by TMDB API</span>
               </p>
             </div>

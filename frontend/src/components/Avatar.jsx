@@ -10,7 +10,7 @@ export default function Avatar({ username, url, className = "w-8 h-8" }) {
   // If url is set and is NOT a dicebear URL (premade avatar), we use it.
   const hasCustomAvatar = url && !url.includes('dicebear.com') && !url.includes('placeholder') && url.trim().length > 0;
 
-  const bgGradient = username ? stringToGradient(username) : 'from-[#00f5a0] to-[#00d4ff]';
+  const bgGradient = username ? stringToGradient(username) : 'from-[#e50914] to-[#ffb800]';
 
   if (hasCustomAvatar) {
     return (
@@ -24,7 +24,7 @@ export default function Avatar({ username, url, className = "w-8 h-8" }) {
 
   return (
     <div
-      className={`${className} shrink-0 flex items-center justify-center font-display font-black text-black select-none border border-white/25 rounded-full shadow-md bg-gradient-to-br ${bgGradient}`}
+      className={`${className} shrink-0 flex items-center justify-center font-display font-black text-white select-none border border-white/25 rounded-full shadow-md bg-gradient-to-br ${bgGradient}`}
     >
       <span className="text-[60%] leading-none drop-shadow-sm">{firstLetter}</span>
     </div>
@@ -37,16 +37,16 @@ function stringToGradient(str) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
   
-  // Luxury avant-garde color pairs
+  // Luxury cinema color pairs (Netflix Red & Gold Aesthetic)
   const gradients = [
-    'from-[#00f5a0] via-[#00d4ff] to-[#7affd4]', // Electric Mint & Cyan
-    'from-sky-300 via-sky-400 to-blue-500',      // Anamorphic Cyan
-    'from-rose-300 via-rose-400 to-rose-600',    // Velvet Crimson
-    'from-emerald-300 via-emerald-400 to-teal-500', // Mint Emerald
-    'from-purple-300 via-purple-400 to-indigo-600', // Royal Indigo
-    'from-[#00f5a0] via-teal-400 to-[#00d4ff]',  // Liquid Caustic
-    'from-teal-300 via-teal-400 to-cyan-600',    // Sapphire Teal
-    'from-slate-200 via-slate-300 to-slate-500'  // Titanium Platinum
+    'from-[#e50914] via-[#ff2e3b] to-[#ffb800]', // Netflix Red & Cinema Gold
+    'from-[#b80710] via-[#e50914] to-[#f59e0b]', // Deep Ruby & Amber
+    'from-rose-500 via-rose-600 to-amber-500',   // Crimson & Amber
+    'from-[#ff2e3b] via-[#ff3b5c] to-white',     // Scarlet Luster
+    'from-amber-400 via-amber-500 to-[#e50914]', // Gold & Red
+    'from-[#1e1e26] via-[#2a2a38] to-[#e50914]', // Obsidian & Red Spotlight
+    'from-red-600 via-orange-500 to-amber-400',  // Fiery Cinema
+    'from-slate-600 via-slate-700 to-slate-900'  // Slate Titanium
   ];
   
   const index = Math.abs(hash) % gradients.length;

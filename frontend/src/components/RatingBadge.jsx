@@ -5,30 +5,30 @@ import { getRatingInfo } from '../config';
 export default function RatingBadge({ rating, size = 'sm', showIcon = true, className = '' }) {
   const ratingInfo = getRatingInfo(rating);
   
-  // Avant-Garde Cinema Graded Rating Capsules
+  // Graded Cinema Rating Capsules (Netflix Red & Gold Aesthetic)
   const tierConfig = {
     1: {
-      style: 'bg-rose-500/10 text-rose-300 border-rose-500/40 shadow-[0_0_12px_rgba(255,59,92,0.2)] hover:border-rose-400',
+      style: 'bg-rose-500/15 text-rose-300 border-rose-500/40 shadow-[0_0_12px_rgba(255,59,92,0.25)] hover:border-rose-400',
       icon: AlertOctagon,
       label: 'Bullshit'
     },
     2: {
-      style: 'bg-slate-500/10 text-slate-300 border-slate-500/30 hover:border-slate-400',
+      style: 'bg-slate-500/15 text-slate-300 border-slate-500/30 hover:border-slate-400',
       icon: MinusCircle,
       label: 'Meh'
     },
     3: {
-      style: 'bg-[#00d4ff]/10 text-[#00d4ff] border-[#00d4ff]/40 shadow-[0_0_14px_rgba(0,212,255,0.2)] hover:border-[#00d4ff]',
+      style: 'bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-[0_0_14px_rgba(245,158,11,0.25)] hover:border-amber-400',
       icon: Ticket,
       label: 'One-Time'
     },
     4: {
-      style: 'bg-[#00f5a0]/10 text-[#00f5a0] border-[#00f5a0]/40 shadow-[0_0_16px_rgba(0,245,160,0.25)] hover:border-[#00f5a0]',
+      style: 'bg-[#e50914]/15 text-[#ff4d5a] border-[#e50914]/40 shadow-[0_0_16px_rgba(229,9,20,0.3)] hover:border-[#e50914]',
       icon: ThumbsUp,
-      label: 'Good'
+      label: 'Good Watch'
     },
     5: {
-      style: 'bg-gradient-to-r from-[#00f5a0]/20 via-[#00d4ff]/15 to-white/20 text-white border-white/40 shadow-[0_0_22px_rgba(0,245,160,0.45)] hover:border-white',
+      style: 'bg-gradient-to-r from-[#e50914]/25 via-[#ffb800]/20 to-white/20 text-white border-[#ffb800]/50 shadow-[0_0_22px_rgba(229,9,20,0.45)] hover:border-white',
       icon: Trophy,
       label: 'Pure Cinema'
     }
