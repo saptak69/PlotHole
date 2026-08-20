@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Component CSS – must be imported here so Tailwind v4's Vite plugin
+   includes them in the production bundle (JS-level `import './X.css'`
+   imports are silently dropped during the build). */
+@import "./components/GlassSurface.css" layer(components);
+@import "./components/MoltenMetal.css" layer(components);
+@import "./components/FaultyTerminal.css" layer(components);
+
 @theme {
   --color-brand-bg: #08080a;
   --color-brand-card: #121216;
