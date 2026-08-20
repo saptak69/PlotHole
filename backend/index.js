@@ -4,14 +4,21 @@ import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import zlib from 'node:zlib';
 import { v2 as cloudinary } from 'cloudinary';
 import { query, queryOne, execute, initDb, getDbStatus, withTransaction } from './db.js';
 
-dotenv.config();
+dotenv.config(); // Reloaded with Cloudinary credentials
 
-if (process.env.CLOUDINARY_CLOUD_NAME) {
+if (process.env.CLOUDINARY_URL) {
+  cloudinary.config({
+    cloudinary_url: process.env.CLOUDINARY_URL,
+    secure: true
+  });
+} else if (process.env.CLOUDINARY_CLOUD_NAME) {
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -22,6 +29,12 @@ if (process.env.CLOUDINARY_CLOUD_NAME) {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Ensure uploads/avatars directory exists
+const UPLOADS_DIR = path.join(__dirname, 'uploads', 'avatars');
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -68,10 +81,26 @@ app.use((req, res, next) => {
   next();
 });
 
+// Security HTTP Headers Middleware (Enterprise-Grade Security)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// Serve uploaded avatars and user assets statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Fast, non-blocking request logger middleware
 app.use((req, res, next) => {
@@ -81,7 +110,108 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize Database is handled at the bottom before app.listen to prevent startup 500 errors
+// Sliding-Window Rate Limiting Engine
+function createRateLimiter({ windowMs, maxRequests, message }) {
+  const ipMap = new Map();
+
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, entry] of ipMap.entries()) {
+      if (now - entry.startTime > windowMs) {
+        ipMap.delete(ip);
+      }
+    }
+  }, 5 * 60 * 1000).unref();
+
+  return (req, res, next) => {
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '127.0.0.1';
+    const now = Date.now();
+    const entry = ipMap.get(clientIp);
+
+    if (!entry || now - entry.startTime > windowMs) {
+      ipMap.set(clientIp, { count: 1, startTime: now });
+      return next();
+    }
+
+    if (entry.count >= maxRequests) {
+      res.setHeader('Retry-After', Math.ceil((entry.startTime + windowMs - now) / 1000));
+      return res.status(429).json({ error: message || 'Too many requests. Please try again later.' });
+    }
+
+    entry.count += 1;
+    next();
+  };
+}
+
+const authRateLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 mins
+  maxRequests: 30,
+  message: 'Too many authentication attempts. Please wait 15 minutes before trying again.'
+});
+
+const aiRateLimiter = createRateLimiter({
+  windowMs: 10 * 60 * 1000, // 10 mins
+  maxRequests: 35,
+  message: 'AI Director quota reached. Please wait a few minutes before requesting more critiques.'
+});
+
+const searchRateLimiter = createRateLimiter({
+  windowMs: 60 * 1000, // 1 min
+  maxRequests: 120,
+  message: 'Search query rate limit exceeded. Please wait a moment.'
+});
+
+// Input Sanitization & Validation Helpers
+function sanitizeText(str, maxLength = 2000) {
+  if (!str || typeof str !== 'string') return '';
+  return str
+    .trim()
+    .slice(0, maxLength)
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/javascript:/gi, '');
+}
+
+function validateUsername(username) {
+  if (!username || typeof username !== 'string') return false;
+  const trimmed = username.trim();
+  return /^[a-zA-Z0-9_]{3,24}$/.test(trimmed);
+}
+
+function validateEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+// Database Reset to Ground 0 Helper
+async function resetAllProfilesToGroundZero() {
+  console.log('🔄 Executing Database Reset to Ground 0...');
+  try {
+    await execute('DELETE FROM review_comments;');
+    await execute('DELETE FROM review_likes;');
+    await execute('DELETE FROM list_likes;');
+    await execute('DELETE FROM list_items;');
+    await execute('DELETE FROM lists;');
+    await execute('DELETE FROM diary;');
+    await execute('DELETE FROM reviews;');
+    await execute('DELETE FROM watchlist;');
+    await execute('DELETE FROM follows;');
+    await execute('DELETE FROM users;');
+
+    if (fs.existsSync(UPLOADS_DIR)) {
+      const files = fs.readdirSync(UPLOADS_DIR);
+      for (const file of files) {
+        if (file !== '.gitkeep') {
+          fs.unlinkSync(path.join(UPLOADS_DIR, file));
+        }
+      }
+    }
+    console.log('✨ All profiles, user records, and uploads have been successfully reset to Ground 0!');
+    return true;
+  } catch (err) {
+    console.error('Error during database reset:', err);
+    return false;
+  }
+}
 
 // Auth Middleware
 function authenticateToken(req, res, next) {
@@ -124,32 +254,66 @@ function getCloudinaryPublicId(url) {
 
 async function uploadAvatar(avatarDataUrl, oldAvatarUrl, username) {
   if (!avatarDataUrl) return null;
+  
+  // If it's already an existing HTTP URL or static upload, keep as is
   if (!avatarDataUrl.startsWith('data:image/')) {
     return avatarDataUrl;
   }
 
-  if (process.env.CLOUDINARY_CLOUD_NAME) {
-    const oldPublicId = getCloudinaryPublicId(oldAvatarUrl);
-    if (oldPublicId) {
-      await cloudinary.uploader.destroy(oldPublicId).catch(err => {
-        console.error('Failed to delete old avatar from Cloudinary:', err);
-      });
-    }
-
-    const uploadRes = await cloudinary.uploader.upload(avatarDataUrl, {
-      folder: 'plothole_avatars',
-      transformation: [
-        { width: 200, height: 200, crop: 'thumb', gravity: 'face' }
-      ]
-    });
-    return uploadRes.secure_url;
-  } else {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Cloudinary is not configured. Avatar uploads are disabled in production.');
-    }
-    console.warn('WARNING: Cloudinary not configured in development. Using Dicebear fallback avatar.');
-    return `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(username)}`;
+  // Validate data URL format and image mime type
+  const matches = avatarDataUrl.match(/^data:image\/(png|jpe?g|webp|gif|svg\+xml);base64,(.+)$/i);
+  if (!matches) {
+    throw new Error('Invalid image format. Allowed formats: PNG, JPEG, WEBP, GIF, SVG.');
   }
+
+  const rawFormat = matches[1].toLowerCase();
+  const ext = rawFormat === 'jpeg' ? 'jpg' : rawFormat === 'svg+xml' ? 'svg' : rawFormat;
+  const base64Data = matches[2];
+  const buffer = Buffer.from(base64Data, 'base64');
+
+  // Limit image buffer size to 5MB
+  if (buffer.length > 5 * 1024 * 1024) {
+    throw new Error('Avatar image size exceeds 5MB limit.');
+  }
+
+  // If Cloudinary is configured, use Cloudinary
+  if (process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_URL) {
+    try {
+      const oldPublicId = getCloudinaryPublicId(oldAvatarUrl);
+      if (oldPublicId) {
+        await cloudinary.uploader.destroy(oldPublicId).catch(() => {});
+      }
+
+      const uploadRes = await cloudinary.uploader.upload(avatarDataUrl, {
+        folder: 'plothole_avatars',
+        transformation: [
+          { width: 300, height: 300, crop: 'thumb', gravity: 'face' }
+        ]
+      });
+      return uploadRes.secure_url;
+    } catch (cloudErr) {
+      console.warn('Cloudinary upload failed, falling back to local file storage:', cloudErr.message);
+    }
+  }
+
+  // Local filesystem storage (100% reliable, zero external dependency)
+  const filename = `avatar-${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${ext}`;
+  const filePath = path.join(UPLOADS_DIR, filename);
+
+  // Clean up old local avatar file if it existed
+  if (oldAvatarUrl && oldAvatarUrl.startsWith('/uploads/avatars/')) {
+    try {
+      const oldFilePath = path.join(__dirname, oldAvatarUrl);
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+    } catch (err) {
+      console.error('Failed to remove previous avatar file:', err);
+    }
+  }
+
+  fs.writeFileSync(filePath, buffer);
+  return `/uploads/avatars/${filename}`;
 }
 
 function getCachedData(key) {
@@ -431,17 +595,45 @@ async function fetchFromTMDB(endpoint, queryParams = {}) {
   return data;
 }
 
-// --- AUTH ROUTES -
+// --- DEV / ADMIN DATABASE RESET ENDPOINT ---
+app.post('/api/admin/reset-ground-zero', async (req, res) => {
+  try {
+    const success = await resetAllProfilesToGroundZero();
+    if (success) {
+      res.json({ message: 'Database successfully reset to Ground 0. All profiles and data cleared.' });
+    } else {
+      res.status(500).json({ error: 'Failed to reset database to Ground 0' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- AUTH ROUTES ---
 // Signup
-app.post('/api/auth/signup', async (req, res) => {
+app.post('/api/auth/signup', authRateLimiter, async (req, res) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  const normalizedUsername = username.trim().toLowerCase();
+  const trimmedUsername = username.trim();
+  const normalizedUsername = trimmedUsername.toLowerCase();
   const normalizedEmail = email.trim().toLowerCase();
+
+  // Strict Validation
+  if (!validateUsername(trimmedUsername)) {
+    return res.status(400).json({ error: 'Username must be 3-24 characters containing only letters, numbers, and underscores.' });
+  }
+
+  if (!validateEmail(normalizedEmail)) {
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
+  }
+
+  if (typeof password !== 'string' || password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+  }
 
   try {
     // Check if user exists using normalized values
@@ -460,26 +652,26 @@ app.post('/api/auth/signup', async (req, res) => {
 
     await execute(
       'INSERT INTO users (id, username, email, password_hash, avatar_url, bio, display_name) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      [userId, normalizedUsername, normalizedEmail, passwordHash, avatarUrl, 'Movie enthusiast.', username.trim()]
+      [userId, normalizedUsername, normalizedEmail, passwordHash, avatarUrl, 'Movie enthusiast.', sanitizeText(trimmedUsername, 50)]
     );
 
     const token = jwt.sign({ id: userId, username: normalizedUsername, email: normalizedEmail }, JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({
       token,
-      user: { id: userId, username: normalizedUsername, email: normalizedEmail, avatar_url: avatarUrl, bio: 'Movie enthusiast.', display_name: username.trim() }
+      user: { id: userId, username: normalizedUsername, email: normalizedEmail, avatar_url: avatarUrl, bio: 'Movie enthusiast.', display_name: trimmedUsername }
     });
   } catch (error) {
     console.error('Signup error:', error);
     if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo')) {
       return res.status(503).json({ error: 'Database service is offline or unreachable. Please check your internet connection or DATABASE_URL settings.' });
     }
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: 'Signup failed. Please try again.' });
   }
 });
 
 // Login
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -520,7 +712,7 @@ app.post('/api/auth/login', async (req, res) => {
     if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo')) {
       return res.status(503).json({ error: 'Database service is offline or unreachable. Please check your internet connection or DATABASE_URL settings.' });
     }
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    res.status(500).json({ error: 'Authentication failed. Please try again.' });
   }
 });
 
@@ -537,26 +729,35 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
       display_name: user.display_name || user.username
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Failed to retrieve user session.' });
   }
 });
 
-// Update Profile
+// Update Profile (Bio, DP Picture & Display Name)
 app.put('/api/auth/profile', authenticateToken, async (req, res) => {
-  const { bio, avatar_url } = req.body;
+  const { bio, avatar_url, display_name } = req.body;
   try {
-    const user = await queryOne('SELECT username, avatar_url FROM users WHERE id = $1', [req.user.id]);
+    const user = await queryOne('SELECT username, avatar_url, display_name FROM users WHERE id = $1', [req.user.id]);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    const cleanBio = sanitizeText(bio || '', 300);
+    const cleanDisplayName = display_name ? sanitizeText(display_name, 50) : user.display_name;
     const newAvatarUrl = await uploadAvatar(avatar_url, user.avatar_url, user.username);
 
     await execute(
-      'UPDATE users SET bio = $1, avatar_url = $2 WHERE id = $3',
-      [bio, newAvatarUrl || user.avatar_url, req.user.id]
+      'UPDATE users SET bio = $1, avatar_url = $2, display_name = $3 WHERE id = $4',
+      [cleanBio, newAvatarUrl || user.avatar_url, cleanDisplayName || user.username, req.user.id]
     );
-    res.json({ message: 'Profile updated successfully', avatar_url: newAvatarUrl || user.avatar_url });
+
+    res.json({
+      message: 'Profile updated successfully',
+      avatar_url: newAvatarUrl || user.avatar_url,
+      bio: cleanBio,
+      display_name: cleanDisplayName || user.username
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Update profile error:', error);
+    res.status(400).json({ error: error.message || 'Failed to update profile' });
   }
 });
 
@@ -754,9 +955,10 @@ app.get('/api/tv/top-rated', async (req, res) => {
 });
 
 // Multi Search (searches movies, TV shows, and local users)
-app.get('/api/movies/search', async (req, res) => {
+app.get('/api/movies/search', searchRateLimiter, async (req, res) => {
   try {
-    const queryStr = req.query.query || '';
+    const rawQuery = req.query.query || '';
+    const queryStr = sanitizeText(rawQuery, 100);
     let tmdbData = { results: [] };
     
     if (queryStr) {
@@ -922,7 +1124,7 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
     return res.status(400).json({ error: 'Movie ID and rating are required' });
   }
 
-  const cleanReviewText = review_text ? review_text.trim() : '';
+  const cleanReviewText = sanitizeText(review_text || '', 5000);
   const hasText = cleanReviewText.length > 0;
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -1162,14 +1364,15 @@ app.post('/api/reviews/:id/comments', authenticateToken, async (req, res) => {
   const reviewId = req.params.id;
   const userId = req.user.id;
   const { comment_text } = req.body;
-  if (!comment_text || !comment_text.trim()) {
+  const cleanComment = sanitizeText(comment_text || '', 1000);
+  if (!cleanComment) {
     return res.status(400).json({ error: 'Comment text is required' });
   }
   try {
     const commentId = 'cm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
     await execute(
       'INSERT INTO review_comments (id, review_id, user_id, comment_text) VALUES ($1, $2, $3, $4)',
-      [commentId, reviewId, userId, comment_text.trim()]
+      [commentId, reviewId, userId, cleanComment]
     );
     const newComment = await queryOne(
       `SELECT c.*, u.username, u.avatar_url 
@@ -1855,9 +2058,10 @@ app.get('/api/social/ticker', async (req, res) => {
 });
 
 // AI Cinephile Director Assistant Endpoint (Powered by Google Gemini AI)
-app.post('/api/ai/recommend', async (req, res) => {
+app.post('/api/ai/recommend', aiRateLimiter, async (req, res) => {
   const { prompt, genre, vibe } = req.body || {};
-  const searchQuery = prompt || vibe || genre || 'masterpiece';
+  const rawQuery = prompt || vibe || genre || 'masterpiece';
+  const searchQuery = sanitizeText(rawQuery, 200);
 
   try {
     const apiKey = process.env.GEMINI_API_KEY || GEMINI_API_KEY;
