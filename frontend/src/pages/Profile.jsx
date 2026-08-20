@@ -25,10 +25,10 @@ function PolaroidCard({ movieId, angle, initialMovie }) {
   return (
     <div
       className="polaroid-container relative transform transition-transform hover:scale-105 duration-300 select-none cursor-pointer"
-      style={{ transform: `rotate(${angle}deg)` }}
+      style={{ transform: `rotate(${angle * 0.5}deg)` }}
     >
       <Link to={`/media/${movie.media_type || 'movie'}/${movie.id}`}>
-        <div className="aspect-square w-full overflow-hidden rounded-lg border border-white/10 mb-2.5 bg-black shadow-inner">
+        <div className="aspect-square w-full overflow-hidden rounded-xl border border-white/10 mb-2 bg-black shadow-inner">
           <img
             src={getPosterUrl(movie.poster_path, 'w300')}
             alt={movie.title || movie.name}
@@ -36,7 +36,7 @@ function PolaroidCard({ movieId, angle, initialMovie }) {
             loading="lazy"
           />
         </div>
-        <p className="font-display text-[11px] font-bold text-slate-200 truncate text-center">
+        <p className="font-display text-[10px] sm:text-[11px] font-bold text-slate-200 truncate text-center">
           {movie.title || movie.name}
         </p>
       </Link>
@@ -175,14 +175,57 @@ export default function Profile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setEditError('Image size should be less than 2MB');
+    if (file.size > 15 * 1024 * 1024) {
+      setEditError('Photo is too large (max 15MB). Please choose a smaller image.');
       return;
     }
 
+    setEditError('');
+
+    // Automatic Client-Side Auto-Resize & Compression via Canvas
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setEditAvatar(reader.result);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 512; // High-definition 512x512 avatar
+        let width = img.width;
+        let height = img.height;
+
+        // Center square crop & scale down
+        const minDim = Math.min(width, height);
+        const startX = (width - minDim) / 2;
+        const startY = (height - minDim) / 2;
+
+        canvas.width = Math.min(minDim, MAX_SIZE);
+        canvas.height = Math.min(minDim, MAX_SIZE);
+
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(
+          img,
+          startX,
+          startY,
+          minDim,
+          minDim,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+        // Convert to high-quality compressed WebP/JPEG data URL (~50kb-100kb)
+        const compressedDataUrl = canvas.toDataURL('image/webp', 0.88);
+        setEditAvatar(compressedDataUrl);
+      };
+      img.onerror = () => {
+        setEditError('Could not process image file.');
+      };
+      img.src = event.target.result;
+    };
+    reader.onerror = () => {
+      setEditError('Failed to read image file.');
     };
     reader.readAsDataURL(file);
   };
@@ -344,58 +387,72 @@ export default function Profile() {
     <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-8 md:space-y-10">
       
       {/* ================= PROFILE HEADER BENTO CARD ================= */}
-      <div className="border border-white/8 bg-gradient-to-br from-[#121216] via-[#0d0d12] to-[#08080a] p-6 md:p-8 flex flex-col lg:flex-row items-center lg:items-start gap-6 md:gap-8 rounded-3xl shadow-2xl relative overflow-hidden">
+      <div className="border border-white/8 bg-gradient-to-br from-[#121216] via-[#0d0d12] to-[#08080a] p-4.5 sm:p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden space-y-5 lg:space-y-0 lg:flex lg:items-start lg:gap-8">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#e50914]/5 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Avatar */}
-        <div className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 border-2 border-[#e50914]/40 rounded-3xl overflow-hidden bg-black shadow-2xl relative z-10">
-          <Avatar username={profileUser.username} url={profileUser.avatar_url} className="w-full h-full" />
+        {/* Mobile Top Row: Avatar + Name + Tag + Member Since */}
+        <div className="flex items-center gap-4 sm:gap-5 lg:block lg:shrink-0 relative z-10">
+          <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 border-2 border-[#e50914]/50 rounded-2xl sm:rounded-3xl overflow-hidden bg-black shadow-xl ring-4 ring-[#e50914]/10">
+            <Avatar username={profileUser.username} url={profileUser.avatar_url} className="w-full h-full" />
+          </div>
+
+          <div className="min-w-0 flex-1 lg:hidden text-left space-y-1">
+            <h1 className="text-lg sm:text-xl font-display font-black text-white truncate">
+              {profileUser.display_name || profileUser.username}
+            </h1>
+            <span className="inline-block text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30">
+              @{profileUser.username}
+            </span>
+            <p className="text-[9px] font-mono text-slate-500 pt-0.5">
+              JOINED {new Date(profileUser.created_at).toLocaleDateString()}
+            </p>
+          </div>
         </div>
 
-        {/* User Identity & Stats */}
-        <div className="flex-1 text-center lg:text-left space-y-4 w-full relative z-10">
-          <div>
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-black text-white">
+        {/* User Identity & Stats & Bio */}
+        <div className="flex-1 space-y-4 w-full relative z-10 text-left">
+          {/* Desktop Only Name & Tag */}
+          <div className="hidden lg:block">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl md:text-3xl font-display font-black text-white">
                 {profileUser.display_name || profileUser.username}
               </h1>
-              <span className="text-xs font-mono font-bold px-3 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30 shadow-[0_0_10px_rgba(229,9,20,0.2)]">
+              <span className="text-xs font-mono font-bold px-3 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30">
                 @{profileUser.username}
               </span>
             </div>
-
-            {/* Responsive 4-Stat Metric Pill Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-3.5">
-              <div className="bg-white/5 border border-white/8 p-3 rounded-2xl text-center">
-                <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">Watch Time</span>
-                <span className="font-mono font-black text-base text-[#ffb800]">{hoursWasted.toFixed(0)}h</span>
-              </div>
-              <div className="bg-white/5 border border-white/8 p-3 rounded-2xl text-center">
-                <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">Films</span>
-                <span className="font-mono font-black text-base text-[#e50914]">{uniqueDiary.length}</span>
-              </div>
-              <div className="bg-white/5 border border-white/8 p-3 rounded-2xl text-center">
-                <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">Reviews</span>
-                <span className="font-mono font-black text-base text-[#ff2e3b]">{stats?.reviews || 0}</span>
-              </div>
-              <div className="bg-white/5 border border-white/8 p-3 rounded-2xl text-center">
-                <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">Followers</span>
-                <span className="font-mono font-black text-base text-amber-400">{stats?.followers || 0}</span>
-              </div>
-            </div>
-
-            <p className="text-[10px] font-mono text-slate-500 mt-2.5">
+            <p className="text-[10px] font-mono text-slate-500 mt-1">
               MEMBER SINCE {new Date(profileUser.created_at).toLocaleDateString()}
             </p>
           </div>
 
           {/* Bio */}
-          <p className="text-xs md:text-sm text-slate-300 max-w-xl leading-relaxed border-l-2 border-[#e50914] pl-3.5 italic mx-auto lg:mx-0 text-left">
+          <p className="text-xs md:text-sm text-slate-300 leading-relaxed border-l-2 border-[#e50914] pl-3 italic bg-black/25 py-2 pr-3 rounded-r-lg">
             "{profileUser.bio || 'Cinephile exploring cinema timelines.'}"
           </p>
 
+          {/* Responsive 4-Stat Metric Pill Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+            <div className="bg-white/5 border border-white/8 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-center">
+              <span className="text-[9px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold">Watch Time</span>
+              <span className="font-mono font-black text-sm sm:text-base text-[#ffb800]">{hoursWasted.toFixed(0)}h</span>
+            </div>
+            <div className="bg-white/5 border border-white/8 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-center">
+              <span className="text-[9px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold">Films</span>
+              <span className="font-mono font-black text-sm sm:text-base text-[#e50914]">{uniqueDiary.length}</span>
+            </div>
+            <div className="bg-white/5 border border-white/8 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-center">
+              <span className="text-[9px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold">Reviews</span>
+              <span className="font-mono font-black text-sm sm:text-base text-[#ff2e3b]">{stats?.reviews || 0}</span>
+            </div>
+            <div className="bg-white/5 border border-white/8 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-center">
+              <span className="text-[9px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold">Followers</span>
+              <span className="font-mono font-black text-sm sm:text-base text-amber-400">{stats?.followers || 0}</span>
+            </div>
+          </div>
+
           {/* Actions */}
-          <div className="flex gap-2.5 flex-wrap justify-center lg:justify-start pt-1">
+          <div className="flex gap-2 sm:gap-2.5 flex-wrap pt-1">
             {!isOwnProfile && currentUser && (
               <button
                 onClick={() => followMutation.mutate()}
@@ -423,12 +480,12 @@ export default function Profile() {
         </div>
 
         {/* Rating Distribution Histogram Bento Card */}
-        <div className="border border-white/8 bg-black/40 p-4.5 rounded-2xl w-full lg:w-64 space-y-3 shrink-0 shadow-lg relative z-10">
-          <span className="text-[11px] font-mono font-bold text-[#e50914] uppercase block border-b border-white/8 pb-2 text-center lg:text-left">
+        <div className="border border-white/8 bg-black/40 p-3.5 sm:p-4 rounded-2xl w-full lg:w-60 space-y-2 sm:space-y-3 shrink-0 shadow-lg relative z-10">
+          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-[#e50914] uppercase block border-b border-white/8 pb-1.5">
             Rating Distribution
           </span>
 
-          <div className="flex items-end justify-between h-24 gap-2 pt-2 px-1">
+          <div className="flex items-end justify-between h-20 sm:h-24 gap-1.5 sm:gap-2 pt-1 px-1">
             {[1, 2, 3, 4, 5].map((star) => {
               const count = distMap[star] || 0;
               const heightPct = Math.max(12, Math.round((count / maxCount) * 100));
@@ -453,24 +510,24 @@ export default function Profile() {
           Cinephile Badges & Milestones
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           {badges.map((b) => {
             const Icon = b.icon;
             return (
               <div
                 key={b.title}
-                className={`p-3.5 border rounded-2xl flex items-center gap-3 transition-all ${
+                className={`p-3 sm:p-3.5 border rounded-2xl flex items-center gap-2.5 sm:gap-3 transition-all ${
                   b.unlocked
                     ? 'bg-[#121216] border-[#e50914]/30 text-slate-100 shadow-[0_0_15px_rgba(229,9,20,0.15)]'
                     : 'bg-[#08080a] border-white/5 text-slate-500 opacity-40'
                 }`}
               >
-                <div className={`p-2.5 rounded-xl border shrink-0 ${b.unlocked ? 'bg-[#e50914]/15 text-[#ff4d5a] border-[#e50914]/30' : 'bg-black/30 border-white/5'}`}>
-                  <Icon className="w-4 h-4" />
+                <div className={`p-2 sm:p-2.5 rounded-xl border shrink-0 ${b.unlocked ? 'bg-[#e50914]/15 text-[#ff4d5a] border-[#e50914]/30' : 'bg-black/30 border-white/5'}`}>
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-display font-bold text-xs block truncate">{b.title}</span>
-                  <span className="font-mono text-[10px] text-slate-400 block truncate">{b.desc}</span>
+                  <span className="font-display font-bold text-[11px] sm:text-xs block truncate">{b.title}</span>
+                  <span className="font-mono text-[9px] sm:text-[10px] text-slate-400 block truncate">{b.desc}</span>
                 </div>
               </div>
             );
@@ -484,7 +541,7 @@ export default function Profile() {
           <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
             Pinned Reel Discoveries
           </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5 sm:gap-5 pt-1">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-4 pt-1">
             {topMovieIds.map((mId, idx) => (
               <PolaroidCard key={mId} movieId={mId} angle={rotations[idx % rotations.length]} />
             ))}
@@ -494,7 +551,7 @@ export default function Profile() {
 
       {/* ================= SLIDING PILL TABS BAR WITH TRANSPARENT GLASSSURFACE ================= */}
       <GlassSurface
-        width="auto"
+        width="100%"
         height="auto"
         borderRadius={20}
         backgroundOpacity={0.05}
@@ -502,10 +559,10 @@ export default function Profile() {
         borderOpacity={0.12}
         className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)] w-full sm:w-fit"
       >
-        <div className="flex select-none overflow-x-auto gap-1.5 scrollbar-none">
+        <div className="flex select-none overflow-x-auto gap-1 sm:gap-1.5 scrollbar-none py-0.5 px-0.5">
           <button
             onClick={() => setActiveTab('diary')}
-            className={`px-4 py-2 font-display font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
               activeTab === 'diary' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -514,7 +571,7 @@ export default function Profile() {
           </button>
           <button
             onClick={() => setActiveTab('reviews')}
-            className={`px-4 py-2 font-display font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
               activeTab === 'reviews' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -523,7 +580,7 @@ export default function Profile() {
           </button>
           <button
             onClick={() => setActiveTab('lists')}
-            className={`px-4 py-2 font-display font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
               activeTab === 'lists' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -533,7 +590,7 @@ export default function Profile() {
           {isOwnProfile && (
             <button
               onClick={() => setActiveTab('watchlist')}
-              className={`px-4 py-2 font-display font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
                 activeTab === 'watchlist' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -682,7 +739,7 @@ export default function Profile() {
                 Your watchlist is currently empty.
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5 sm:gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-4">
                 {watchlist.map((item) => (
                   <WatchlistCard key={item.tmdb_movie_id} movieId={item.tmdb_movie_id} />
                 ))}

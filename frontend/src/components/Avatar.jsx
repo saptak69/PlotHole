@@ -1,22 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { API_URL } from '../config';
 
 /**
  * Avatar Component
  * Luxury circular avatar with refined cinema palette fallback and custom image support.
  */
 export default function Avatar({ username, url, className = "w-8 h-8" }) {
+  const [imageError, setImageError] = useState(false);
   const firstLetter = username ? username.trim().charAt(0).toUpperCase() : '?';
   
-  // If url is set and is NOT a dicebear URL (premade avatar), we use it.
-  const hasCustomAvatar = url && !url.includes('dicebear.com') && !url.includes('placeholder') && url.trim().length > 0;
+  // Resolve relative /uploads paths
+  const resolvedUrl = url && url.startsWith('/uploads')
+    ? `${API_URL.replace('/api', '')}${url}`
+    : url;
+
+  // Check if url is a valid custom avatar
+  const hasCustomAvatar = resolvedUrl && 
+    !imageError &&
+    !resolvedUrl.includes('dicebear.com') && 
+    !resolvedUrl.includes('placeholder') && 
+    resolvedUrl.trim().length > 0;
 
   const bgGradient = username ? stringToGradient(username) : 'from-[#e50914] to-[#ffb800]';
 
   if (hasCustomAvatar) {
     return (
       <img
-        src={url}
+        src={resolvedUrl}
         alt={username}
+        onError={() => setImageError(true)}
         className={`${className} object-cover shrink-0 rounded-full border border-white/20 shadow-md`}
       />
     );

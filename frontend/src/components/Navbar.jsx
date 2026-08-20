@@ -1,16 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Users, FolderPlus, LogOut, Home, User, Compass } from 'lucide-react';
+import { Search, Users, FolderPlus, LogOut, Home, User, Compass, X, Film, Sparkles, TrendingUp, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL, getPosterUrl } from '../config';
 import Avatar from './Avatar';
 import Logo from './Logo';
 import GlassSurface from './GlassSurface';
+import RatingBadge from './RatingBadge';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [liveResults, setLiveResults] = useState([]);
+  const [isLiveLoading, setIsLiveLoading] = useState(false);
   const searchInputRef = useRef(null);
+  const modalInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -39,12 +45,53 @@ export default function Navbar() {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        searchInputRef.current?.focus();
+        setIsSearchModalOpen(true);
+      }
+      if (e.key === 'Escape') {
+        setIsSearchModalOpen(false);
+        setIsOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Autofocus search modal input when opened
+  useEffect(() => {
+    if (isSearchModalOpen) {
+      setTimeout(() => {
+        modalInputRef.current?.focus();
+      }, 100);
+    } else {
+      setLiveResults([]);
+    }
+  }, [isSearchModalOpen]);
+
+  // Live search debounced fetch
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setLiveResults([]);
+      setIsLiveLoading(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsLiveLoading(true);
+      try {
+        const res = await fetch(`${API_URL}/movies/search?query=${encodeURIComponent(searchQuery.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          setLiveResults((data.results || []).slice(0, 6));
+        }
+      } catch (err) {
+        console.error('Live search error:', err);
+      } finally {
+        setIsLiveLoading(false);
+      }
+    }, 220);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -52,10 +99,18 @@ export default function Navbar() {
     navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     setSearchQuery('');
     setIsOpen(false);
+    setIsSearchModalOpen(false);
+  };
+
+  const handleQuickTagClick = (tag) => {
+    navigate(`/search?q=${encodeURIComponent(tag)}`);
+    setSearchQuery('');
+    setIsSearchModalOpen(false);
   };
 
   const handleLinkClick = () => {
     setIsOpen(false);
+    setIsSearchModalOpen(false);
   };
 
   const isActive = (path) => {
@@ -133,6 +188,15 @@ export default function Navbar() {
 
           {/* Column 3: Right Search & Actions (Right-Aligned in its Column) */}
           <div className="flex items-center justify-end gap-2 sm:gap-2.5">
+            {/* Mobile Header Quick Search Button */}
+            <button
+              onClick={() => setIsSearchModalOpen(true)}
+              className="flex sm:hidden items-center justify-center p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 shadow-sm transition-all cursor-pointer"
+              aria-label="Open Search Vault"
+            >
+              <Search className="w-4 h-4 text-[#e50914]" />
+            </button>
+
             {/* Universal Search Bar (Desktop & Tablet) */}
             <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
               <input
@@ -141,6 +205,7 @@ export default function Navbar() {
                 placeholder="Search films, critics..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchModalOpen(true)}
                 className="w-32 sm:w-36 md:w-36 lg:w-48 xl:w-56 bg-white/5 hover:bg-white/8 focus:bg-black/80 focus:w-44 lg:focus:w-64 text-white placeholder-slate-400 text-xs font-mono font-medium rounded-full pl-8 pr-3 py-1.5 border border-white/10 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all outline-none"
               />
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -214,18 +279,18 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Floating Bottom Dock with Transparent Liquid GlassSurface */}
+      {/* Mobile Floating Bottom Dock with Symmetrical 5-Item Liquid GlassSurface */}
       <div className="md:hidden fixed bottom-3 inset-x-3 z-50">
         <GlassSurface
           width="100%"
           height="auto"
           borderRadius={24}
-          backgroundOpacity={0.05}
+          backgroundOpacity={0.06}
           blur={14}
           borderOpacity={0.14}
           className="glass-surface--dock shadow-[0_12px_45px_rgba(0,0,0,0.95),0_0_20px_rgba(229,9,20,0.1)] p-1"
         >
-          <div className="flex items-center justify-around w-full py-1 px-1 gap-1">
+          <div className="flex items-center justify-around w-full py-1 px-0.5 gap-0.5">
             <Link
               to="/"
               className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
@@ -235,8 +300,20 @@ export default function Navbar() {
               }`}
             >
               <Compass className="w-4 h-4" />
-              <span className="text-[10px] font-display font-black uppercase tracking-wider mt-0.5">Discover</span>
+              <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Discover</span>
             </Link>
+
+            <button
+              onClick={() => setIsSearchModalOpen(true)}
+              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all cursor-pointer ${
+                isActive('/search') || isSearchModalOpen
+                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_12px_rgba(229,9,20,0.4)]'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Search className="w-4 h-4" />
+              <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Search</span>
+            </button>
 
             <Link
               to="/social"
@@ -247,7 +324,7 @@ export default function Navbar() {
               }`}
             >
               <Users className="w-4 h-4" />
-              <span className="text-[10px] font-display font-black uppercase tracking-wider mt-0.5">Community</span>
+              <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Feed</span>
             </Link>
 
             <Link
@@ -259,7 +336,7 @@ export default function Navbar() {
               }`}
             >
               <FolderPlus className="w-4 h-4" />
-              <span className="text-[10px] font-display font-black uppercase tracking-wider mt-0.5">Lists</span>
+              <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Lists</span>
             </Link>
 
             {user ? (
@@ -272,7 +349,7 @@ export default function Navbar() {
                 }`}
               >
                 <User className="w-4 h-4" />
-                <span className="text-[10px] font-display font-black uppercase tracking-wider mt-0.5">Profile</span>
+                <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Vault</span>
               </Link>
             ) : (
               <Link
@@ -280,12 +357,175 @@ export default function Navbar() {
                 className="flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl text-slate-300 hover:text-white hover:bg-white/5"
               >
                 <User className="w-4 h-4" />
-                <span className="text-[10px] font-display font-black uppercase tracking-wider mt-0.5">Sign In</span>
+                <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Sign In</span>
               </Link>
             )}
           </div>
         </GlassSurface>
       </div>
+
+      {/* Quick Search Overlay Modal (Universal & Mobile Responsive) */}
+      {isSearchModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 sm:pt-20 px-3 sm:px-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-200">
+          <div
+            className="w-full max-w-2xl bg-[#0e0e12]/95 border border-white/12 rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(229,9,20,0.18)] overflow-hidden text-left"
+            style={{ animation: 'fade-up 220ms cubic-bezier(0.16, 1, 0.3, 1) both' }}
+          >
+            {/* Search Input Bar */}
+            <form onSubmit={handleSearchSubmit} className="relative p-3.5 sm:p-4 border-b border-white/8 flex items-center gap-3">
+              <Search className="w-5 h-5 text-[#e50914] shrink-0" />
+              <input
+                ref={modalInputRef}
+                type="text"
+                placeholder="Search films, series, directors, critics..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent text-white placeholder-slate-400 font-sans text-sm sm:text-base outline-none pr-8"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsSearchModalOpen(false)}
+                className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </form>
+
+            {/* Modal Body */}
+            <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto space-y-5 scrollbar-none">
+              {/* Quick Trending Tags */}
+              {!searchQuery && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-[11px] font-mono font-bold uppercase text-slate-400">
+                    <TrendingUp className="w-3.5 h-3.5 text-[#ffb800]" />
+                    <span>Popular Searches</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {['Dune', 'Oppenheimer', 'Interstellar', 'Severance', 'Christopher Nolan', 'Denis Villeneuve', 'Pure Cinema'].map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => handleQuickTagClick(tag)}
+                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-[#e50914]/20 border border-white/8 hover:border-[#e50914]/40 text-xs font-sans text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Sparkles className="w-3 h-3 text-[#e50914]" />
+                        <span>{tag}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Live Search Results */}
+              {isLiveLoading && (
+                <div className="p-6 text-center text-xs font-mono text-slate-400 animate-pulse">
+                  SEARCHING VAULT ARCHIVES...
+                </div>
+              )}
+
+              {!isLiveLoading && liveResults.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block pb-1">
+                    Instant Matches ({liveResults.length})
+                  </span>
+                  <div className="space-y-1.5">
+                    {liveResults.map((item) => (
+                      item.media_type === 'user' ? (
+                        <Link
+                          key={`user-${item.id}`}
+                          to={`/profile/${item.username}`}
+                          onClick={handleLinkClick}
+                          className="flex items-center justify-between p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/6 transition-all"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Avatar username={item.username} url={item.avatar_url} className="w-9 h-9" />
+                            <div className="min-w-0">
+                              <span className="font-display font-bold text-sm text-white block truncate">
+                                @{item.username}
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-400 truncate block">
+                                Critic Profile
+                              </span>
+                            </div>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-slate-500" />
+                        </Link>
+                      ) : (
+                        <Link
+                          key={`movie-${item.id}`}
+                          to={`/media/${item.media_type || 'movie'}/${item.id}`}
+                          onClick={handleLinkClick}
+                          className="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/6 transition-all"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-14 rounded-lg overflow-hidden bg-black shrink-0 border border-white/10">
+                              <img
+                                src={getPosterUrl(item.poster_path, 'w92')}
+                                alt={item.title || item.name}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                            <div className="min-w-0 space-y-0.5">
+                              <p className="font-display font-bold text-sm text-white truncate">
+                                {item.title || item.name}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-mono text-slate-400 uppercase">
+                                  {item.media_type === 'tv' ? 'Series' : 'Film'}
+                                </span>
+                                {(item.release_date || item.first_air_date) && (
+                                  <span className="text-[10px] font-mono text-slate-500">
+                                    {(item.release_date || item.first_air_date).substring(0, 4)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          {item.vote_average > 0 && (
+                            <RatingBadge rating={Math.round(item.vote_average / 2)} size="xs" />
+                          )}
+                        </Link>
+                      )
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={handleSearchSubmit}
+                    className="w-full py-2.5 mt-2 rounded-xl bg-[#e50914]/20 hover:bg-[#e50914]/30 border border-[#e50914]/40 text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <span>View All Results for "{searchQuery}"</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {!isLiveLoading && searchQuery && liveResults.length === 0 && (
+                <div className="p-8 text-center text-slate-400 space-y-2">
+                  <p className="text-sm font-display font-bold text-slate-200">No instant preview found</p>
+                  <p className="text-xs font-sans text-slate-400">Press Enter to perform a full database search for "{searchQuery}".</p>
+                  <button
+                    onClick={handleSearchSubmit}
+                    className="btn-primary py-2 px-5 text-xs font-bold font-mono mt-2"
+                  >
+                    Run Full Search
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
+

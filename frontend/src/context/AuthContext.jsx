@@ -89,12 +89,17 @@ export function AuthProvider({ children }) {
       throw new Error('Your session has expired. Please sign in again.');
     }
 
+    const data = await res.json();
+
     if (!res.ok) {
-      const data = await res.json();
       throw new Error(data.error || 'Failed to update profile');
     }
 
-    setUser((prev) => ({ ...prev, bio, avatar_url: avatarUrl }));
+    const updatedAvatar = data.avatar_url || avatarUrl;
+    const updatedBio = data.bio !== undefined ? data.bio : bio;
+
+    setUser((prev) => (prev ? { ...prev, bio: updatedBio, avatar_url: updatedAvatar } : prev));
+    return data;
   };
 
   const value = {
