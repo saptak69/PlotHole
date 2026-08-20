@@ -384,7 +384,7 @@ export default function Profile() {
   ];
 
   return (
-    <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-8 md:space-y-10">
+    <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-8 md:space-y-10 pb-32 sm:pb-24">
       
       {/* ================= PROFILE HEADER BENTO CARD ================= */}
       <div className="border border-white/8 bg-gradient-to-br from-[#121216] via-[#0d0d12] to-[#08080a] p-4.5 sm:p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden space-y-5 lg:space-y-0 lg:flex lg:items-start lg:gap-8">

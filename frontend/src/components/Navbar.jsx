@@ -280,7 +280,7 @@ export default function Navbar() {
       </header>
 
       {/* Mobile Floating Bottom Dock with Symmetrical 5-Item Liquid GlassSurface */}
-      <div className="md:hidden fixed bottom-3 inset-x-3 z-50">
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <GlassSurface
           width="100%"
           height="auto"
@@ -366,9 +366,9 @@ export default function Navbar() {
 
       {/* Quick Search Overlay Modal (Universal & Mobile Responsive) */}
       {isSearchModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 sm:pt-20 px-3 sm:px-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-20 px-3 sm:px-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-200">
           <div
-            className="w-full max-w-2xl bg-[#0e0e12]/95 border border-white/12 rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(229,9,20,0.18)] overflow-hidden text-left"
+            className="w-full max-w-2xl max-h-[85dvh] sm:max-h-[80vh] bg-[#0e0e12]/95 border border-white/12 rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(229,9,20,0.18)] overflow-hidden text-left flex flex-col"
             style={{ animation: 'fade-up 220ms cubic-bezier(0.16, 1, 0.3, 1) both' }}
           >
             {/* Search Input Bar */}
@@ -401,7 +401,7 @@ export default function Navbar() {
             </form>
 
             {/* Modal Body */}
-            <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto space-y-5 scrollbar-none">
+            <div className="p-4 sm:p-6 flex-1 overflow-y-auto space-y-5 scrollbar-none">
               {/* Quick Trending Tags */}
               {!searchQuery && (
                 <div className="space-y-3">

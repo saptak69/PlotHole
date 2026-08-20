@@ -42,7 +42,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center py-16 sm:py-24 px-4 sm:px-6 font-sans text-slate-100 relative min-h-[85vh] overflow-hidden">
+    <div className="flex-1 flex items-center justify-center py-16 sm:py-24 px-4 sm:px-6 font-sans text-slate-100 relative min-h-[85vh] overflow-hidden pb-32 sm:pb-24">
       <div className="relative z-10 w-full max-w-md">
         <GlassSurface
           width="100%"

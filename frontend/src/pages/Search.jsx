@@ -82,7 +82,7 @@ export default function Search() {
   });
 
   return (
-    <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-6 md:space-y-8">
+    <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-6 md:space-y-8 pb-32 sm:pb-24">
       {/* Search Header Banner */}
       <div className="space-y-4">
         <div className="flex items-center gap-3 border-b border-white/8 pb-4">
