@@ -82,7 +82,7 @@ export default function SocialFeed() {
   const activeFeed = feedMode === 'following' ? feed : globalReviews;
 
   return (
-    <div className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-6 md:space-y-8 pb-32 sm:pb-24">
+    <div className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-6 md:space-y-8">
       {/* Page Header & Feed Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/8 pb-4">
         <div>

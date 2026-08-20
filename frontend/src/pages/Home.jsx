@@ -70,7 +70,7 @@ export default function Home({ onOpenPerson }) {
   };
 
   return (
-    <div className="flex-1 pb-32 sm:pb-24 font-sans text-slate-100 relative overflow-hidden">
+    <div className="flex-1 pb-24 font-sans text-slate-100 relative overflow-hidden">
 
       {/* Symmetrical Hero Slideshow Showcase */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-6 pb-8 md:pb-10 space-y-4 relative z-10">
@@ -102,7 +102,7 @@ export default function Home({ onOpenPerson }) {
             </div>
           </div>
         ) : (
-          <div className="aspect-[4/3] sm:aspect-[16/8] md:aspect-[21/9] w-full rounded-3xl bg-white/5 border border-white/8 skeleton-shimmer" />
+          <div className="aspect-[21/9] w-full rounded-3xl bg-white/5 border border-white/8 skeleton-shimmer" />
         )}
       </div>
 
@@ -186,7 +186,7 @@ export default function Home({ onOpenPerson }) {
           <div className="flex items-center justify-between border-b border-white/8 pb-3">
             <div className="flex items-center gap-2.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#e50914] shadow-[0_0_8px_#e50914]" />
-              <h2 className="font-display font-black text-base sm:text-xl md:text-2xl text-white">
+              <h2 className="font-display font-black text-xl sm:text-2xl text-white">
                 {selectedCategory === 'trending' && 'Trending Films Right Now'}
                 {selectedCategory === 'topRated' && 'All-Time Pure Cinema Classics'}
                 {selectedCategory === 'upcoming' && 'Anticipated Theatrical Releases'}

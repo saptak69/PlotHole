@@ -102,7 +102,7 @@ export default function ListsPage() {
   // Single List View
   if (id && listDetails) {
     return (
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 space-y-6 md:space-y-8 text-left font-sans pb-32 sm:pb-24">
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 space-y-6 md:space-y-8 text-left font-sans">
         <Link
           to={user ? `/profile/${listDetails.username}` : '/lists'}
           className="inline-flex items-center gap-2 font-mono text-xs font-bold text-slate-400 hover:text-[#ff2e3b] transition-colors uppercase"
@@ -132,7 +132,7 @@ export default function ListsPage() {
                     {listDetails.items?.length || 0} Titles
                   </span>
                 </div>
-                <h1 className="font-display font-black text-2xl sm:text-3xl md:text-5xl uppercase tracking-tight text-white">
+                <h1 className="font-display font-black text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight text-white">
                   {listDetails.title}
                 </h1>
                 <div className="flex items-center gap-3 mt-2.5 font-mono text-xs text-slate-300">
@@ -215,10 +215,10 @@ export default function ListsPage() {
 
   // General Lists Overview
   return (
-    <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 space-y-6 md:space-y-8 text-left font-sans pb-32 sm:pb-24">
+    <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 space-y-6 md:space-y-8 text-left font-sans">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/8 pb-5">
         <div>
-          <h1 className="font-display font-extrabold text-xl sm:text-2xl md:text-4xl text-white flex items-center gap-2.5">
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl text-white flex items-center gap-2.5">
             <FolderPlus className="w-6 h-6 sm:w-7 sm:h-7 text-[#e50914]" />
             <span>Custom Cinema Lists</span>
           </h1>

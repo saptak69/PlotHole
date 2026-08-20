@@ -206,7 +206,7 @@ export default function MovieDetails({ onOpenPerson }) {
   if (detailsLoading) {
     return (
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-8 space-y-6">
-        <div className="aspect-[4/3] sm:aspect-[16/8] md:aspect-[21/9] w-full rounded-3xl bg-white/5 border border-white/8 skeleton-shimmer" />
+        <div className="aspect-[21/9] w-full rounded-3xl bg-white/5 border border-white/8 skeleton-shimmer" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="aspect-[2/3] rounded-2xl bg-white/5 border border-white/8 skeleton-shimmer" />
           <div className="lg:col-span-2 space-y-4">
@@ -253,7 +253,7 @@ export default function MovieDetails({ onOpenPerson }) {
   const totalRatings = reviewsData.length;
 
   return (
-    <div className="flex-1 pb-32 sm:pb-24 font-sans text-slate-100 relative">
+    <div className="flex-1 pb-24 font-sans text-slate-100 relative">
       {/* ================= PANORAMIC TRAILER HERO HEADER ================= */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-4 sm:pt-6 pb-6 relative z-10">
         <TrailerHero
@@ -269,7 +269,7 @@ export default function MovieDetails({ onOpenPerson }) {
         {/* ================= FLOATING CINEMA ACTION BAR (WITH GLASSSURFACE) ================= */}
         <div className="p-4 sm:p-5 rounded-2xl border border-white/10 bg-[#121216]/90 backdrop-blur-xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3 w-full sm:w-auto justify-start">
-            <span className="font-display font-black text-base sm:text-lg md:text-xl text-white truncate">
+            <span className="font-display font-black text-lg sm:text-xl text-white">
               {displayTitle}
             </span>
             {displayYear && (
@@ -301,8 +301,7 @@ export default function MovieDetails({ onOpenPerson }) {
                   {watchedState?.watched ? (
                     <>
                       <Check className="w-3.5 h-3.5 stroke-[2.5] text-[#ff4d5a]" />
-                      <span className="hidden sm:inline">Watched</span>
-                      <span className="sm:hidden">✓</span>
+                      <span>Watched</span>
                     </>
                   ) : (
                     <>
@@ -461,11 +460,11 @@ export default function MovieDetails({ onOpenPerson }) {
               borderOpacity={0.12}
               className="shadow-[0_12px_36px_rgba(0,0,0,0.7),0_0_20px_rgba(229,9,20,0.04)]"
             >
-              <div className="p-4 md:p-8 space-y-3 text-left w-full">
+              <div className="p-6 md:p-8 space-y-3 text-left w-full">
                 <span className="text-xs font-mono font-black uppercase text-[#ff2e3b] tracking-widest block">
                   Storyline & Narrative
                 </span>
-                <h3 className="font-display font-black text-xl md:text-3xl uppercase tracking-tight text-white">
+                <h3 className="font-display font-black text-2xl md:text-3xl uppercase tracking-tight text-white">
                   Synopsis
                 </h3>
                 <p className="text-sm md:text-base text-slate-100 font-medium leading-relaxed font-sans pt-1">
@@ -613,7 +612,7 @@ export default function MovieDetails({ onOpenPerson }) {
                         <label className="font-mono text-slate-300 uppercase font-bold block text-[11px]">
                           Select Rating Score
                         </label>
-                        <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                        <div className="grid grid-cols-5 gap-2">
                           {RATING_TIERS.map((tier) => {
                             const TierIcon = tier.icon;
                             const isSelected = rating === tier.value;

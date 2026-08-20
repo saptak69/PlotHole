@@ -26,6 +26,10 @@ const GlassSurface = ({
   xChannel = 'R',
   yChannel = 'G',
   mixBlendMode = 'difference',
+  /** Controls the opacity of the 1‑px border. Defaults to 0.12 to preserve visual design. */
+  borderOpacity = 0.12,
+  /** When true, applies the existing frosted modal styling via the glass-surface--frosted class. */
+  frosted = false,
   className = '',
   style = {},
   ...rest
@@ -156,13 +160,19 @@ const GlassSurface = ({
     borderRadius: `${borderRadius}px`,
     '--glass-frost': backgroundOpacity,
     '--glass-saturation': saturation,
+    '--glass-border-opacity': borderOpacity,
     '--filter-id': `url(#${filterId})`
   };
 
   return (
     <div
       ref={containerRef}
-      className={`glass-surface ${svgSupported ? 'glass-surface--svg' : 'glass-surface--fallback'} ${className}`}
+      className={[
+        'glass-surface',
+        svgSupported ? 'glass-surface--svg' : 'glass-surface--fallback',
+        frosted && 'glass-surface--frosted',
+        className
+      ].filter(Boolean).join(' ')}
       style={containerStyle}
       {...rest}
     >
