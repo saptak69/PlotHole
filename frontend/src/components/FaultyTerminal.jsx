@@ -202,10 +202,9 @@ export default function FaultyTerminal({
   const ditherValue = useMemo(() => (typeof dither === 'boolean' ? (dither ? 1 : 0) : dither), [dither]);
 
   const handleMouseMove = useCallback((e) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+    if (typeof window === 'undefined') return;
+    const x = (e.clientX / (window.innerWidth || 1)) * 2 - 1;
+    const y = -((e.clientY / (window.innerHeight || 1)) * 2 - 1);
     mouseRef.current = { x, y };
   }, []);
 
@@ -345,13 +344,13 @@ export default function FaultyTerminal({
     };
 
     rafRef.current = requestAnimationFrame(update);
-    if (mouseReact) container.addEventListener('mousemove', handleMouseMove, { passive: true });
+    if (mouseReact) window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
     return () => {
       cancelAnimationFrame(rafRef.current);
       resizeObserver.disconnect();
       io.disconnect();
-      if (mouseReact) container.removeEventListener('mousemove', handleMouseMove);
+      if (mouseReact) window.removeEventListener('mousemove', handleMouseMove);
       gl.deleteBuffer(buffer);
       gl.deleteVertexArray(vao);
       gl.deleteProgram(program);

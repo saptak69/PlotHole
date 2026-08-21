@@ -1,23 +1,21 @@
+/* ============================================================
+   LIQUID OBSIDIAN FROSTED GLASS (DETERMINISTIC CSS GLASSMORPHISM)
+   ============================================================ */
 .glass-surface {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   border-radius: inherit;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, opacity 0.26s ease-out;
+  overflow: hidden;
   transform: translate3d(0, 0, 0);
   -webkit-transform: translate3d(0, 0, 0);
-}
-
-.glass-surface__filter {
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  z-index: -1;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              background 0.2s ease, 
+              border-color 0.2s ease, 
+              opacity 0.26s ease-out;
+  will-change: transform, backdrop-filter;
 }
 
 .glass-surface__content {
@@ -32,44 +30,38 @@
   z-index: 1;
 }
 
-/* 5% Frosted Obsidian Glass - SVG Displacement Mode */
-.glass-surface--svg {
-  background: rgba(14, 14, 18, var(--glass-frost, 0.05));
-  backdrop-filter: var(--filter-id, url(#glass-filter)) saturate(var(--glass-saturation, 1.2));
-  -webkit-backdrop-filter: saturate(var(--glass-saturation, 1.2));
-  border: 1px solid rgba(255, 255, 255, var(--glass-border-opacity, 0.12));
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.35),
-    0 12px 32px 0 rgba(0, 0, 0, 0.7),
-    0 0 15px 0 rgba(229, 9, 20, 0.04);
-}
-
-/* 5% Frosted Obsidian Glass - Fallback Mode */
+/* Liquid Obsidian Slabs & Navigation Rails (Default Mode) */
+.glass-surface--obsidian,
+.glass-surface--svg,
 .glass-surface--fallback {
-  background: rgba(14, 14, 18, var(--glass-frost, 0.05));
-  backdrop-filter: blur(12px) saturate(var(--glass-saturation, 1.35)) brightness(1.02);
-  -webkit-backdrop-filter: blur(12px) saturate(var(--glass-saturation, 1.35)) brightness(1.02);
+  background: rgba(14, 14, 18, var(--glass-frost, 0.55));
+  backdrop-filter: blur(var(--glass-blur, 14px)) saturate(var(--glass-saturation, 1.35)) brightness(var(--glass-brightness, 1.02));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 14px)) saturate(var(--glass-saturation, 1.35)) brightness(var(--glass-brightness, 1.02));
   border: 1px solid rgba(255, 255, 255, var(--glass-border-opacity, 0.12));
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.35),
-    0 12px 32px 0 rgba(0, 0, 0, 0.7),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.4),
+    0 8px 32px 0 rgba(0, 0, 0, 0.65),
     0 0 15px 0 rgba(229, 9, 20, 0.04);
 }
 
-/* Frosted Modal Variation (Login/Signup box) */
+/* Frosted Modal Variation (Login/Signup/Modals) */
 .glass-surface--frosted {
-  background: rgba(14, 14, 20, 0.72) !important;
-  backdrop-filter: blur(20px) saturate(1.5) brightness(1.04) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(1.04) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background: rgba(14, 14, 20, 0.75) !important;
+  backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.5) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.5) brightness(1.04) !important;
+  border: 1px solid rgba(255, 255, 255, var(--glass-border-opacity, 0.15)) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.18),
+    0 20px 50px 0 rgba(0, 0, 0, 0.85),
+    0 0 25px 0 rgba(229, 9, 20, 0.08) !important;
 }
 
+/* Mobile Floating Bottom Dock Glass */
 .glass-surface--dock {
-  background: rgba(12, 12, 16, 0.45);
-  backdrop-filter: blur(14px) saturate(1.5) brightness(1.03);
-  -webkit-backdrop-filter: blur(14px) saturate(1.5) brightness(1.03);
+  background: rgba(12, 12, 16, 0.55);
+  backdrop-filter: blur(16px) saturate(1.5) brightness(1.03);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5) brightness(1.03);
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.18),
